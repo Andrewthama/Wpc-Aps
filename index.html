@@ -10,6 +10,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS (xlsx) CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK Resmi untuk wpc-aps -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -238,7 +243,7 @@
                         <span class="text-sm font-semibold text-gray-500">Items</span>
                     </div>
                 </div>
-                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">⚠️</div>
+                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">⚠️️</div>
             </div>
 
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
@@ -847,7 +852,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIKA UTAMA WITH FIREBASE AND APPROVAL FLOW -->
+    <!-- SCRIPT LOGIKA UTAMA -->
     <script>
         // KONFIGURASI FIREBASE PROYEK
         const firebaseConfig = {
@@ -951,12 +956,7 @@
                     localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
                     localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
 
-                    renderTabel();
-                    renderDamaged();
-                    renderExpired();
-                    renderOpname();
-                    renderStatistik();
-
+                    renderSemuaTabel();
                     setIndikatorStatus('green', 'Terhubung ke Firebase Realtime');
                 }
             }, (error) => {
@@ -979,6 +979,14 @@
             }
         }
 
+        function renderSemuaTabel() {
+            renderTabel();
+            renderDamaged();
+            renderExpired();
+            renderOpname();
+            renderStatistik();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             inisialisasiAksesSesi();
             inisialisasiFirebaseListener();
@@ -987,11 +995,7 @@
             if (inputTgl) inputTgl.value = new Date().toISOString().slice(0,10);
 
             updateTampilanPengguna();
-            renderTabel();
-            renderDamaged();
-            renderExpired();
-            renderOpname();
-            renderStatistik();
+            renderSemuaTabel();
 
             const pDate = document.getElementById('print-date');
             if (pDate) {
@@ -1025,16 +1029,16 @@
             if (userDatabase[u] && userDatabase[u].password === p) {
                 currentAuthUser = userDatabase[u];
                 localStorage.setItem('wpc_auth', JSON.stringify(currentAuthUser));
+                
+                const screen = document.getElementById('modal-login-screen');
+                if (screen) screen.classList.add('hidden');
+
                 const errMsg = document.getElementById('login-error-msg');
                 if (errMsg) errMsg.classList.add('hidden');
-                
+
                 inisialisasiAksesSesi();
                 updateTampilanPengguna();
-                renderTabel();
-                renderDamaged();
-                renderExpired();
-                renderOpname();
-                renderStatistik();
+                renderSemuaTabel();
             } else {
                 const errMsg = document.getElementById('login-error-msg');
                 if (errMsg) errMsg.classList.remove('hidden');
@@ -1182,7 +1186,7 @@
             });
         }
 
-        // ================= FITUR 1: HAPUS JADWAL PER BARIS (DELETE) =================
+        // HAPUS JADWAL KEBERSIHAN
         function hapusJadwalBaris(id) {
             const isSupervisor = userAktif === 'Supervisor';
             if (!isSupervisor) {
@@ -1198,7 +1202,7 @@
             }
         }
 
-        // ================= FITUR 2: VERIFIKASI KEBERSIHAN SUPERVISOR =================
+        // VERIFIKASI KEBERSIHAN SUPERVISOR
         function bukaModalApprovalKebersihan(id) {
             const isSupervisor = userAktif === 'Supervisor';
             if (!isSupervisor) {
@@ -1248,7 +1252,7 @@
                     item.status = 'Selesai';
                 } else {
                     item.status = 'Belum';
-                    item.foto = null; // Reset foto jika ditolak/diminta ulang
+                    item.foto = null;
                     alert('Hasil pengerjaan kebersihan ditolak. Status dikembalikan ke "Belum".');
                 }
 
@@ -1259,7 +1263,7 @@
             }
         }
 
-        // ================= SISTEM VERIFIKASI / APPROVAL DAMAGED & EXPIRED =================
+        // SISTEM VERIFIKASI / APPROVAL DAMAGED & EXPIRED
         function bukaModalApproval(id, type) {
             const isSupervisor = userAktif === 'Supervisor';
             if (!isSupervisor) {
@@ -2132,7 +2136,7 @@
             document.body.removeChild(link);
         }
 
-        // RENDER TABEL JADWAL KEBERSIHAN (SUDAH DENGAN TOMBOL DELETE PER BARIS & VERIFIKASI SUPERVISOR)
+        // RENDER TABEL JADWAL KEBERSIHAN
         function renderTabel() {
             const tbody = document.getElementById('tabel-jadwal');
             if (!tbody) return;
@@ -2151,7 +2155,6 @@
                 const isSupervisor = userAktif === 'Supervisor';
                 const isMyTask = item.pic === userAktif;
 
-                // Tampilan Badge Status Kebersihan
                 let badgeStatus = '';
                 if (item.status === 'Selesai') {
                     badgeStatus = `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">Selesai ✅</span>`;
@@ -2161,16 +2164,13 @@
                     badgeStatus = `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum</span>`;
                 }
 
-                // Tampilan Foto Bukti
                 let fotoElement = item.foto 
                     ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200">📷 Lihat Foto</button>`
                     : `<span class="text-xs text-gray-400 italic">Belum Ada</span>`;
 
-                // Logika Tombol Aksi & Verifikasi
                 let aksi = '';
                 
                 if (isSupervisor) {
-                    // Supervisor bisa melakukan Verifikasi jika staf sudah upload foto
                     if (item.foto && item.status !== 'Selesai') {
                         aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi</button>`;
                     } else if (item.status === 'Selesai') {
@@ -2179,10 +2179,8 @@
                         aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 text-white text-xs px-2.5 py-1 rounded font-semibold">Tandai Selesai</button>`;
                     }
 
-                    // Tambahkan Tombol Delete 🗑️ Khusus Supervisor di Masing-masing Baris
                     aksi += ` <button onclick="hapusJadwalBaris(${item.id})" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Jadwal Ini">🗑️</button>`;
                 } else {
-                    // Tampilan Aksi untuk Staf
                     if (isMyTask && item.status !== 'Selesai') {
                         aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold shadow-sm transition">${item.foto ? 'Ganti Foto' : 'Tandai Selesai'}</button>`;
                     } else if (item.status === 'Selesai') {
@@ -2270,11 +2268,10 @@
             const item = dataJadwal.find(i => i.id === idAktif);
             if (item) { 
                 item.foto = urlFotoSementara; 
-                // Jika pengunggah adalah Staf, status masuk ke 'Menunggu Verifikasi', jika Supervisor langsung 'Selesai'
                 if (userAktif === 'Supervisor') {
                     item.status = 'Selesai'; 
                 } else {
-                    item.status = 'Belum'; // Menunggu verifikasi
+                    item.status = 'Belum'; 
                 }
                 simpanKeStorage(); 
                 renderTabel(); 
