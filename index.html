@@ -85,7 +85,7 @@
                 <h1 class="text-lg md:text-xl font-bold tracking-wide leading-tight">Wpc-Aps</h1>
                 <p class="text-xs text-themeblue-100 flex items-center gap-1">
                     <span>Warehouse Performance & Coordination</span>
-                    <span id="sync-status-indicator" class="inline-block w-2 h-2 rounded-full bg-green-400 ml-1" title="Server Terhubung"></span>
+                    <span id="sync-status-indicator" class="inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1" title="Server Terhubung"></span>
                 </p>
             </div>
         </div>
@@ -416,7 +416,7 @@
                         <span>📊</span><span>Ekspor CSV</span>
                     </button>
                     <button onclick="resetDataExpired()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
-                        🗑️ Bersihkan Data Expired
+                        🗑️️ Bersihkan Data Expired
                     </button>
                     <button onclick="bukaModalExpired()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
                         <span>⏳ +</span><span>Input Opname Expired</span>
@@ -490,7 +490,7 @@
                 <h3 class="text-sm font-bold text-themeblue-900">Daftar Berkas Opname Daily Tersimpan</h3>
                 <div class="flex items-center gap-2">
                     <button onclick="resetDataOpname()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-1 rounded-lg text-xs font-semibold">
-                        🗑️ Bersihkan Arsip Opname
+                        🗑️️ Bersihkan Arsip Opname
                     </button>
                     <span id="stat-opname-count" class="text-xs font-bold bg-themeblue-100 text-themeblue-900 px-3 py-1 rounded-full">0 Berkas</span>
                 </div>
@@ -869,7 +869,6 @@
             localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
             localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
 
-            // Push Data Terbaru ke Server API Cloud
             try {
                 const payload = {
                     jadwal: dataJadwal,
@@ -889,54 +888,64 @@
                 });
                 
                 const ind = document.getElementById('sync-status-indicator');
-                if (ind) ind.className = 'inline-block w-2 h-2 rounded-full bg-green-400 ml-1';
+                if (ind) ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
             } catch (err) {
                 console.warn("Gagal terhubung ke Cloud Server API:", err);
                 const ind = document.getElementById('sync-status-indicator');
-                if (ind) ind.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 ml-1';
+                if (ind) ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1';
             }
         }
 
         async function tarikDataCloudServer() {
             try {
                 const response = await fetch(CLOUD_API_URL + "/latest", {
-                    headers: {
-                        'X-Master-Key': CLOUD_API_KEY
-                    }
+                    headers: { 'X-Master-Key': CLOUD_API_KEY }
                 });
                 if (response.ok) {
                     const result = await response.json();
                     if (result && result.record) {
-                        dataJadwal = result.record.jadwal || [];
-                        dataDamaged = result.record.damaged || [];
-                        dataExpired = result.record.expired || [];
-                        dataOpname = result.record.opname || [];
+                        const newJadwal = result.record.jadwal || [];
+                        const newDamaged = result.record.damaged || [];
+                        const newExpired = result.record.expired || [];
+                        const newOpname = result.record.opname || [];
+
+                        // Cek Perubahan Data untuk memicu Rerender Otomatis Realtime
+                        const isChanged = JSON.stringify(dataJadwal) !== JSON.stringify(newJadwal) ||
+                                          JSON.stringify(dataDamaged) !== JSON.stringify(newDamaged) ||
+                                          JSON.stringify(dataExpired) !== JSON.stringify(newExpired) ||
+                                          JSON.stringify(dataOpname) !== JSON.stringify(newOpname);
+
+                        dataJadwal = newJadwal;
+                        dataDamaged = newDamaged;
+                        dataExpired = newExpired;
+                        dataOpname = newOpname;
 
                         localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
                         localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
                         localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
                         localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
 
-                        renderTabel();
-                        renderDamaged();
-                        renderExpired();
-                        renderOpname();
-                        renderStatistik();
+                        if (isChanged) {
+                            renderTabel();
+                            renderDamaged();
+                            renderExpired();
+                            renderOpname();
+                            renderStatistik();
+                        }
 
                         const ind = document.getElementById('sync-status-indicator');
-                        if (ind) ind.className = 'inline-block w-2 h-2 rounded-full bg-green-400 ml-1';
+                        if (ind) ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
                     }
                 }
             } catch (e) {
                 console.warn("Pulling cloud data failed:", e);
                 const ind = document.getElementById('sync-status-indicator');
-                if (ind) ind.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 ml-1';
+                if (ind) ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1';
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             inisialisasiAksesSesi();
-            
             tarikDataCloudServer();
             setInterval(tarikDataCloudServer, 3000);
 
@@ -1273,7 +1282,7 @@
                 chartExpiredStatusInstance = new Chart(ctxExpStatus, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Expired ☣️', 'Near ED (≤30 Hari) ⚠️️', 'Aman ✅'],
+                        labels: ['Expired ☣️', 'Near ED (≤30 Hari) ⚠️', 'Aman ✅'],
                         datasets: [{ data: [alreadyCount, nearCount, safeCount], backgroundColor: ['#DC2626', '#D97706', '#059669'], borderWidth: 2 }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
@@ -2047,7 +2056,7 @@
                 tr.innerHTML = `
                     <td class="py-3 px-4 text-xs"><strong>${item.waktu}</strong> (${item.shift})</td>
                     <td class="py-3 px-4">${item.zona}</td>
-                    <td class="py-3 px-4 font-semibold">${item.pic}</td>
+                    <td class="py-3 px-4 font-semibold">${item.pic} ${item.pic === userAktif ? '👈 (Tugas Anda)' : ''}</td>
                     <td class="py-3 px-4">${fotoElement}</td>
                     <td class="py-3 px-4">${badgeStatus}</td>
                     <td class="py-3 px-4 no-print">${aksi}</td>
