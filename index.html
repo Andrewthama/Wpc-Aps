@@ -10,6 +10,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS (xlsx) CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK (Realtime Sync Antar-Perangkat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -85,7 +90,7 @@
                 <h1 class="text-lg md:text-xl font-bold tracking-wide leading-tight">Wpc-Aps</h1>
                 <p class="text-xs text-themeblue-100 flex items-center gap-1">
                     <span>Warehouse Performance & Coordination</span>
-                    <span id="sync-status-indicator" class="inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1" title="Server Terhubung"></span>
+                    <span id="sync-status-indicator" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1" title="Menghubungkan Server Cloud..."></span>
                 </p>
             </div>
         </div>
@@ -238,7 +243,7 @@
                         <span class="text-sm font-semibold text-gray-500">Items</span>
                     </div>
                 </div>
-                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">⚠️</div>
+                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">⚠️️</div>
             </div>
 
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
@@ -416,7 +421,7 @@
                         <span>📊</span><span>Ekspor CSV</span>
                     </button>
                     <button onclick="resetDataExpired()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
-                        🗑️️ Bersihkan Data Expired
+                        🗑️ Bersihkan Data Expired
                     </button>
                     <button onclick="bukaModalExpired()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
                         <span>⏳ +</span><span>Input Opname Expired</span>
@@ -490,7 +495,7 @@
                 <h3 class="text-sm font-bold text-themeblue-900">Daftar Berkas Opname Daily Tersimpan</h3>
                 <div class="flex items-center gap-2">
                     <button onclick="resetDataOpname()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-1 rounded-lg text-xs font-semibold">
-                        🗑️️ Bersihkan Arsip Opname
+                        🗑️ Bersihkan Arsip Opname
                     </button>
                     <span id="stat-opname-count" class="text-xs font-bold bg-themeblue-100 text-themeblue-900 px-3 py-1 rounded-full">0 Berkas</span>
                 </div>
@@ -806,11 +811,18 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIKA SERTA SERVER CLOUD API DENGAN AUTO-SYNC SINKRONISASI ASYNCHRONOUS -->
+    <!-- SCRIPT LOGIKA UTAMA & FIREBASE REALTIME DATABASE SYNC -->
     <script>
-        // ENDPOINT CLOUD REST SERVER TERPUSAT (AUTOMATIC SYNC FOR ALL USERS)
-        const CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66f81e36e41b4d34e4373eb2";
-        const CLOUD_API_KEY = "$2a$10$wS2W5N7Pz.NvhGvXU334d.3xU0M3CgUj5.M19LwK4O/O8N5eE2SKe";
+        // KONFIGURASI FIREBASE REALTIME PUBLIC CLOUD DATABASE
+        const firebaseConfig = {
+            databaseURL: "https://wpc-aps-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        // Inisialisasi Firebase App
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
 
         const userDatabase = {
             'supervisor': { password: 'admin123', name: 'Supervisor Gudang', role: 'Supervisor' },
@@ -845,10 +857,10 @@
             "Wahyu Agustian", "Yogi Karnisa"
         ];
 
-        let dataJadwal = JSON.parse(localStorage.getItem('wpc_data')) || [];
-        let dataDamaged = JSON.parse(localStorage.getItem('wpc_damaged')) || [];
-        let dataExpired = JSON.parse(localStorage.getItem('wpc_expired')) || [];
-        let dataOpname = JSON.parse(localStorage.getItem('wpc_opname')) || [];
+        let dataJadwal = [];
+        let dataDamaged = [];
+        let dataExpired = [];
+        let dataOpname = [];
         let currentAuthUser = JSON.parse(localStorage.getItem('wpc_auth')) || null;
         let userAktif = localStorage.getItem('wpc_user') || 'Supervisor';
 
@@ -862,92 +874,75 @@
         let chartExpiredStatusInstance = null;
         let chartTopExpiredInstance = null;
 
-        // FUNGSI UTAMA SINKRONISASI SERVER LINTAS PERANGKAT
-        async function simpanKeStorage() {
+        // FUNGSI SINKRONISASI REALTIME FIREBASE (LINTAS PERANGKAT DALAM HITUNGAN MILIDETIK)
+        function simpanKeStorage() {
             localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
             localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
             localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
             localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
 
-            try {
-                const payload = {
-                    jadwal: dataJadwal,
-                    damaged: dataDamaged,
-                    expired: dataExpired,
-                    opname: dataOpname,
-                    updatedAt: Date.now()
-                };
-
-                await fetch(CLOUD_API_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': CLOUD_API_KEY
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
+            // Push ke Firebase Cloud Database
+            db.ref('wpc_cloud_data').set({
+                jadwal: dataJadwal,
+                damaged: dataDamaged,
+                expired: dataExpired,
+                opname: dataOpname,
+                updatedAt: Date.now()
+            }).then(() => {
                 const ind = document.getElementById('sync-status-indicator');
-                if (ind) ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
-            } catch (err) {
-                console.warn("Gagal terhubung ke Cloud Server API:", err);
+                if (ind) {
+                    ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
+                    ind.title = 'Terhubung & Tersinkronisasi Realtime';
+                }
+            }).catch(err => {
+                console.error("Firebase Sync Error:", err);
                 const ind = document.getElementById('sync-status-indicator');
-                if (ind) ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1';
-            }
+                if (ind) {
+                    ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-red-400 ml-1';
+                    ind.title = 'Koneksi Server Terputus';
+                }
+            });
         }
 
-        async function tarikDataCloudServer() {
-            try {
-                const response = await fetch(CLOUD_API_URL + "/latest", {
-                    headers: { 'X-Master-Key': CLOUD_API_KEY }
-                });
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result && result.record) {
-                        const newJadwal = result.record.jadwal || [];
-                        const newDamaged = result.record.damaged || [];
-                        const newExpired = result.record.expired || [];
-                        const newOpname = result.record.opname || [];
+        function inisialisasiFirebaseListener() {
+            db.ref('wpc_cloud_data').on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val) {
+                    dataJadwal = val.jadwal || [];
+                    dataDamaged = val.damaged || [];
+                    dataExpired = val.expired || [];
+                    dataOpname = val.opname || [];
 
-                        // Cek Perubahan Data untuk memicu Rerender Otomatis Realtime
-                        const isChanged = JSON.stringify(dataJadwal) !== JSON.stringify(newJadwal) ||
-                                          JSON.stringify(dataDamaged) !== JSON.stringify(newDamaged) ||
-                                          JSON.stringify(dataExpired) !== JSON.stringify(newExpired) ||
-                                          JSON.stringify(dataOpname) !== JSON.stringify(newOpname);
+                    localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                    localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                    localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+                    localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
 
-                        dataJadwal = newJadwal;
-                        dataDamaged = newDamaged;
-                        dataExpired = newExpired;
-                        dataOpname = newOpname;
+                    renderTabel();
+                    renderDamaged();
+                    renderExpired();
+                    renderOpname();
+                    renderStatistik();
 
-                        localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
-                        localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
-                        localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
-                        localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
-
-                        if (isChanged) {
-                            renderTabel();
-                            renderDamaged();
-                            renderExpired();
-                            renderOpname();
-                            renderStatistik();
-                        }
-
-                        const ind = document.getElementById('sync-status-indicator');
-                        if (ind) ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
+                    const ind = document.getElementById('sync-status-indicator');
+                    if (ind) {
+                        ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
+                        ind.title = 'Terhubung & Tersinkronisasi Realtime';
                     }
                 }
-            } catch (e) {
-                console.warn("Pulling cloud data failed:", e);
+            }, (error) => {
+                console.warn("Realtime listener error:", error);
                 const ind = document.getElementById('sync-status-indicator');
-                if (ind) ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1';
-            }
+                if (ind) {
+                    ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1';
+                    ind.title = 'Menggunakan Mode Offline';
+                }
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             inisialisasiAksesSesi();
-            tarikDataCloudServer();
-            setInterval(tarikDataCloudServer, 3000);
+            inisialisasiFirebaseListener();
 
             const inputTgl = document.getElementById('opname-tanggal');
             if (inputTgl) inputTgl.value = new Date().toISOString().slice(0,10);
@@ -1512,8 +1507,6 @@
             const dataArray = [
                 ["Tanggal Lapor", "Tanggal Expired (ED)", "Kategori", "Mat ID", "Nama Produk Food", "Qty Expired", "Lokasi", "Pelapor", "Status Approval", "Di-verify Oleh", "Catatan"]
             ];
-
-            const today = new Date().toISOString().slice(0,10);
 
             dataExpired.forEach(row => {
                 const tglLaporFormatted = formatTanggalIndo(row.tanggal);
