@@ -10,11 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS (xlsx) CDN -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    
-    <!-- Firebase SDK (Realtime Sync Antar-Perangkat) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -243,7 +238,7 @@
                         <span class="text-sm font-semibold text-gray-500">Items</span>
                     </div>
                 </div>
-                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">⚠️️</div>
+                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">⚠️</div>
             </div>
 
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
@@ -358,7 +353,7 @@
                         <span class="text-sm font-semibold text-gray-500">Items</span>
                     </div>
                 </div>
-                <div class="bg-amber-50 p-3 rounded-full text-amber-600 text-xl">⚠</div>
+                <div class="bg-amber-50 p-3 rounded-full text-amber-600 text-xl">⚠️</div>
             </div>
 
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
@@ -811,18 +806,11 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIKA UTAMA & FIREBASE REALTIME DATABASE SYNC -->
+    <!-- SCRIPT LOGIKA SERTA API STORAGE CLOUD DENGAN AUTO-SYNC ASYNCHRONOUS -->
     <script>
-        // KONFIGURASI FIREBASE REALTIME PUBLIC CLOUD DATABASE
-        const firebaseConfig = {
-            databaseURL: "https://wpc-aps-default-rtdb.asia-southeast1.firebasedatabase.app"
-        };
-
-        // Inisialisasi Firebase App
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
+        // API ENDPOINT CLOUD JSONBIN TERPADU UNTUK WPC-APS
+        const CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66fe18fbe41b4d34e43f5502";
+        const CLOUD_API_KEY = "$2a$10$wS2W5N7Pz.NvhGvXU334d.3xU0M3CgUj5.M19LwK4O/O8N5eE2SKe";
 
         const userDatabase = {
             'supervisor': { password: 'admin123', name: 'Supervisor Gudang', role: 'Supervisor' },
@@ -857,10 +845,10 @@
             "Wahyu Agustian", "Yogi Karnisa"
         ];
 
-        let dataJadwal = [];
-        let dataDamaged = [];
-        let dataExpired = [];
-        let dataOpname = [];
+        let dataJadwal = JSON.parse(localStorage.getItem('wpc_data')) || [];
+        let dataDamaged = JSON.parse(localStorage.getItem('wpc_damaged')) || [];
+        let dataExpired = JSON.parse(localStorage.getItem('wpc_expired')) || [];
+        let dataOpname = JSON.parse(localStorage.getItem('wpc_opname')) || [];
         let currentAuthUser = JSON.parse(localStorage.getItem('wpc_auth')) || null;
         let userAktif = localStorage.getItem('wpc_user') || 'Supervisor';
 
@@ -874,75 +862,103 @@
         let chartExpiredStatusInstance = null;
         let chartTopExpiredInstance = null;
 
-        // FUNGSI SINKRONISASI REALTIME FIREBASE (LINTAS PERANGKAT DALAM HITUNGAN MILIDETIK)
-        function simpanKeStorage() {
+        // FUNGSI UTAMA SINKRONISASI SERVER LINTAS PERANGKAT
+        async function simpanKeStorage() {
             localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
             localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
             localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
             localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
 
-            // Push ke Firebase Cloud Database
-            db.ref('wpc_cloud_data').set({
-                jadwal: dataJadwal,
-                damaged: dataDamaged,
-                expired: dataExpired,
-                opname: dataOpname,
-                updatedAt: Date.now()
-            }).then(() => {
+            try {
+                const payload = {
+                    jadwal: dataJadwal,
+                    damaged: dataDamaged,
+                    expired: dataExpired,
+                    opname: dataOpname,
+                    updatedAt: Date.now()
+                };
+
+                await fetch(CLOUD_API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': CLOUD_API_KEY
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
                 const ind = document.getElementById('sync-status-indicator');
                 if (ind) {
                     ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
-                    ind.title = 'Terhubung & Tersinkronisasi Realtime';
+                    ind.title = 'Terhubung ke Cloud API Server';
                 }
-            }).catch(err => {
-                console.error("Firebase Sync Error:", err);
-                const ind = document.getElementById('sync-status-indicator');
-                if (ind) {
-                    ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-red-400 ml-1';
-                    ind.title = 'Koneksi Server Terputus';
-                }
-            });
-        }
-
-        function inisialisasiFirebaseListener() {
-            db.ref('wpc_cloud_data').on('value', (snapshot) => {
-                const val = snapshot.val();
-                if (val) {
-                    dataJadwal = val.jadwal || [];
-                    dataDamaged = val.damaged || [];
-                    dataExpired = val.expired || [];
-                    dataOpname = val.opname || [];
-
-                    localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
-                    localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
-                    localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
-                    localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
-
-                    renderTabel();
-                    renderDamaged();
-                    renderExpired();
-                    renderOpname();
-                    renderStatistik();
-
-                    const ind = document.getElementById('sync-status-indicator');
-                    if (ind) {
-                        ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
-                        ind.title = 'Terhubung & Tersinkronisasi Realtime';
-                    }
-                }
-            }, (error) => {
-                console.warn("Realtime listener error:", error);
+            } catch (err) {
+                console.warn("Gagal terhubung ke Cloud Server API:", err);
                 const ind = document.getElementById('sync-status-indicator');
                 if (ind) {
                     ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1';
-                    ind.title = 'Menggunakan Mode Offline';
+                    ind.title = 'Gagal terhubung ke Cloud Server';
                 }
-            });
+            }
+        }
+
+        async function tarikDataCloudServer() {
+            try {
+                const response = await fetch(CLOUD_API_URL + "/latest", {
+                    headers: { 'X-Master-Key': CLOUD_API_KEY }
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result && result.record) {
+                        const newJadwal = result.record.jadwal || [];
+                        const newDamaged = result.record.damaged || [];
+                        const newExpired = result.record.expired || [];
+                        const newOpname = result.record.opname || [];
+
+                        const isChanged = JSON.stringify(dataJadwal) !== JSON.stringify(newJadwal) ||
+                                          JSON.stringify(dataDamaged) !== JSON.stringify(newDamaged) ||
+                                          JSON.stringify(dataExpired) !== JSON.stringify(newExpired) ||
+                                          JSON.stringify(dataOpname) !== JSON.stringify(newOpname);
+
+                        dataJadwal = newJadwal;
+                        dataDamaged = newDamaged;
+                        dataExpired = newExpired;
+                        dataOpname = newOpname;
+
+                        localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                        localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                        localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+                        localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+
+                        if (isChanged) {
+                            renderTabel();
+                            renderDamaged();
+                            renderExpired();
+                            renderOpname();
+                            renderStatistik();
+                        }
+
+                        const ind = document.getElementById('sync-status-indicator');
+                        if (ind) {
+                            ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
+                            ind.title = 'Terhubung ke Cloud API Server';
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Pulling cloud data failed:", e);
+                const ind = document.getElementById('sync-status-indicator');
+                if (ind) {
+                    ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1';
+                    ind.title = 'Gagal terhubung ke Cloud Server';
+                }
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             inisialisasiAksesSesi();
-            inisialisasiFirebaseListener();
+            tarikDataCloudServer();
+            setInterval(tarikDataCloudServer, 3000);
 
             const inputTgl = document.getElementById('opname-tanggal');
             if (inputTgl) inputTgl.value = new Date().toISOString().slice(0,10);
