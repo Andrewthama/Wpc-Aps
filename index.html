@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wpc-Aps (Warehouse Performance & Coordination)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (xlsx) CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        themeblue: {
+                            900: '#0F172A',
+                            800: '#1E3A8A',
+                            700: '#1D4ED8',
+                            600: '#2563EB',
+                            500: '#3B82F6',
+                            100: '#DBEAFE',
+                            50: '#EFF6FF',
+                            amber: '#D97706'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .shadow-sm, .shadow-md, .shadow-xl { box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-themeblue-50 font-sans min-h-screen pb-12 text-gray-800">
+
+    <!-- MODAL SCREEN LOGIN PENGGUNA -->
+    <div id="modal-login-screen" class="fixed inset-0 bg-themeblue-900/90 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 md:p-8 shadow-2xl border-t-8 border-themeblue-700 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="inline-block bg-themeblue-100 p-3 rounded-full text-3xl">🏬</div>
+                <h2 class="text-xl md:text-2xl font-black text-themeblue-900">Wpc-Aps</h2>
+                <p class="text-xs text-gray-500">Warehouse Performance & Coordination</p>
+            </div>
+
+            <form onsubmit="prosesLogin(event)" class="space-y-4">
+                <div id="login-error-msg" class="hidden bg-red-100 border-l-4 border-red-600 text-red-700 p-3 rounded text-xs font-semibold">
+                    Username atau password yang Anda masukkan salah!
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-themeblue-900 uppercase mb-1">Username *</label>
+                    <input type="text" id="login-username" required placeholder="Masukkan username" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-themeblue-900 uppercase mb-1">Password *</label>
+                    <input type="password" id="login-password" required placeholder="Masukkan password" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                </div>
+
+                <button type="submit" class="w-full bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold py-3 rounded-xl text-xs shadow-md transition">
+                    MASUK KEPADA SISTEM 🚀
+                </button>
+            </form>
+
+            <div class="bg-themeblue-50 p-3 rounded-xl border border-themeblue-200 text-[11px] text-themeblue-900 space-y-1">
+                <p class="font-bold">🔑 Bantuan Akun Login Default:</p>
+                <p>• <strong>Manajemen:</strong> `supervisor`, `dcmanager`, `logistics`, `headwh` | Pass: `admin123`</p>
+                <p>• <strong>Staf Gudang:</strong> Username `[nama_depan]` (contoh: `agus`, `aldy`, `bobby`) | Pass: `123456`</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Topbar Navigasi Utama -->
+    <nav class="bg-themeblue-800 text-white px-4 md:px-6 py-3.5 shadow-md flex flex-wrap justify-between items-center gap-3 no-print border-b-2 border-themeblue-600">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">🏬</span>
+            <div>
+                <h1 class="text-lg md:text-xl font-bold tracking-wide leading-tight">Wpc-Aps</h1>
+                <p class="text-xs text-themeblue-100 flex items-center gap-1">
+                    <span>Warehouse Performance & Coordination</span>
+                    <span id="sync-status-indicator" class="inline-block w-2 h-2 rounded-full bg-green-400 ml-1" title="Server Terhubung"></span>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3 bg-themeblue-900/60 p-1.5 px-3 rounded-xl border border-themeblue-600">
+            <div class="text-xs text-right">
+                <div class="font-bold text-white" id="user-display-name">Supervisor</div>
+                <div class="text-[10px] text-themeblue-100" id="user-display-role">👑 Supervisor</div>
+            </div>
+            <button onclick="prosesLogout()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition shadow-sm">
+                🚪 Logout
+            </button>
+        </div>
+    </nav>
+
+    <!-- Navigasi Menu Tab Utama -->
+    <div class="bg-themeblue-900 text-white px-4 md:px-6 shadow-inner no-print border-t border-themeblue-800">
+        <div class="max-w-6xl mx-auto flex flex-wrap space-x-2 text-xs md:text-sm font-semibold">
+            <button onclick="pindahMenu('kebersihan')" id="nav-kebersihan" class="menu-nav-btn px-4 py-3 border-b-4 border-amber-400 text-white flex items-center gap-2">
+                <span>🧹</span>
+                <span>Jadwal Kebersihan</span>
+            </button>
+            <button onclick="pindahMenu('damaged')" id="nav-damaged" class="menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
+                <span>⚠️</span>
+                <span>Pendataan Barang Damaged</span>
+            </button>
+            <button onclick="pindahMenu('expired')" id="nav-expired" class="menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
+                <span>⏳</span>
+                <span>Opname Expired (Food)</span>
+            </button>
+            <button onclick="pindahMenu('opname')" id="nav-opname" class="role-supervisor menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
+                <span>📊</span>
+                <span>Report Hasil Opname Daily</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Banner Info Akun Aktif -->
+    <div id="banner-user" class="bg-themeblue-100 border-b border-themeblue-200 px-4 py-2.5 text-xs text-themeblue-900 flex justify-between items-center no-print">
+        <div class="max-w-6xl mx-auto w-full flex justify-between items-center">
+            <span id="text-user-active">Mode: <strong>Supervisor</strong> (Melihat seluruh data & verifikasi laporan)</span>
+            <span id="badge-role-type" class="bg-themeblue-700 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">Akses Penuh</span>
+        </div>
+    </div>
+
+    <!-- Header Cetak -->
+    <div class="hidden print:block p-6 border-b text-center">
+        <h1 class="text-2xl font-bold">Laporan Ringkasan - Wpc-Aps (Warehouse Performance & Coordination)</h1>
+        <p class="text-sm text-gray-600">Tanggal Cetak: <span id="print-date"></span></p>
+    </div>
+
+    <!-- ================= HALAMAN 1: JADWAL KEBERSIHAN ================= -->
+    <div id="page-kebersihan" class="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Total Zona Hari Ini</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-total" class="text-3xl font-extrabold text-gray-800">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Area</span>
+                    </div>
+                </div>
+                <div class="bg-themeblue-50 p-3 rounded-full text-themeblue-700 text-xl">📋</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Kebersihan Selesai</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-selesai" class="text-3xl font-extrabold text-green-700">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Zona</span>
+                    </div>
+                </div>
+                <div class="bg-green-50 p-3 rounded-full text-green-700 text-xl">✅</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Belum Selesai</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-pending" class="text-3xl font-extrabold text-amber-600">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Zona</span>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-full text-amber-600 text-xl">⏳</div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-base font-bold text-themeblue-900">🏆 Leaderboard Performa Kebersihan Petugas (PIC)</h2>
+                <span class="text-[10px] bg-themeblue-100 text-themeblue-800 font-bold px-2 py-0.5 rounded">Peringkat Real-time</span>
+            </div>
+            <div id="container-pic" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
+            <div class="p-4 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 class="text-lg font-bold text-themeblue-900">Jadwal Kebersihan Gudang Hari Ini</h2>
+                <div class="flex flex-wrap items-center gap-2 no-print">
+                    <button onclick="exportKebersihanCSV()" class="role-supervisor bg-themeblue-700 hover:bg-themeblue-800 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1">
+                        <span>📊</span><span>Ekspor CSV</span>
+                    </button>
+                    <button onclick="resetDataJadwal()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                        🗑️ Reset Jadwal
+                    </button>
+                    <button onclick="bukaModalTambah()" class="role-supervisor bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-xs shadow-sm">+ Tambah Jadwal</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
+                            <th class="py-3 px-4">Waktu & Shift</th>
+                            <th class="py-3 px-4">Area / Zona</th>
+                            <th class="py-3 px-4">Petugas (PIC)</th>
+                            <th class="py-3 px-4">Foto Bukti</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4 no-print">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-jadwal" class="divide-y divide-themeblue-100 text-sm font-medium"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 2: DATA BARANG DAMAGED ================= -->
+    <div id="page-damaged" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <div id="container-alerts-damaged" class="space-y-2"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Total Laporan Damaged</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-damaged-total" class="text-3xl font-extrabold text-gray-800">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Laporan</span>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-full text-amber-600 text-xl">📦</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Total Qty Rusak</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-damaged-qty" class="text-3xl font-extrabold text-red-600">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Items</span>
+                    </div>
+                </div>
+                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">⚠️</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Food vs Non Food</span>
+                    <div class="mt-1 flex items-baseline gap-1 text-xs font-bold text-gray-700">
+                        <span id="stat-damaged-food" class="text-amber-700">Food: 0</span> | 
+                        <span id="stat-damaged-nonfood" class="text-blue-700">Non: 0</span>
+                    </div>
+                </div>
+                <div class="bg-themeblue-50 p-3 rounded-full text-themeblue-700 text-xl">🍔</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Top Damaged Product</span>
+                    <div class="mt-1 font-bold text-xs text-purple-900 truncate max-w-[140px]" id="stat-damaged-top-name">-</div>
+                    <span class="text-[10px] text-purple-600 font-semibold" id="stat-damaged-top-qty">0 Qty</span>
+                </div>
+                <div class="bg-purple-50 p-3 rounded-full text-purple-600 text-xl">🔥</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">Rasio Kategori Damaged</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Perbandingan persentase Food vs Non Food</p>
+                </div>
+                <div class="relative max-h-52 flex justify-center items-center py-2">
+                    <canvas id="chartKategori"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">5 Produk Damaged Tertinggi (Qty)</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Produk dengan tingkat kerusakan terbanyak di gudang</p>
+                </div>
+                <div class="relative max-h-52">
+                    <canvas id="chartTopProducts"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
+            <div class="p-4 md:p-5 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-themeblue-900">Pendataan Barang Damaged / Rusak</h2>
+                    <p class="text-xs text-gray-500">Dokumentasikan foto, Kategori (Food/Non Food), Mat ID, Qty, dan deskripsi kerusakan produk</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 no-print">
+                    <button onclick="exportDamagedExcel()" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📗</span><span>Ekspor Excel (.xlsx)</span>
+                    </button>
+                    <button onclick="exportDamagedCSV()" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📊</span><span>Ekspor CSV</span>
+                    </button>
+                    <button onclick="resetDataDamaged()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                        🗑️ Bersihkan Data Damaged
+                    </button>
+                    <button onclick="bukaModalDamaged()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📷 +</span><span>Laporkan Barang Damaged</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold tracking-wider">
+                            <th class="py-3 px-4">Tanggal</th>
+                            <th class="py-3 px-4">Foto</th>
+                            <th class="py-3 px-4">Kategori</th>
+                            <th class="py-3 px-4">Mat ID</th>
+                            <th class="py-3 px-4">Nama Produk / Deskripsi</th>
+                            <th class="py-3 px-4">Qty Rusak</th>
+                            <th class="py-3 px-4">Lokasi</th>
+                            <th class="py-3 px-4">Pelapor</th>
+                            <th class="py-3 px-4">Status Approval</th>
+                            <th class="py-3 px-4 no-print">Aksi Supervisor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-damaged" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 3: OPNAME EXPIRED ================= -->
+    <div id="page-expired" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <div id="container-alerts-expired" class="space-y-2"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Sudah Kedaluwarsa</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-exp-already" class="text-3xl font-extrabold text-red-600">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Items</span>
+                    </div>
+                </div>
+                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">☣️</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Mendekati ED (≤30 Hari)</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-exp-near" class="text-3xl font-extrabold text-amber-600">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Items</span>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-full text-amber-600 text-xl">⚠</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Total Items Food Laporan</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-exp-total" class="text-3xl font-extrabold text-themeblue-700">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Laporan</span>
+                    </div>
+                </div>
+                <div class="bg-themeblue-50 p-3 rounded-full text-themeblue-700 text-xl">🍔</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-700 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">ED Terdekat</span>
+                    <div class="mt-1 font-bold text-xs text-red-900 truncate max-w-[140px]" id="stat-exp-nearest-name">-</div>
+                    <span class="text-[10px] text-red-600 font-bold" id="stat-exp-nearest-date">Tgl: -</span>
+                </div>
+                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">🚨</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">Status Masa Kedaluwarsa</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Kondisi ED produk Food terdaftar</p>
+                </div>
+                <div class="relative max-h-52 flex justify-center items-center py-2">
+                    <canvas id="chartExpiredStatus"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">Top 5 Produk Food Kedaluwarsa (Qty)</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Produk Food dengan jumlah kuantitas ED terbanyak</p>
+                </div>
+                <div class="relative max-h-52">
+                    <canvas id="chartTopExpired"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
+            <div class="p-4 md:p-5 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>🍔</span><span>Laporan Opname Expired (Khusus Food)</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Pendataan tanggal kedaluwarsa produk makanan, Mat ID, lokasi rak, dan jumlah Qty</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 no-print">
+                    <button onclick="exportExpiredExcel()" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📗</span><span>Ekspor Excel (.xlsx)</span>
+                    </button>
+                    <button onclick="exportExpiredCSV()" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📊</span><span>Ekspor CSV</span>
+                    </button>
+                    <button onclick="resetDataExpired()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                        🗑️ Bersihkan Data Expired
+                    </button>
+                    <button onclick="bukaModalExpired()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>⏳ +</span><span>Input Opname Expired</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold tracking-wider">
+                            <th class="py-3 px-4">Tanggal Lapor</th>
+                            <th class="py-3 px-4">Tanggal Expired (ED)</th>
+                            <th class="py-3 px-4">Kondisi ED</th>
+                            <th class="py-3 px-4">Mat ID</th>
+                            <th class="py-3 px-4">Nama Produk Food</th>
+                            <th class="py-3 px-4">Qty</th>
+                            <th class="py-3 px-4">Lokasi</th>
+                            <th class="py-3 px-4">Pelapor</th>
+                            <th class="py-3 px-4">Foto</th>
+                            <th class="py-3 px-4">Status Approval</th>
+                            <th class="py-3 px-4 no-print">Aksi Supervisor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-expired" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= HALAMAN 4: REPORT OPNAME DAILY ================= -->
+    <div id="page-opname" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-themeblue-100 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 border-themeblue-100">
+                <div>
+                    <h2 class="text-lg font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>📊</span><span>Upload & Pengelolaan Report Opname Daily</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Unggah berkas laporan Excel (.xlsx / .xls / .csv) hasil opname harian untuk diarsipkan dan diunduh di masa mendatang.</p>
+                </div>
+                <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">🔒 Akses Khusus Supervisor / Manajemen</span>
+            </div>
+
+            <form id="form-opname" onsubmit="simpanOpnameDaily(event)" class="space-y-4 bg-themeblue-50/60 p-4 rounded-xl border border-themeblue-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-themeblue-900 mb-1">Tanggal Opname *</label>
+                        <input type="date" id="opname-tanggal" required class="w-full border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-themeblue-900 mb-1">Judul / Keterangan Report *</label>
+                        <input type="text" id="opname-judul" required placeholder="Contoh: Report Opname Daily Gudang A - Shift 1" class="w-full border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-themeblue-900 mb-1">Pilih File Excel / Spreadsheet (.xlsx, .xls, .csv) *</label>
+                    <input type="file" id="opname-file" accept=".xlsx, .xls, .csv" required class="w-full text-xs text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-themeblue-700 file:text-white hover:file:bg-themeblue-800 cursor-pointer">
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5">
+                        <span>📥</span><span>Unggah Laporan Opname</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
+            <div class="p-4 border-b border-themeblue-100 flex justify-between items-center bg-white">
+                <h3 class="text-sm font-bold text-themeblue-900">Daftar Berkas Opname Daily Tersimpan</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetDataOpname()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-1 rounded-lg text-xs font-semibold">
+                        🗑️ Bersihkan Arsip Opname
+                    </button>
+                    <span id="stat-opname-count" class="text-xs font-bold bg-themeblue-100 text-themeblue-900 px-3 py-1 rounded-full">0 Berkas</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
+                            <th class="py-3 px-4">Tanggal Opname</th>
+                            <th class="py-3 px-4">Judul Laporan</th>
+                            <th class="py-3 px-4">Nama File Berkas</th>
+                            <th class="py-3 px-4">Ukuran File</th>
+                            <th class="py-3 px-4">Waktu Unggah</th>
+                            <th class="py-3 px-4 no-print">Aksi / Download</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-opname" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: VERIFIKASI / APPROVAL SUPERVISOR -->
+    <div id="modal-approval" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-themeblue-900">Verifikasi & Approval Supervisor</h3>
+                    <p class="text-[11px] text-gray-500">Tinjau dan tindak lanjuti laporan staf gudang</p>
+                </div>
+                <button onclick="tutupModalApproval()" class="text-gray-400 font-bold">✕</button>
+            </div>
+
+            <div class="bg-themeblue-50 p-3.5 rounded-lg border border-themeblue-200 text-xs space-y-1">
+                <p><strong>Item Produk:</strong> <span id="appr-item-name" class="font-semibold text-themeblue-900">-</span></p>
+                <p><strong>Jumlah Qty:</strong> <span id="appr-item-qty" class="font-bold text-red-600">-</span></p>
+                <p><strong>Dilaporkan Oleh:</strong> <span id="appr-item-pelapor" class="font-medium text-gray-700">-</span></p>
+            </div>
+
+            <form id="form-approval" onsubmit="simpanApprovalSupervisor(event)" class="space-y-4">
+                <input type="hidden" id="appr-item-id">
+                <input type="hidden" id="appr-item-type">
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keputusan Verifikasi *</label>
+                    <select id="appr-status" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none font-bold">
+                        <option value="Disetujui">✅ Setujui / Disetujui (Verified)</option>
+                        <option value="Ditolak">❌ Tolak Laporan (Rejected)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Catatan / Alasan Supervisor *</label>
+                    <textarea id="appr-catatan" required rows="3" placeholder="Contoh: Barang telah diverifikasi & dipindahkan ke area karantina Damaged" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t">
+                    <button type="button" onclick="tutupModalApproval()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg hover:bg-themeblue-800 shadow-sm">Simpan Keputusan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: DOKUMENTASI OPNAME EXPIRED -->
+    <div id="modal-expired" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800">Form Laporan Opname Expired (Food Only)</h3>
+                    <p class="text-[11px] text-gray-500">Isi tanggal, bulan, dan tahun kedaluwarsa produk makanan di gudang</p>
+                </div>
+                <button onclick="tutupModalExpired()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+            </div>
+            
+            <form id="form-expired" onsubmit="simpanExpiredBaru(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ambil / Unggah Foto Bukti Expired/Produk *</label>
+                    <input type="file" id="expired-foto" accept="image/*" capture="environment" onchange="previewFotoExpired(event)" required class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-800 hover:file:bg-red-100 cursor-pointer">
+                </div>
+
+                <div id="container-preview-expired" class="hidden border rounded-lg p-2 bg-red-50/50 text-center">
+                    <img id="img-preview-expired" src="" class="max-h-36 mx-auto rounded shadow-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Lokasi Area / Rak Gudang *</label>
+                    <input type="text" id="expired-lokasi" required placeholder="Contoh: Rak Food A-01 / Area Chiller Staging" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-red-500 outline-none">
+                </div>
+
+                <div class="border-t pt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-red-800 uppercase tracking-wider">Daftar Produk Food Expired (Multi-Item)</label>
+                        <button type="button" onclick="tambahBarisProdukExpired()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition shadow-sm">
+                            <span>+</span><span>Tambah Produk Food Lain</span>
+                        </button>
+                    </div>
+
+                    <div id="container-items-expired" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                        <div class="item-expired-row bg-red-50/40 p-3 rounded-lg border border-red-200 relative space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Kategori</label>
+                                    <input type="text" value="Food 🍔" disabled class="w-full bg-gray-100 border rounded p-1.5 text-xs font-bold text-amber-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                                    <input type="text" class="exp-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none" required placeholder="Contoh: MAT-90021">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Nama Produk Food *</label>
+                                    <input type="text" class="exp-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none" required placeholder="Contoh: Milo Sachet 1Kg">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-red-800">Tanggal Expired (ED) *</label>
+                                    <input type="date" class="exp-date w-full border border-red-300 rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none font-bold" required>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Qty Expired *</label>
+                                    <input type="number" min="1" class="exp-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none" required placeholder="Contoh: 10">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
+                                    <select class="exp-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none">
+                                        <option value="Pcs">Pcs</option>
+                                        <option value="Box / Karton">Box / Karton</option>
+                                        <option value="Master Carton">Master Carton</option>
+                                        <option value="Pallet">Pallet</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t">
+                    <button type="button" onclick="tutupModalExpired()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 shadow-sm">Kirim Laporan Expired</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: DOKUMENTASI BARANG DAMAGED BARU -->
+    <div id="modal-damaged" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800">Form Laporan Barang Damaged</h3>
+                    <p class="text-[11px] text-gray-500">Gunakan fitur ini untuk melaporkan 1 atau beberapa barang damaged sekaligus</p>
+                </div>
+                <button onclick="tutupModalDamaged()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+            </div>
+            
+            <form id="form-damaged" onsubmit="simpanDamagedBaru(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ambil / Unggah Foto Bukti Kerusakan *</label>
+                    <input type="file" id="damaged-foto" accept="image/*" capture="environment" onchange="previewFotoDamaged(event)" required class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
+                </div>
+
+                <div id="container-preview-damaged" class="hidden border rounded-lg p-2 bg-themeblue-50 text-center">
+                    <img id="img-preview-damaged" src="" class="max-h-36 mx-auto rounded shadow-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Lokasi Area / Rak Gudang *</label>
+                    <input type="text" id="damaged-lokasi" required placeholder="Contoh: Rak B-03 / Area Staging Loading Dock" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+
+                <div class="border-t pt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-themeblue-900 uppercase tracking-wider">Daftar Produk Rusak (Multi-Item)</label>
+                        <button type="button" onclick="tambahBarisProduk()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition shadow-sm">
+                            <span>+</span><span>Tambah Produk Lain</span>
+                        </button>
+                    </div>
+
+                    <div id="container-items-damaged" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                        <div class="item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
+                                    <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                                        <option value="Food">Food 🍔</option>
+                                        <option value="Non Food">Non Food 📦</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                                    <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
+                                    <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Milo 3-in-1 Sachet 1Kg">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
+                                    <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 5">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
+                                    <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                                        <option value="Pcs">Pcs</option>
+                                        <option value="Box / Karton">Box / Karton</option>
+                                        <option value="Master Carton">Master Carton</option>
+                                        <option value="Pallet">Pallet</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t">
+                    <button type="button" onclick="tutupModalDamaged()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">Kirim Laporan Damaged</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: TAMBAH JADWAL KEBERSIHAN -->
+    <div id="modal-tambah" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-base font-bold text-gray-800">Tambah Jadwal Kebersihan</h3>
+                <button onclick="tutupModalTambah()" class="text-gray-400 font-bold">✕</button>
+            </div>
+            
+            <form id="form-tambah" onsubmit="simpanJadwalBaru(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Area / Zona *</label>
+                    <input type="text" id="add-zona" required placeholder="Contoh: Zona E - Area Sorting" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Pilih Petugas (PIC) *</label>
+                    <select id="add-pic" required class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                        <option value="Agus Suwandani">Agus Suwandani</option>
+                        <option value="Aldy Surya Pratama">Aldy Surya Pratama</option>
+                        <option value="Andri Sembiring">Andri Sembiring</option>
+                        <option value="Bobby Disani">Bobby Disani</option>
+                        <option value="Brema Purba">Brema Purba</option>
+                        <option value="Dermawan">Dermawan</option>
+                        <option value="Frans Joy Temanta">Frans Joy Temanta</option>
+                        <option value="Irfansyah">Irfansyah</option>
+                        <option value="Jaka Nugraha">Jaka Nugraha</option>
+                        <option value="Miko Hermansyag">Miko Hermansyag</option>
+                        <option value="Muhammad Edo">Muhammad Edo</option>
+                        <option value="Nanda Al Hafids">Nanda Al Hafids</option>
+                        <option value="Nico Atmaja">Nico Atmaja</option>
+                        <option value="Riski Dermawan">Riski Dermawan</option>
+                        <option value="Satrya Karyanta">Satrya Karyanta</option>
+                        <option value="Sudybyo Widodo">Sudybyo Widodo</option>
+                        <option value="Wahyu Agustian">Wahyu Agustian</option>
+                        <option value="Yogi Karnisa">Yogi Karnisa</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Waktu *</label>
+                        <input type="text" id="add-waktu" required placeholder="08:00 - 09:00" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Shift</label>
+                        <select id="add-shift" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                            <option value="Shift 1">Shift 1</option>
+                            <option value="Shift 2">Shift 2</option>
+                            <option value="Shift 3">Shift 3</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t">
+                    <button type="button" onclick="tutupModalTambah()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: UPLOAD FOTO BUKTI KEBERSIHAN -->
+    <div id="modal-upload" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700">
+            <h3 class="text-base font-bold text-gray-800 border-b pb-2">Upload Bukti Kebersihan</h3>
+            <div>
+                <input type="file" id="input-foto" accept="image/*" capture="environment" onchange="previewFoto(event)" class="w-full text-xs text-gray-500">
+            </div>
+            <div id="container-preview" class="hidden border rounded-lg p-2 text-center">
+                <img id="img-preview" src="" class="max-h-48 mx-auto rounded shadow-sm">
+            </div>
+            <div class="flex justify-end space-x-2 pt-2 border-t">
+                <button onclick="tutupModalUpload()" class="px-4 py-2 bg-gray-100 text-xs font-semibold rounded-lg">Batal</button>
+                <button onclick="simpanFotoSelesai()" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg">Selesai</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: LIHAT FOTO FULL -->
+    <div id="modal-lihat" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-50 no-print" onclick="tutupModalLihat()">
+        <div class="bg-white rounded-xl max-w-lg w-full p-4 shadow-xl space-y-3 relative" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-xs font-bold text-gray-800">Foto Dokumen Bukti</h3>
+                <button onclick="tutupModalLihat()" class="text-gray-500 font-bold">✕</button>
+            </div>
+            <img id="img-full" src="" class="w-full h-auto rounded-lg max-h-96 object-cover">
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIKA SERTA SERVER CLOUD API DENGAN AUTO-SYNC SINKRONISASI ASYNCHRONOUS -->
+    <script>
+        // ENDPOINT CLOUD REST SERVER TERPUSAT (AUTOMATIC SYNC FOR ALL USERS)
+        const CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66f81e36e41b4d34e4373eb2";
+        const CLOUD_API_KEY = "$2a$10$wS2W5N7Pz.NvhGvXU334d.3xU0M3CgUj5.M19LwK4O/O8N5eE2SKe";
+
+        const userDatabase = {
+            'supervisor': { password: 'admin123', name: 'Supervisor Gudang', role: 'Supervisor' },
+            'dcmanager': { password: 'admin123', name: 'DC Manager', role: 'Supervisor' },
+            'logistics': { password: 'admin123', name: 'Logistic Manager', role: 'Supervisor' },
+            'headwh': { password: 'admin123', name: 'Head Warehouse', role: 'Supervisor' },
+            'agus': { password: '123456', name: 'Agus Suwandani', role: 'Staf Kebersihan / Gudang' },
+            'aldy': { password: '123456', name: 'Aldy Surya Pratama', role: 'Staf Kebersihan / Gudang' },
+            'andri': { password: '123456', name: 'Andri Sembiring', role: 'Staf Kebersihan / Gudang' },
+            'bobby': { password: '123456', name: 'Bobby Disani', role: 'Staf Kebersihan / Gudang' },
+            'brema': { password: '123456', name: 'Brema Purba', role: 'Staf Kebersihan / Gudang' },
+            'dermawan': { password: '123456', name: 'Dermawan', role: 'Staf Kebersihan / Gudang' },
+            'frans': { password: '123456', name: 'Frans Joy Temanta', role: 'Staf Kebersihan / Gudang' },
+            'irfansyah': { password: '123456', name: 'Irfansyah', role: 'Staf Kebersihan / Gudang' },
+            'jaka': { password: '123456', name: 'Jaka Nugraha', role: 'Staf Kebersihan / Gudang' },
+            'miko': { password: '123456', name: 'Miko Hermansyag', role: 'Staf Kebersihan / Gudang' },
+            'edo': { password: '123456', name: 'Muhammad Edo', role: 'Staf Kebersihan / Gudang' },
+            'nanda': { password: '123456', name: 'Nanda Al Hafids', role: 'Staf Kebersihan / Gudang' },
+            'nico': { password: '123456', name: 'Nico Atmaja', role: 'Staf Kebersihan / Gudang' },
+            'riski': { password: '123456', name: 'Riski Dermawan', role: 'Staf Kebersihan / Gudang' },
+            'satrya': { password: '123456', name: 'Satrya Karyanta', role: 'Staf Kebersihan / Gudang' },
+            'sudybyo': { password: '123456', name: 'Sudybyo Widodo', role: 'Staf Kebersihan / Gudang' },
+            'wahyu': { password: '123456', name: 'Wahyu Agustian', role: 'Staf Kebersihan / Gudang' },
+            'yogi': { password: '123456', name: 'Yogi Karnisa', role: 'Staf Kebersihan / Gudang' }
+        };
+
+        const listNamaStaf = [
+            "Agus Suwandani", "Aldy Surya Pratama", "Andri Sembiring", "Bobby Disani",
+            "Brema Purba", "Dermawan", "Frans Joy Temanta", "Irfansyah",
+            "Jaka Nugraha", "Miko Hermansyag", "Muhammad Edo", "Nanda Al Hafids",
+            "Nico Atmaja", "Riski Dermawan", "Satrya Karyanta", "Sudybyo Widodo",
+            "Wahyu Agustian", "Yogi Karnisa"
+        ];
+
+        let dataJadwal = JSON.parse(localStorage.getItem('wpc_data')) || [];
+        let dataDamaged = JSON.parse(localStorage.getItem('wpc_damaged')) || [];
+        let dataExpired = JSON.parse(localStorage.getItem('wpc_expired')) || [];
+        let dataOpname = JSON.parse(localStorage.getItem('wpc_opname')) || [];
+        let currentAuthUser = JSON.parse(localStorage.getItem('wpc_auth')) || null;
+        let userAktif = localStorage.getItem('wpc_user') || 'Supervisor';
+
+        let idAktif = null;
+        let urlFotoSementara = '';
+        let urlFotoDamagedSementara = '';
+        let urlFotoExpiredSementara = '';
+
+        let chartKategoriInstance = null;
+        let chartTopProductsInstance = null;
+        let chartExpiredStatusInstance = null;
+        let chartTopExpiredInstance = null;
+
+        // FUNGSI UTAMA SINKRONISASI SERVER LINTAS PERANGKAT
+        async function simpanKeStorage() {
+            localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+            localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+            localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+            localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+
+            // Push Data Terbaru ke Server API Cloud
+            try {
+                const payload = {
+                    jadwal: dataJadwal,
+                    damaged: dataDamaged,
+                    expired: dataExpired,
+                    opname: dataOpname,
+                    updatedAt: Date.now()
+                };
+
+                await fetch(CLOUD_API_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': CLOUD_API_KEY
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const ind = document.getElementById('sync-status-indicator');
+                if (ind) ind.className = 'inline-block w-2 h-2 rounded-full bg-green-400 ml-1';
+            } catch (err) {
+                console.warn("Gagal terhubung ke Cloud Server API:", err);
+                const ind = document.getElementById('sync-status-indicator');
+                if (ind) ind.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 ml-1';
+            }
+        }
+
+        async function tarikDataCloudServer() {
+            try {
+                const response = await fetch(CLOUD_API_URL + "/latest", {
+                    headers: {
+                        'X-Master-Key': CLOUD_API_KEY
+                    }
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result && result.record) {
+                        dataJadwal = result.record.jadwal || [];
+                        dataDamaged = result.record.damaged || [];
+                        dataExpired = result.record.expired || [];
+                        dataOpname = result.record.opname || [];
+
+                        localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                        localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                        localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+                        localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+
+                        renderTabel();
+                        renderDamaged();
+                        renderExpired();
+                        renderOpname();
+                        renderStatistik();
+
+                        const ind = document.getElementById('sync-status-indicator');
+                        if (ind) ind.className = 'inline-block w-2 h-2 rounded-full bg-green-400 ml-1';
+                    }
+                }
+            } catch (e) {
+                console.warn("Pulling cloud data failed:", e);
+                const ind = document.getElementById('sync-status-indicator');
+                if (ind) ind.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 ml-1';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            inisialisasiAksesSesi();
+            
+            tarikDataCloudServer();
+            setInterval(tarikDataCloudServer, 3000);
+
+            const inputTgl = document.getElementById('opname-tanggal');
+            if (inputTgl) inputTgl.value = new Date().toISOString().slice(0,10);
+
+            updateTampilanPengguna();
+            renderTabel();
+            renderDamaged();
+            renderExpired();
+            renderOpname();
+            renderStatistik();
+
+            const pDate = document.getElementById('print-date');
+            if (pDate) {
+                pDate.innerText = new Date().toLocaleDateString('id-ID', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+            }
+        });
+
+        function inisialisasiAksesSesi() {
+            const screen = document.getElementById('modal-login-screen');
+            if (!currentAuthUser) {
+                if (screen) screen.classList.remove('hidden');
+            } else {
+                if (screen) screen.classList.add('hidden');
+                const displayName = document.getElementById('user-display-name');
+                const displayRole = document.getElementById('user-display-role');
+                if (displayName) displayName.innerText = currentAuthUser.name;
+                if (displayRole) displayRole.innerText = currentAuthUser.role === 'Supervisor' ? `👑 ${currentAuthUser.name}` : '👤 Staf Gudang';
+                
+                userAktif = currentAuthUser.role === 'Supervisor' ? 'Supervisor' : currentAuthUser.name;
+                localStorage.setItem('wpc_user', userAktif);
+            }
+        }
+
+        function prosesLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim().toLowerCase();
+            const p = document.getElementById('login-password').value.trim();
+
+            if (userDatabase[u] && userDatabase[u].password === p) {
+                currentAuthUser = userDatabase[u];
+                localStorage.setItem('wpc_auth', JSON.stringify(currentAuthUser));
+                const errMsg = document.getElementById('login-error-msg');
+                if (errMsg) errMsg.classList.add('hidden');
+                
+                inisialisasiAksesSesi();
+                updateTampilanPengguna();
+                renderTabel();
+                renderDamaged();
+                renderExpired();
+                renderOpname();
+                renderStatistik();
+            } else {
+                const errMsg = document.getElementById('login-error-msg');
+                if (errMsg) errMsg.classList.remove('hidden');
+            }
+        }
+
+        function prosesLogout() {
+            if (confirm('Apakah Anda yakin ingin keluar/logout?')) {
+                localStorage.removeItem('wpc_auth');
+                currentAuthUser = null;
+                const screen = document.getElementById('modal-login-screen');
+                if (screen) screen.classList.remove('hidden');
+            }
+        }
+
+        function formatTanggalIndo(tglStr) {
+            if (!tglStr) return '-';
+            if (tglStr.includes('-')) {
+                const parts = tglStr.split(' ');
+                const dateParts = parts[0].split('-');
+                if (dateParts.length === 3) {
+                    return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${parts[1] || ''}`.trim();
+                }
+            }
+            return tglStr;
+        }
+
+        function pindahMenu(menu) {
+            document.querySelectorAll('.menu-nav-btn').forEach(btn => {
+                btn.classList.remove('border-amber-400', 'text-white');
+                btn.classList.add('border-transparent', 'text-themeblue-100');
+            });
+
+            ['page-kebersihan', 'page-damaged', 'page-expired', 'page-opname'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
+            if (menu === 'kebersihan') {
+                const nav = document.getElementById('nav-kebersihan');
+                const page = document.getElementById('page-kebersihan');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+            } else if (menu === 'damaged') {
+                const nav = document.getElementById('nav-damaged');
+                const page = document.getElementById('page-damaged');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+                setTimeout(renderDashboardDamagedVisual, 100);
+            } else if (menu === 'expired') {
+                const nav = document.getElementById('nav-expired');
+                const page = document.getElementById('page-expired');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+                setTimeout(renderDashboardExpiredVisual, 100);
+            } else if (menu === 'opname') {
+                const nav = document.getElementById('nav-opname');
+                const page = document.getElementById('page-opname');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+            }
+        }
+
+        function updateTampilanPengguna() {
+            const isSupervisor = userAktif === 'Supervisor';
+            document.querySelectorAll('.role-supervisor').forEach(el => {
+                if (isSupervisor) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+
+            const bannerText = document.getElementById('text-user-active');
+            const badgeRole = document.getElementById('badge-role-type');
+
+            if (isSupervisor) {
+                if (bannerText) bannerText.innerHTML = `Mode Pengguna: <strong>Supervisor / Manajemen</strong> (Akses Seluruh Data & Laporan)`;
+                if (badgeRole) {
+                    badgeRole.innerText = 'Akses Penuh';
+                    badgeRole.className = 'bg-themeblue-700 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                }
+            } else {
+                if (bannerText) bannerText.innerHTML = `Mode Staf: <strong>${userAktif}</strong> (Bisa Laporkan Barang & Kebersihan)`;
+                if (badgeRole) {
+                    badgeRole.innerText = 'Mode Staf / PIC';
+                    badgeRole.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                }
+            }
+        }
+
+        function renderLeaderboardPIC() {
+            const container = document.getElementById('container-pic');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const picStats = {};
+            listNamaStaf.forEach(nama => {
+                picStats[nama] = { total: 0, selesai: 0 };
+            });
+
+            dataJadwal.forEach(item => {
+                if (item.pic) {
+                    if (!picStats[item.pic]) {
+                        picStats[item.pic] = { total: 0, selesai: 0 };
+                    }
+                    picStats[item.pic].total++;
+                    if (item.status === 'Selesai') picStats[item.pic].selesai++;
+                }
+            });
+
+            const sortedPic = Object.keys(picStats).map(name => {
+                const t = picStats[name].total;
+                const s = picStats[name].selesai;
+                const persen = t > 0 ? Math.round((s / t) * 100) : 0;
+                return { name, total: t, selesai: s, persen };
+            }).sort((a, b) => {
+                if (b.persen !== a.persen) return b.persen - a.persen;
+                return b.selesai - a.selesai;
+            });
+
+            const topPic = sortedPic.filter(p => p.total > 0).slice(0, 6);
+
+            if (topPic.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 col-span-3 py-2">Belum ada pengerjaan jadwal kebersihan hari ini.</p>`;
+                return;
+            }
+
+            const badges = ['🥇', '🥈', '🥉'];
+            topPic.forEach((pic, index) => {
+                const rankBadge = badges[index] || '⭐';
+                const card = document.createElement('div');
+                card.className = `p-3.5 rounded-xl border ${pic.name === userAktif ? 'border-themeblue-500 bg-themeblue-50/70' : 'border-gray-200 bg-gray-50/60'} relative space-y-1.5 shadow-sm`;
+                card.innerHTML = `
+                    <span class="absolute top-2.5 right-3 text-lg">${rankBadge}</span>
+                    <p class="font-bold text-gray-800 text-xs truncate max-w-[170px]">${pic.name} ${pic.name === userAktif ? '(Anda)' : ''}</p>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px] font-semibold">
+                            <span class="text-gray-500">Penyelesaian</span>
+                            <span class="text-themeblue-700 font-bold">${pic.selesai} / ${pic.total} Zona (${pic.persen}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                            <div class="bg-themeblue-600 h-full rounded-full transition-all duration-300" style="width: ${pic.persen}%;"></div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ================= SISTEM VERIFIKASI / APPROVAL SUPERVISOR =================
+        function bukaModalApproval(id, type) {
+            const isSupervisor = userAktif === 'Supervisor';
+            if (!isSupervisor) {
+                alert("Hanya Supervisor / Manajemen yang berwenang melakukan verifikasi laporan!");
+                return;
+            }
+
+            let item = null;
+            if (type === 'damaged') item = dataDamaged.find(i => i.id === id);
+            else if (type === 'expired') item = dataExpired.find(i => i.id === id);
+
+            if (!item) return;
+
+            document.getElementById('appr-item-id').value = id;
+            document.getElementById('appr-item-type').value = type;
+            document.getElementById('appr-item-name').innerText = `${item.nama} [Mat ID: ${item.matId || '-'}]`;
+            document.getElementById('appr-item-qty').innerText = `${item.qty} ${item.satuan || ''}`;
+            document.getElementById('appr-item-pelapor').innerText = item.pelapor;
+
+            document.getElementById('appr-status').value = item.status === 'Ditolak' ? 'Ditolak' : 'Disetujui';
+            document.getElementById('appr-catatan').value = item.catatanSupervisor || '';
+
+            const m = document.getElementById('modal-approval');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function tutupModalApproval() {
+            const m = document.getElementById('modal-approval');
+            if (m) m.classList.add('hidden');
+            const f = document.getElementById('form-approval');
+            if (f) f.reset();
+        }
+
+        function simpanApprovalSupervisor(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('appr-item-id').value);
+            const type = document.getElementById('appr-item-type').value;
+            const status = document.getElementById('appr-status').value;
+            const catatan = document.getElementById('appr-catatan').value;
+
+            let targetList = type === 'damaged' ? dataDamaged : dataExpired;
+            const item = targetList.find(i => i.id === id);
+
+            if (item) {
+                item.status = status;
+                item.catatanSupervisor = catatan;
+                item.verifiedBy = currentAuthUser ? currentAuthUser.name : 'Supervisor Gudang';
+                item.verifiedAt = new Date().toISOString().slice(0,10);
+
+                simpanKeStorage();
+                tutupModalApproval();
+
+                if (type === 'damaged') renderDamaged();
+                else renderExpired();
+
+                renderStatistik();
+                alert(`Laporan berhasil di-update dengan status: ${status}`);
+            }
+        }
+
+        // VISUAL EXPIRED FOOD
+        function renderDashboardExpiredVisual() {
+            const alertContainer = document.getElementById('container-alerts-expired');
+            if (!alertContainer) return;
+            alertContainer.innerHTML = '';
+
+            const today = new Date().toISOString().slice(0,10);
+            let alreadyCount = 0;
+            let nearCount = 0;
+            let nearestItem = null;
+
+            dataExpired.forEach(item => {
+                const ed = item.expDate;
+                if (ed) {
+                    const diffDays = Math.ceil((new Date(ed) - new Date(today)) / (1000 * 60 * 60 * 24));
+                    if (diffDays < 0) alreadyCount += (item.qty || 0);
+                    else if (diffDays <= 30) nearCount += (item.qty || 0);
+
+                    if (!nearestItem || new Date(ed) < new Date(nearestItem.expDate)) {
+                        nearestItem = item;
+                    }
+                }
+            });
+
+            if (alreadyCount > 0) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'bg-red-100 border-l-4 border-red-600 text-red-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
+                alertDiv.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">☣️</span>
+                        <div><strong class="font-bold">PERINGATAN EXPIRED:</strong> Terdapat <strong>${alreadyCount} Qty Food</strong> yang <span class="font-extrabold underline">SUDAH KEDALUWARSA</span>!</div>
+                    </div>
+                `;
+                alertContainer.appendChild(alertDiv);
+            }
+
+            if (nearCount > 0) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'bg-amber-100 border-l-4 border-amber-600 text-amber-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
+                alertDiv.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">⚠️</span>
+                        <div><strong class="font-bold">NEAR EXPIRED:</strong> Terdapat <strong>${nearCount} Qty Food</strong> ED ≤ 30 Hari. Utamakan FIFO!</div>
+                    </div>
+                `;
+                alertContainer.appendChild(alertDiv);
+            }
+
+            const elAlready = document.getElementById('stat-exp-already');
+            const elNear = document.getElementById('stat-exp-near');
+            const elTotal = document.getElementById('stat-exp-total');
+            if (elAlready) elAlready.innerText = alreadyCount;
+            if (elNear) elNear.innerText = nearCount;
+            if (elTotal) elTotal.innerText = dataExpired.length;
+
+            const elName = document.getElementById('stat-exp-nearest-name');
+            const elDate = document.getElementById('stat-exp-nearest-date');
+            if (nearestItem) {
+                if (elName) elName.innerText = nearestItem.nama;
+                if (elDate) elDate.innerText = `ED: ${formatTanggalIndo(nearestItem.expDate)}`;
+            } else {
+                if (elName) elName.innerText = '-';
+                if (elDate) elDate.innerText = 'Tgl: -';
+            }
+
+            const safeCount = Math.max(0, dataExpired.reduce((a,c) => a + (c.qty || 0), 0) - alreadyCount - nearCount);
+            const canvasStatus = document.getElementById('chartExpiredStatus');
+            if (canvasStatus) {
+                const ctxExpStatus = canvasStatus.getContext('2d');
+                if (chartExpiredStatusInstance) chartExpiredStatusInstance.destroy();
+                chartExpiredStatusInstance = new Chart(ctxExpStatus, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Expired ☣️', 'Near ED (≤30 Hari) ⚠️️', 'Aman ✅'],
+                        datasets: [{ data: [alreadyCount, nearCount, safeCount], backgroundColor: ['#DC2626', '#D97706', '#059669'], borderWidth: 2 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                });
+            }
+
+            const expProductMap = {};
+            dataExpired.forEach(item => {
+                const key = `${item.nama} (${item.matId || '-'})`;
+                expProductMap[key] = (expProductMap[key] || 0) + (item.qty || 0);
+            });
+
+            const sortedExpProducts = Object.keys(expProductMap)
+                .map(k => ({ name: k, qty: expProductMap[k] }))
+                .sort((a, b) => b.qty - a.qty).slice(0, 5);
+
+            const canvasTop = document.getElementById('chartTopExpired');
+            if (canvasTop) {
+                const ctxTopExp = canvasTop.getContext('2d');
+                if (chartTopExpiredInstance) chartTopExpiredInstance.destroy();
+                chartTopExpiredInstance = new Chart(ctxTopExp, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedExpProducts.map(p => p.name.length > 20 ? p.name.slice(0,20) + '...' : p.name),
+                        datasets: [{ label: 'Total Qty ED', data: sortedExpProducts.map(p => p.qty), backgroundColor: '#DC2626', borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
+                });
+            }
+        }
+
+        function renderExpired() {
+            const tbody = document.getElementById('tabel-expired');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (dataExpired.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan Opname Expired (Food).</td></tr>`;
+                renderDashboardExpiredVisual();
+                return;
+            }
+
+            const today = new Date().toISOString().slice(0,10);
+
+            dataExpired.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
+
+                let badgeED = '';
+                if (item.expDate) {
+                    const diffDays = Math.ceil((new Date(item.expDate) - new Date(today)) / (1000 * 60 * 60 * 24));
+                    if (diffDays < 0) badgeED = `<span class="bg-red-100 text-red-800 border border-red-300 px-2 py-0.5 rounded text-[10px] font-bold">KEDALUWARSA ☣️</span>`;
+                    else if (diffDays <= 30) badgeED = `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-[10px] font-bold">Near ED (${diffDays} Hari) ⚠️</span>`;
+                    else badgeED = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">Aman ✅</span>`;
+                }
+
+                const fotoElement = item.foto 
+                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-red-50 text-red-800 px-2 py-1 rounded border border-red-200">📷 Lihat Foto</button>`
+                    : `<span class="text-xs text-gray-400 italic">Tanpa Foto</span>`;
+
+                const isSupervisor = userAktif === 'Supervisor';
+                const currentStatus = item.status || 'Pending';
+
+                let badgeApproval = '';
+                if (currentStatus === 'Disetujui') {
+                    badgeApproval = `<div class="space-y-0.5"><span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold">✅ Disetujui</span><div class="text-[10px] text-gray-500 italic">By: ${item.verifiedBy || 'Supervisor'}</div></div>`;
+                } else if (currentStatus === 'Ditolak') {
+                    badgeApproval = `<div class="space-y-0.5"><span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold">❌ Ditolak</span><div class="text-[10px] text-gray-500 italic">${item.catatanSupervisor || ''}</div></div>`;
+                } else {
+                    badgeApproval = `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">⏳ Pending Verifikasi</span>`;
+                }
+
+                let aksi = isSupervisor
+                    ? `<button onclick="bukaModalApproval(${item.id}, 'expired')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition shadow-sm">👑 Verifikasi</button>`
+                    : `<span class="text-xs text-gray-400 italic">Khusus Supervisor</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs">${formatTanggalIndo(item.tanggal)}</td>
+                    <td class="py-3 px-4 text-xs font-bold text-red-700">${formatTanggalIndo(item.expDate)}</td>
+                    <td class="py-3 px-4">${badgeED}</td>
+                    <td class="py-3 px-4 text-xs font-mono font-bold text-themeblue-800">${item.matId || '-'}</td>
+                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
+                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan}</td>
+                    <td class="py-3 px-4 text-xs">${item.lokasi}</td>
+                    <td class="py-3 px-4 text-xs font-semibold">${item.pelapor}</td>
+                    <td class="py-3 px-4">${fotoElement}</td>
+                    <td class="py-3 px-4">${badgeApproval}</td>
+                    <td class="py-3 px-4 no-print">${aksi}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderDashboardExpiredVisual();
+        }
+
+        function bukaModalExpired() {
+            const m = document.getElementById('modal-expired');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function tutupModalExpired() {
+            const m = document.getElementById('modal-expired');
+            if (m) m.classList.add('hidden');
+            const f = document.getElementById('form-expired');
+            if (f) f.reset();
+            const p = document.getElementById('container-preview-expired');
+            if (p) p.classList.add('hidden');
+        }
+
+        function tambahBarisProdukExpired() {
+            const container = document.getElementById('container-items-expired');
+            if (!container) return;
+            const rowCount = container.children.length + 1;
+
+            const div = document.createElement('div');
+            div.className = 'item-expired-row bg-red-50/40 p-3 rounded-lg border border-red-200 relative space-y-2';
+            div.innerHTML = `
+                <button type="button" onclick="hapusBarisProdukExpired(this)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold bg-white rounded-full px-1.5 py-0.5 border">✕</button>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Kategori</label>
+                        <input type="text" value="Food 🍔" disabled class="w-full bg-gray-100 border rounded p-1.5 text-xs font-bold text-amber-800">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                        <input type="text" class="exp-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none" required placeholder="Contoh: MAT-90021">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Nama Produk Food *</label>
+                        <input type="text" class="exp-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none" required placeholder="Contoh: Produk Food #${rowCount}">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-bold text-red-800">Tanggal Expired (ED) *</label>
+                        <input type="date" class="exp-date w-full border border-red-300 rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none font-bold" required>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Qty Expired *</label>
+                        <input type="number" min="1" class="exp-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none" required placeholder="Contoh: 1">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
+                        <select class="exp-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none">
+                            <option value="Pcs">Pcs</option>
+                            <option value="Box / Karton">Box / Karton</option>
+                            <option value="Master Carton">Master Carton</option>
+                            <option value="Pallet">Pallet</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function hapusBarisProdukExpired(btn) {
+            const container = document.getElementById('container-items-expired');
+            if (container && container.children.length > 1) {
+                btn.closest('.item-expired-row').remove();
+            } else {
+                alert("Minimal harus terdapat 1 produk Food!");
+            }
+        }
+
+        function previewFotoExpired(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    urlFotoExpiredSementara = e.target.result;
+                    const img = document.getElementById('img-preview-expired');
+                    const c = document.getElementById('container-preview-expired');
+                    if (img) img.src = urlFotoExpiredSementara;
+                    if (c) c.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function simpanExpiredBaru(event) {
+            event.preventDefault();
+            const lokasi = document.getElementById('expired-lokasi').value;
+            const now = new Date();
+            const tglStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
+
+            const rows = document.querySelectorAll('.item-expired-row');
+            
+            rows.forEach((row, index) => {
+                const matId = row.querySelector('.exp-matid').value;
+                const nama = row.querySelector('.exp-nama').value;
+                const expDate = row.querySelector('.exp-date').value;
+                const qty = parseInt(row.querySelector('.exp-qty').value) || 1;
+                const satuan = row.querySelector('.exp-satuan').value;
+
+                const newItem = {
+                    id: Date.now() + index,
+                    tanggal: tglStr,
+                    kategori: 'Food',
+                    expDate,
+                    matId,
+                    nama,
+                    qty,
+                    satuan,
+                    lokasi,
+                    pelapor: userAktif === 'Supervisor' ? 'Supervisor' : userAktif,
+                    foto: urlFotoExpiredSementara,
+                    status: 'Pending'
+                };
+
+                dataExpired.unshift(newItem);
+            });
+
+            simpanKeStorage();
+            tutupModalExpired();
+            renderExpired();
+            renderStatistik();
+            alert("Laporan Opname Expired berhasil dikirim (Status: Menunggu Approval Supervisor).");
+        }
+
+        function exportExpiredExcel() {
+            if (dataExpired.length === 0) {
+                alert("Belum ada data Opname Expired untuk diekspor!");
+                return;
+            }
+
+            const dataArray = [
+                ["Tanggal Lapor", "Tanggal Expired (ED)", "Kategori", "Mat ID", "Nama Produk Food", "Qty Expired", "Lokasi", "Pelapor", "Status Approval", "Di-verify Oleh", "Catatan"]
+            ];
+
+            const today = new Date().toISOString().slice(0,10);
+
+            dataExpired.forEach(row => {
+                const tglLaporFormatted = formatTanggalIndo(row.tanggal);
+                const tglEdFormatted = formatTanggalIndo(row.expDate);
+                const matIdText = row.matId || "-";
+                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+
+                dataArray.push([
+                    tglLaporFormatted,
+                    tglEdFormatted,
+                    "Food",
+                    matIdText,
+                    row.nama,
+                    qtySatuanText,
+                    row.lokasi,
+                    row.pelapor,
+                    row.status || "Pending",
+                    row.verifiedBy || "-",
+                    row.catatanSupervisor || "-"
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(dataArray);
+
+            ws['!cols'] = [
+                { wch: 18 }, { wch: 20 }, { wch: 10 }, { wch: 14 },
+                { wch: 35 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Opname Expired Food");
+            XLSX.writeFile(wb, `Laporan_WpcAps_Expired_Food_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        function exportExpiredCSV() {
+            if (dataExpired.length === 0) {
+                alert("Belum ada data Opname Expired untuk diekspor!");
+                return;
+            }
+
+            let csvContent = "\uFEFFTanggal Lapor,Tanggal Expired,Kategori,Mat ID,Nama Produk Food,Qty Expired,Lokasi,Pelapor,Status Approval,Verified By,Catatan\n";
+            dataExpired.forEach(row => {
+                const tglLaporFormatted = formatTanggalIndo(row.tanggal);
+                const tglEdFormatted = formatTanggalIndo(row.expDate);
+                const matIdText = row.matId || "-";
+                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+
+                csvContent += `"${tglLaporFormatted}","${tglEdFormatted}","Food","${matIdText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Laporan_WpcAps_Expired_Food_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // LOGIKA BARANG DAMAGED
+        function renderDashboardDamagedVisual() {
+            const alertContainer = document.getElementById('container-alerts-damaged');
+            if (!alertContainer) return;
+            alertContainer.innerHTML = '';
+
+            const pendingItems = dataDamaged.filter(i => (i.status || 'Pending') === 'Pending');
+            const highQtyItems = dataDamaged.filter(i => (i.qty || 0) >= 10);
+
+            if (highQtyItems.length > 0) {
+                const topHigh = highQtyItems[0];
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'bg-red-100 border-l-4 border-red-600 text-red-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
+                alertDiv.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">🚨</span>
+                        <div>
+                            <strong class="font-bold">PERINGATAN TINGKAT DAMAGED TINGGI:</strong> 
+                            Produk <span class="font-extrabold underline">${topHigh.nama}</span> [Mat ID: ${topHigh.matId || '-'}] memiliki jumlah kerusakan tinggi sebesar <strong>${topHigh.qty} ${topHigh.satuan}</strong> di lokasi ${topHigh.lokasi}!
+                        </div>
+                    </div>
+                `;
+                alertContainer.appendChild(alertDiv);
+            }
+
+            if (pendingItems.length > 0) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'bg-amber-100 border-l-4 border-amber-600 text-amber-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
+                alertDiv.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">⚠️</span>
+                        <div><strong class="font-bold">NOTIFIKASI SUPERVISOR:</strong> Terdapat <strong>${pendingItems.length} Laporan Barang Damaged Pending</strong> menunggu verifikasi.</div>
+                    </div>
+                `;
+                alertContainer.appendChild(alertDiv);
+            }
+
+            const countFood = dataDamaged.filter(i => (i.kategori || 'Food') === 'Food').reduce((acc, c) => acc + (c.qty || 0), 0);
+            const countNonFood = dataDamaged.filter(i => i.kategori === 'Non Food').reduce((acc, c) => acc + (c.qty || 0), 0);
+
+            const canvasKat = document.getElementById('chartKategori');
+            if (canvasKat) {
+                const ctxKategori = canvasKat.getContext('2d');
+                if (chartKategoriInstance) chartKategoriInstance.destroy();
+                chartKategoriInstance = new Chart(ctxKategori, {
+                    type: 'doughnut',
+                    data: { labels: ['Food 🍔', 'Non Food 📦'], datasets: [{ data: [countFood, countNonFood], backgroundColor: ['#D97706', '#2563EB'], borderWidth: 2 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                });
+            }
+
+            const productQtyMap = {};
+            dataDamaged.forEach(item => {
+                const key = `${item.nama} (${item.matId || '-'})`;
+                productQtyMap[key] = (productQtyMap[key] || 0) + (item.qty || 0);
+            });
+
+            const sortedProducts = Object.keys(productQtyMap)
+                .map(k => ({ name: k, qty: productQtyMap[k] }))
+                .sort((a, b) => b.qty - a.qty).slice(0, 5);
+
+            const elTopName = document.getElementById('stat-damaged-top-name');
+            const elTopQty = document.getElementById('stat-damaged-top-qty');
+            if (sortedProducts.length > 0) {
+                if (elTopName) elTopName.innerText = sortedProducts[0].name;
+                if (elTopQty) elTopQty.innerText = `${sortedProducts[0].qty} Qty Rusak`;
+            } else {
+                if (elTopName) elTopName.innerText = '-';
+                if (elTopQty) elTopQty.innerText = '0 Qty';
+            }
+
+            const canvasTopP = document.getElementById('chartTopProducts');
+            if (canvasTopP) {
+                const ctxTop = canvasTopP.getContext('2d');
+                if (chartTopProductsInstance) chartTopProductsInstance.destroy();
+                chartTopProductsInstance = new Chart(ctxTop, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedProducts.map(p => p.name.length > 20 ? p.name.slice(0,20) + '...' : p.name),
+                        datasets: [{ label: 'Total Qty Rusak', data: sortedProducts.map(p => p.qty), backgroundColor: '#1D4ED8', borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
+                });
+            }
+        }
+
+        function tambahBarisProduk() {
+            const container = document.getElementById('container-items-damaged');
+            if (!container) return;
+            const rowCount = container.children.length + 1;
+
+            const div = document.createElement('div');
+            div.className = 'item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2';
+            div.innerHTML = `
+                <button type="button" onclick="hapusBarisProduk(this)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold bg-white rounded-full px-1.5 py-0.5 border">✕</button>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
+                        <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                            <option value="Food">Food 🍔</option>
+                            <option value="Non Food">Non Food 📦</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                        <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
+                        <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Produk #${rowCount}">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
+                        <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 1">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
+                        <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                            <option value="Pcs">Pcs</option>
+                            <option value="Box / Karton">Box / Karton</option>
+                            <option value="Master Carton">Master Carton</option>
+                            <option value="Pallet">Pallet</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(div);
+        }
+
+        function hapusBarisProduk(btn) {
+            const container = document.getElementById('container-items-damaged');
+            if (container && container.children.length > 1) {
+                btn.closest('.item-damaged-row').remove();
+            } else {
+                alert("Minimal harus terdapat 1 produk dalam laporan!");
+            }
+        }
+
+        function renderDamaged() {
+            const tbody = document.getElementById('tabel-damaged');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (dataDamaged.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan barang damaged.</td></tr>`;
+                renderDashboardDamagedVisual();
+                return;
+            }
+
+            dataDamaged.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
+
+                const currentStatus = item.status || 'Pending';
+                let badgeStatus = '';
+                if (currentStatus === 'Disetujui') {
+                    badgeStatus = `<div class="space-y-0.5"><span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold">✅ Disetujui</span><div class="text-[10px] text-gray-500 italic">By: ${item.verifiedBy || 'Supervisor'}</div></div>`;
+                } else if (currentStatus === 'Ditolak') {
+                    badgeStatus = `<div class="space-y-0.5"><span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold">❌ Ditolak</span><div class="text-[10px] text-gray-500 italic">${item.catatanSupervisor || ''}</div></div>`;
+                } else {
+                    badgeStatus = `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">⏳ Pending Verifikasi</span>`;
+                }
+
+                let badgeKategori = item.kategori === 'Food'
+                    ? `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Food 🍔</span>`
+                    : `<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">Non Food 📦</span>`;
+
+                const fotoElement = item.foto 
+                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200">📷 Lihat Foto</button>`
+                    : `<span class="text-xs text-gray-400 italic">Tanpa Foto</span>`;
+
+                const isSupervisor = userAktif === 'Supervisor';
+                let aksi = isSupervisor
+                    ? `<button onclick="bukaModalApproval(${item.id}, 'damaged')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition shadow-sm">👑 Verifikasi</button>`
+                    : `<span class="text-xs text-gray-400 italic">Khusus Supervisor</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs font-semibold">${formatTanggalIndo(item.tanggal)}</td>
+                    <td class="py-3 px-4">${fotoElement}</td>
+                    <td class="py-3 px-4">${badgeKategori}</td>
+                    <td class="py-3 px-4 text-xs font-mono font-bold text-themeblue-800">${item.matId || '-'}</td>
+                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
+                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan}</td>
+                    <td class="py-3 px-4 text-xs">${item.lokasi}</td>
+                    <td class="py-3 px-4 text-xs font-semibold">${item.pelapor}</td>
+                    <td class="py-3 px-4">${badgeStatus}</td>
+                    <td class="py-3 px-4 no-print">${aksi}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderDashboardDamagedVisual();
+        }
+
+        function bukaModalDamaged() {
+            const m = document.getElementById('modal-damaged');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function tutupModalDamaged() {
+            const m = document.getElementById('modal-damaged');
+            if (m) m.classList.add('hidden');
+            const f = document.getElementById('form-damaged');
+            if (f) f.reset();
+            const p = document.getElementById('container-preview-damaged');
+            if (p) p.classList.add('hidden');
+        }
+
+        function previewFotoDamaged(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    urlFotoDamagedSementara = e.target.result;
+                    const img = document.getElementById('img-preview-damaged');
+                    const c = document.getElementById('container-preview-damaged');
+                    if (img) img.src = urlFotoDamagedSementara;
+                    if (c) c.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function simpanDamagedBaru(event) {
+            event.preventDefault();
+            const lokasi = document.getElementById('damaged-lokasi').value;
+            const now = new Date();
+            const tglStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
+
+            const rows = document.querySelectorAll('.item-damaged-row');
+            
+            rows.forEach((row, index) => {
+                const kategori = row.querySelector('.item-kategori').value;
+                const matId = row.querySelector('.item-matid').value;
+                const nama = row.querySelector('.item-nama').value;
+                const qty = parseInt(row.querySelector('.item-qty').value) || 1;
+                const satuan = row.querySelector('.item-satuan').value;
+
+                const newItem = {
+                    id: Date.now() + index,
+                    tanggal: tglStr,
+                    kategori,
+                    matId,
+                    nama,
+                    qty,
+                    satuan,
+                    lokasi,
+                    pelapor: userAktif === 'Supervisor' ? 'Supervisor' : userAktif,
+                    foto: urlFotoDamagedSementara,
+                    status: 'Pending'
+                };
+
+                dataDamaged.unshift(newItem);
+            });
+
+            simpanKeStorage();
+            tutupModalDamaged();
+            renderDamaged();
+            renderStatistik();
+            alert("Laporan Barang Damaged berhasil dikirim (Status: Menunggu Approval Supervisor).");
+        }
+
+        function exportDamagedExcel() {
+            if (dataDamaged.length === 0) {
+                alert("Belum ada data barang damaged untuk diekspor!");
+                return;
+            }
+
+            const dataArray = [
+                ["Tanggal", "Foto", "Kategori", "Mat ID", "Nama Produk / Deskripsi", "Qty Rusak", "Lokasi", "Pelapor", "Status Approval", "Di-verify Oleh", "Catatan"]
+            ];
+
+            dataDamaged.forEach(row => {
+                const tglFormatted = formatTanggalIndo(row.tanggal);
+                const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
+                const kategoriText = row.kategori || "Food";
+                const matIdText = row.matId || "-";
+                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+
+                dataArray.push([
+                    tglFormatted,
+                    fotoText,
+                    kategoriText,
+                    matIdText,
+                    row.nama,
+                    qtySatuanText,
+                    row.lokasi,
+                    row.pelapor,
+                    row.status || "Pending",
+                    row.verifiedBy || "-",
+                    row.catatanSupervisor || "-"
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(dataArray);
+
+            ws['!cols'] = [
+                { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+                { wch: 35 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan Damaged");
+            XLSX.writeFile(wb, `Laporan_WpcAps_Damaged_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        function exportDamagedCSV() {
+            if (dataDamaged.length === 0) {
+                alert("Belum ada data barang damaged untuk diekspor!");
+                return;
+            }
+
+            let csvContent = "\uFEFFTanggal,Foto,Kategori,Mat ID,Nama Produk / Deskripsi,Qty Rusak,Lokasi,Pelapor,Status Approval,Verified By,Catatan\n";
+            dataDamaged.forEach(row => {
+                const tglFormatted = formatTanggalIndo(row.tanggal);
+                const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
+                const kategoriText = row.kategori || "Food";
+                const matIdText = row.matId || "-";
+                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+
+                csvContent += `"${tglFormatted}","${fotoText}","${kategoriText}","${matIdText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Laporan_WpcAps_Damaged_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // LOGIKA OPNAME DAILY
+        function simpanOpnameDaily(event) {
+            event.preventDefault();
+            if (userAktif !== 'Supervisor') {
+                alert('Akses ditolak! Hanya Supervisor / Manajemen yang diperbolehkan mengunggah file opname.');
+                return;
+            }
+
+            const tanggal = document.getElementById('opname-tanggal').value;
+            const judul = document.getElementById('opname-judul').value;
+            const fileInput = document.getElementById('opname-file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Silakan pilih file Excel / Spreadsheet terlebih dahulu!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fileBase64 = e.target.result;
+                const sizeKb = Math.round(file.size / 1024);
+                
+                const now = new Date();
+                const uploadTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                const itemBaru = {
+                    id: Date.now(),
+                    tanggal: tanggal,
+                    judul: judul,
+                    fileName: file.name,
+                    fileSize: sizeKb > 1024 ? (sizeKb / 1024).toFixed(2) + ' MB' : sizeKb + ' KB',
+                    fileData: fileBase64,
+                    uploadTime: `${now.toISOString().slice(0,10)} ${uploadTime}`
+                };
+
+                dataOpname.unshift(itemBaru);
+                simpanKeStorage();
+                
+                const formOp = document.getElementById('form-opname');
+                if (formOp) formOp.reset();
+                const opDate = document.getElementById('opname-tanggal');
+                if (opDate) opDate.value = new Date().toISOString().slice(0,10);
+                
+                renderOpname();
+                alert('Laporan Opname Daily berhasil diunggah!');
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function renderOpname() {
+            const tbody = document.getElementById('tabel-opname');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const elCount = document.getElementById('stat-opname-count');
+            if (elCount) elCount.innerText = `${dataOpname.length} Berkas`;
+
+            if (dataOpname.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada berkas Opname Daily yang diunggah.</td></tr>`;
+                return;
+            }
+
+            dataOpname.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-bold text-themeblue-800 text-xs">${item.tanggal}</td>
+                    <td class="py-3.5 px-4 font-semibold text-gray-800">${item.judul}</td>
+                    <td class="py-3.5 px-4 text-xs font-mono text-themeblue-700">${item.fileName}</td>
+                    <td class="py-3.5 px-4 text-xs text-gray-500">${item.fileSize}</td>
+                    <td class="py-3.5 px-4 text-xs text-gray-400">${item.uploadTime}</td>
+                    <td class="py-3.5 px-4 no-print flex items-center gap-2">
+                        <a href="${item.fileData}" download="${item.fileName}" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
+                            <span>📥</span><span>Download File</span>
+                        </a>
+                        <button onclick="hapusOpname(${item.id})" class="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function hapusOpname(id) {
+            if (userAktif !== 'Supervisor') return;
+            if (confirm('Apakah Anda yakin ingin menghapus berkas opname ini?')) {
+                dataOpname = dataOpname.filter(i => i.id !== id);
+                simpanKeStorage();
+                renderOpname();
+            }
+        }
+
+        function exportKebersihanCSV() {
+            if (dataJadwal.length === 0) {
+                alert("Belum ada data kebersihan untuk diekspor!");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,ID,Waktu,Shift,Zona,PIC,Status\n";
+            dataJadwal.forEach(row => {
+                csvContent += `${row.id},"${row.waktu}","${row.shift}","${row.zona}","${row.pic}","${row.status}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Laporan_WpcAps_Kebersihan_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderTabel() {
+            const tbody = document.getElementById('tabel-jadwal');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (dataJadwal.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan yang ditambahkan hari ini.</td></tr>`;
+                renderLeaderboardPIC();
+                return;
+            }
+
+            dataJadwal.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
+
+                let badgeStatus = item.status === 'Selesai' 
+                    ? `<span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Selesai</span>`
+                    : `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum</span>`;
+
+                let fotoElement = item.foto 
+                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200">📷 Lihat Foto</button>`
+                    : `<span class="text-xs text-gray-400 italic">Belum Ada</span>`;
+
+                const isSupervisor = userAktif === 'Supervisor';
+                const bisaEdit = isSupervisor || item.pic === userAktif;
+
+                let aksi = bisaEdit && item.status !== 'Selesai'
+                    ? `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 text-white text-xs px-2.5 py-1 rounded font-semibold">Tandai Selesai</button>`
+                    : `<span class="text-xs text-gray-400">Tuntas ✅</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs"><strong>${item.waktu}</strong> (${item.shift})</td>
+                    <td class="py-3 px-4">${item.zona}</td>
+                    <td class="py-3 px-4 font-semibold">${item.pic}</td>
+                    <td class="py-3 px-4">${fotoElement}</td>
+                    <td class="py-3 px-4">${badgeStatus}</td>
+                    <td class="py-3 px-4 no-print">${aksi}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderLeaderboardPIC();
+        }
+
+        function renderStatistik() {
+            const elTot = document.getElementById('stat-total');
+            const elSel = document.getElementById('stat-selesai');
+            const elPen = document.getElementById('stat-pending');
+
+            if (elTot) elTot.innerText = dataJadwal.length;
+            if (elSel) elSel.innerText = dataJadwal.filter(i => i.status === 'Selesai').length;
+            if (elPen) elPen.innerText = dataJadwal.filter(i => i.status !== 'Selesai').length;
+
+            const totalDamagedQty = dataDamaged.reduce((acc, curr) => acc + (curr.qty || 0), 0);
+            const foodQty = dataDamaged.filter(i => (i.kategori || 'Food') === 'Food').reduce((acc, curr) => acc + (curr.qty || 0), 0);
+            const nonFoodQty = dataDamaged.filter(i => i.kategori === 'Non Food').reduce((acc, curr) => acc + (curr.qty || 0), 0);
+
+            const elDamTot = document.getElementById('stat-damaged-total');
+            const elDamQty = document.getElementById('stat-damaged-qty');
+            const elDamFood = document.getElementById('stat-damaged-food');
+            const elDamNon = document.getElementById('stat-damaged-nonfood');
+
+            if (elDamTot) elDamTot.innerText = dataDamaged.length;
+            if (elDamQty) elDamQty.innerText = totalDamagedQty;
+            if (elDamFood) elDamFood.innerText = `Food: ${foodQty}`;
+            if (elDamNon) elDamNon.innerText = `Non: ${nonFoodQty}`;
+        }
+
+        function bukaModalTambah() {
+            const m = document.getElementById('modal-tambah');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function tutupModalTambah() {
+            const m = document.getElementById('modal-tambah');
+            if (m) m.classList.add('hidden');
+        }
+
+        function simpanJadwalBaru(e) {
+            e.preventDefault();
+            dataJadwal.push({
+                id: Date.now(),
+                waktu: document.getElementById('add-waktu').value,
+                shift: document.getElementById('add-shift').value,
+                zona: document.getElementById('add-zona').value,
+                pic: document.getElementById('add-pic').value,
+                foto: null, status: 'Belum'
+            });
+            simpanKeStorage(); tutupModalTambah(); renderTabel(); renderStatistik();
+        }
+
+        function bukaModalUpload(id) { idAktif = id; const m = document.getElementById('modal-upload'); if (m) m.classList.remove('hidden'); }
+        function tutupModalUpload() { const m = document.getElementById('modal-upload'); if (m) m.classList.add('hidden'); }
+        function previewFoto(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { urlFotoSementara = ev.target.result; const img = document.getElementById('img-preview'); const c = document.getElementById('container-preview'); if (img) img.src = urlFotoSementara; if (c) c.classList.remove('hidden'); };
+                reader.readAsDataURL(file);
+            }
+        }
+        function simpanFotoSelesai() {
+            const item = dataJadwal.find(i => i.id === idAktif);
+            if (item) { item.foto = urlFotoSementara; item.status = 'Selesai'; simpanKeStorage(); renderTabel(); renderStatistik(); }
+            tutupModalUpload();
+        }
+
+        function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
+        function tutupModalLihat() { const m = document.getElementById('modal-lihat'); if (m) m.classList.add('hidden'); }
+
+        // FUNGSI RESET SPESIFIK TIAP MENU
+        function resetDataJadwal() {
+            if (userAktif !== 'Supervisor') return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Jadwal Kebersihan?')) {
+                dataJadwal = [];
+                simpanKeStorage();
+                renderTabel();
+                renderStatistik();
+            }
+        }
+
+        function resetDataDamaged() {
+            if (userAktif !== 'Supervisor') return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Laporan Barang Damaged?')) {
+                dataDamaged = [];
+                simpanKeStorage();
+                renderDamaged();
+                renderStatistik();
+            }
+        }
+
+        function resetDataExpired() {
+            if (userAktif !== 'Supervisor') return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Opname Expired?')) {
+                dataExpired = [];
+                simpanKeStorage();
+                renderExpired();
+                renderStatistik();
+            }
+        }
+
+        function resetDataOpname() {
+            if (userAktif !== 'Supervisor') return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh arsip berkas Opname Daily?')) {
+                dataOpname = [];
+                simpanKeStorage();
+                renderOpname();
+            }
+        }
+    </script>
+</body>
+</html>
