@@ -191,7 +191,7 @@
             <div class="p-4 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 class="text-lg font-bold text-themeblue-900">Jadwal Kebersihan Gudang Hari Ini</h2>
-                    <p class="text-xs text-gray-500">Hanya menampilkan tugas yang belum selesai atau menunggu verifikasi Supervisor</p>
+                    <p class="text-xs text-gray-500">Menampilkan tugas aktif dan tugas yang perlu diverifikasi</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 no-print">
                     <button onclick="exportKebersihanCSV()" class="role-supervisor bg-themeblue-700 hover:bg-themeblue-800 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1">
@@ -246,7 +246,7 @@
         </div>
     </div>
 
-    <!-- ================= HALAMAN 2: DATA BARANG DAMAGED (FOLDER PER LOKASI) ================= -->
+    <!-- ================= HALAMAN 2: DATA BARANG DAMAGED ================= -->
     <div id="page-damaged" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         <div id="container-alerts-damaged" class="space-y-2"></div>
 
@@ -320,7 +320,7 @@
             <div class="p-4 md:p-5 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 class="text-lg font-bold text-themeblue-900">Pendataan Barang Damaged / Rusak</h2>
-                    <p class="text-xs text-gray-500">Menu diawali dengan daftar lokasi yang memiliki laporan pending/belum diverifikasi</p>
+                    <p class="text-xs text-gray-500">Pilih folder lokasi di bawah ini untuk melihat dan memverifikasi laporan barang rusak per area</p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 no-print">
@@ -339,7 +339,7 @@
                 </div>
             </div>
 
-            <!-- VIEW 1: FOLDER-FOLDER LOKASI AREA -->
+            <!-- VIEW 1: FOLDER LOKASI -->
             <div id="view-damaged-folders" class="p-5 space-y-6">
                 <div>
                     <h3 class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-3 flex items-center gap-1">
@@ -1500,16 +1500,18 @@
             const safeCount = Math.max(0, dataExpired.reduce((a,c) => a + (c.qty || 0), 0) - alreadyCount - nearCount);
             const canvasStatus = document.getElementById('chartExpiredStatus');
             if (canvasStatus && typeof Chart !== 'undefined') {
-                const ctxExpStatus = canvasStatus.getContext('2d');
-                if (chartExpiredStatusInstance) chartExpiredStatusInstance.destroy();
-                chartExpiredStatusInstance = new Chart(ctxExpStatus, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Expired ☣️', 'Near ED (≤30 Hari) ⚠️', 'Aman ✅'],
-                        datasets: [{ data: [alreadyCount, nearCount, safeCount], backgroundColor: ['#DC2626', '#D97706', '#059669'], borderWidth: 2 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
-                });
+                try {
+                    const ctxExpStatus = canvasStatus.getContext('2d');
+                    if (chartExpiredStatusInstance) chartExpiredStatusInstance.destroy();
+                    chartExpiredStatusInstance = new Chart(ctxExpStatus, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Expired ☣️', 'Near ED (≤30 Hari) ⚠️', 'Aman ✅'],
+                            datasets: [{ data: [alreadyCount, nearCount, safeCount], backgroundColor: ['#DC2626', '#D97706', '#059669'], borderWidth: 2 }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                    });
+                } catch(e) { console.warn(e); }
             }
 
             const expProductMap = {};
@@ -1524,16 +1526,18 @@
 
             const canvasTop = document.getElementById('chartTopExpired');
             if (canvasTop && typeof Chart !== 'undefined') {
-                const ctxTopExp = canvasTop.getContext('2d');
-                if (chartTopExpiredInstance) chartTopExpiredInstance.destroy();
-                chartTopExpiredInstance = new Chart(ctxTopExp, {
-                    type: 'bar',
-                    data: {
-                        labels: sortedExpProducts.map(p => p.name.length > 20 ? p.name.slice(0,20) + '...' : p.name),
-                        datasets: [{ label: 'Total Qty ED', data: sortedExpProducts.map(p => p.qty), backgroundColor: '#DC2626', borderRadius: 6 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
-                });
+                try {
+                    const ctxTopExp = canvasTop.getContext('2d');
+                    if (chartTopExpiredInstance) chartTopExpiredInstance.destroy();
+                    chartTopExpiredInstance = new Chart(ctxTopExp, {
+                        type: 'bar',
+                        data: {
+                            labels: sortedExpProducts.map(p => p.name.length > 20 ? p.name.slice(0,20) + '...' : p.name),
+                            datasets: [{ label: 'Total Qty ED', data: sortedExpProducts.map(p => p.qty), backgroundColor: '#DC2626', borderRadius: 6 }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
+                    });
+                } catch(e) { console.warn(e); }
             }
         }
 
@@ -2021,7 +2025,6 @@
             alert("Laporan Barang Damaged berhasil dikirim (Status: Menunggu Approval Supervisor).");
         }
 
-        // PEMISAHAN KOLOM QTY RUSAK DAN SATUAN PADA EKSPOR EXCEL
         function exportDamagedExcel() {
             if (dataDamaged.length === 0) {
                 alert("Belum ada data barang damaged untuk diekspor!");
@@ -2205,7 +2208,7 @@
             document.body.removeChild(link);
         }
 
-        // RENDER TABEL JADWAL KEBERSIHAN (PENGELOMPOKAN PENDING vs SELESAI)
+        // RENDER TABEL JADWAL KEBERSIHAN
         function renderTabel() {
             const tbodyActive = document.getElementById('tabel-jadwal');
             const tbodyDone = document.getElementById('tabel-jadwal-selesai');
@@ -2267,7 +2270,6 @@
                 });
             }
 
-            // Render Tabel Arsip Kebersihan Selesai
             if (doneJadwal.length === 0) {
                 tbodyDone.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-400 text-xs">Belum ada tugas kebersihan yang selesai hari ini.</td></tr>`;
             } else {
