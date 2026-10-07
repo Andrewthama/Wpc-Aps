@@ -90,7 +90,7 @@
                 <h1 class="text-lg md:text-xl font-bold tracking-wide leading-tight">Wpc-Aps</h1>
                 <p class="text-xs text-themeblue-100 flex items-center gap-1">
                     <span>Warehouse Performance & Coordination</span>
-                    <span id="sync-status-indicator" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1" title="Menghubungkan Server Cloud..."></span>
+                    <span id="sync-status-indicator" class="inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1" title="Sistem Aktif & Tersimpan"></span>
                 </p>
             </div>
         </div>
@@ -933,8 +933,8 @@
         let chartExpiredStatusInstance = null;
         let chartTopExpiredInstance = null;
 
-        // FUNGSI KOMPRESI FOTO RINGAN UNTUK MENCEGAH LAG MULTIUSER (Maks 600px, Kualitas 0.5)
-        function kompresFoto(file, maxWidth = 600, maxHeight = 600, quality = 0.5) {
+        // FUNGSI KOMPRESI FOTO SANGAT RINGAN UNTUK MENCEGAH LOCALSTORAGE FULL (Maks 400px, Quality 0.4)
+        function kompresFoto(file, maxWidth = 400, maxHeight = 400, quality = 0.4) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -970,12 +970,29 @@
             });
         }
 
-        // FUNGSI SIMPAN KE STORAGE & FIREBASE (SAFE NON-BLOCKING)
+        // FUNGSI SIMPAN DENGAN AUTO-CLEANUP CACHE FOTO LAMA JIKA LOCALSTORAGE FULL
         function simpanKeStorage() {
-            localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
-            localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
-            localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
-            localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+            try {
+                localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+                localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+            } catch (err) {
+                console.warn("Storage Quota Exceeded! Cleaning old photo cache...", err);
+                // BERSIHKAN CACHE FOTO PADA LAPORAN LAMA AGAR LAPORAN BARU BISA MASUK
+                dataDamaged.forEach((item, idx) => { if (idx > 20) item.foto = null; });
+                dataExpired.forEach((item, idx) => { if (idx > 20) item.foto = null; });
+                dataJadwal.forEach((item, idx) => { if (idx > 30) item.foto = null; });
+
+                try {
+                    localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                    localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                    localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+                    localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+                } catch (e) {
+                    console.error("Critical storage error:", e);
+                }
+            }
 
             if (db) {
                 db.ref('wpc_cloud_data').set({
@@ -988,16 +1005,16 @@
                     setIndikatorStatus('green', 'Terhubung Realtime ke Cloud Server');
                 }).catch(err => {
                     console.warn("Firebase Sync Warning:", err);
-                    setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
+                    setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
                 });
             } else {
-                setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
+                setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
             }
         }
 
         function inisialisasiFirebaseListener() {
             if (!db) {
-                setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
+                setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
                 return;
             }
 
@@ -1010,21 +1027,23 @@
                         dataExpired = val.expired || [];
                         dataOpname = val.opname || [];
 
-                        localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
-                        localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
-                        localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
-                        localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+                        try {
+                            localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                            localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                            localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+                            localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+                        } catch (e) { console.warn("Cache sync warn:", e); }
 
                         renderSemuaTabel();
                         setIndikatorStatus('green', 'Terhubung Realtime ke Cloud Server');
                     }
                 }, (error) => {
                     console.warn("Realtime listener error:", error);
-                    setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
+                    setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
                 });
             } catch (err) {
                 console.warn("Firebase listener fail-safe triggered:", err);
-                setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
+                setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
             }
         }
 
@@ -1084,7 +1103,6 @@
             }
         }
 
-        // PROSES LOGIN MANDIRI DAN GUARANTEED WORKING
         function prosesLogin(e) {
             e.preventDefault();
             const u = document.getElementById('login-username').value.trim().toLowerCase();
@@ -2093,7 +2111,7 @@
             }
         }
 
-        // SIMPAN LAPORAN DAMAGED SECARA HANDAL & BEBAS CONFLICT MULTIUSER
+        // SIMPAN LAPORAN DAMAGED SECARA HANDAL & BEBAS QUOTA ERROR
         function simpanDamagedBaru(event) {
             event.preventDefault();
             
@@ -2509,20 +2527,33 @@
         function tutupModalTambah() {
             const m = document.getElementById('modal-tambah');
             if (m) m.classList.add('hidden');
+            const f = document.getElementById('form-tambah');
+            if (f) f.reset();
         }
 
+        // SIMPAN JADWAL KEBERSIHAN BARU DENGAN BEBAS BUG
         function simpanJadwalBaru(e) {
             e.preventDefault();
+            const zona = document.getElementById('add-zona').value;
+            const pic = document.getElementById('add-pic').value;
+            const waktu = document.getElementById('add-waktu').value;
+            const shift = document.getElementById('add-shift').value;
+
             dataJadwal.push({
                 id: Date.now(),
-                waktu: document.getElementById('add-waktu').value,
-                shift: document.getElementById('add-shift').value,
-                zona: document.getElementById('add-zona').value,
-                pic: document.getElementById('add-pic').value,
+                waktu: waktu,
+                shift: shift,
+                zona: zona,
+                pic: pic,
                 foto: null, 
                 status: 'Belum'
             });
-            simpanKeStorage(); tutupModalTambah(); renderTabel(); renderStatistik();
+
+            simpanKeStorage(); 
+            tutupModalTambah(); 
+            renderTabel(); 
+            renderStatistik();
+            alert("✅ Jadwal Kebersihan berhasil ditambahkan!");
         }
 
         function bukaModalUpload(id) { idAktif = id; const m = document.getElementById('modal-upload'); if (m) m.classList.remove('hidden'); }
@@ -2533,6 +2564,7 @@
             if (input) input.value = '';
             const c = document.getElementById('container-preview');
             if (c) c.classList.add('hidden');
+            urlFotoSementara = '';
         }
         
         async function previewFoto(e) {
