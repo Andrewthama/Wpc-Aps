@@ -271,7 +271,7 @@
             <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 flex flex-col justify-between">
                 <div>
                     <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">Rasio Kategori Damaged</h3>
-                    <p class="text-[11px] text-gray-400 mb-4">Perbandingan persentase Food vs Non Food</p>
+                    <p class="text-[11px] text-gray-400 mb-4">Perbandingan persentase berbobot Food vs Non Food</p>
                 </div>
                 <div class="relative max-h-52 flex justify-center items-center py-2">
                     <canvas id="chartKategori"></canvas>
@@ -280,8 +280,8 @@
 
             <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 lg:col-span-2 flex flex-col justify-between">
                 <div>
-                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">5 Produk Damaged Tertinggi (Qty Berdasarkan Satuan)</h3>
-                    <p class="text-[11px] text-gray-400 mb-4">Produk dengan tingkat kerusakan terbanyak beserta keterangannya</p>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">5 Produk Damaged Tertinggi (Hirarki Box > Pcs)</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Produk dengan tingkat kerusakan tertinggi dengan prioritas Box/Karton</p>
                 </div>
                 <div class="relative max-h-52">
                     <canvas id="chartTopProducts"></canvas>
@@ -1737,27 +1737,48 @@
             alertContainer.innerHTML = '';
 
             const pendingItems = dataDamaged.filter(i => (i.status || 'Pending') === 'Pending');
-            const highQtyItems = dataDamaged.filter(i => (i.qty || 0) >= 10);
+            
+            // FILTER PEMISAHAN PERINGATAN (ALERT) DAMAGED TINGGI: BOX VS PCS
+            const boxDamagedHigh = dataDamaged.filter(i => (i.satuan || '').includes('Box') && (i.qty || 0) >= 10);
+            const pcsDamagedHigh = dataDamaged.filter(i => !(i.satuan || '').includes('Box') && (i.qty || 0) >= 10);
 
-            if (highQtyItems.length > 0) {
-                const topHigh = highQtyItems[0];
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'bg-red-100 border-l-4 border-red-600 text-red-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
-                alertDiv.innerHTML = `
+            // 1. ALERT UNTUK TINGKAT DAMAGED QTY BOX TINGGI
+            if (boxDamagedHigh.length > 0) {
+                const topBox = boxDamagedHigh.sort((a,b) => b.qty - a.qty)[0];
+                const alertDivBox = document.createElement('div');
+                alertDivBox.className = 'bg-red-100 border-l-4 border-red-600 text-red-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
+                alertDivBox.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="text-base">🚨</span>
+                        <span class="text-base">📦</span>
                         <div>
-                            <strong class="font-bold">PERINGATAN TINGKAT DAMAGED TINGGI:</strong> 
-                            Produk <span class="font-extrabold underline">${topHigh.nama}</span> [Mat ID: ${topHigh.matId || '-'}] memiliki jumlah kerusakan tinggi sebesar <strong>${topHigh.qty} ${topHigh.satuan || 'Pcs'}</strong> di lokasi ${topHigh.lokasi}!
+                            <strong class="font-bold">PERINGATAN DAMAGED BOX TINGGI:</strong> 
+                            Produk <span class="font-extrabold underline">${topBox.nama}</span> [Mat ID: ${topBox.matId || '-'}] memiliki jumlah kerusakan tinggi sebesar <strong>${topBox.qty} ${topBox.satuan || 'Box'}</strong> di lokasi ${topBox.lokasi}!
                         </div>
                     </div>
                 `;
-                alertContainer.appendChild(alertDiv);
+                alertContainer.appendChild(alertDivBox);
+            }
+
+            // 2. ALERT UNTUK TINGKAT DAMAGED QTY PCS TINGGI
+            if (pcsDamagedHigh.length > 0) {
+                const topPcs = pcsDamagedHigh.sort((a,b) => b.qty - a.qty)[0];
+                const alertDivPcs = document.createElement('div');
+                alertDivPcs.className = 'bg-amber-100 border-l-4 border-amber-600 text-amber-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
+                alertDivPcs.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">🛍️</span>
+                        <div>
+                            <strong class="font-bold">PERINGATAN DAMAGED PCS TINGGI:</strong> 
+                            Produk <span class="font-extrabold underline">${topPcs.nama}</span> [Mat ID: ${topPcs.matId || '-'}] memiliki jumlah kerusakan eceran sebesar <strong>${topPcs.qty} ${topPcs.satuan || 'Pcs'}</strong> di lokasi ${topPcs.lokasi}!
+                        </div>
+                    </div>
+                `;
+                alertContainer.appendChild(alertDivPcs);
             }
 
             if (pendingItems.length > 0) {
                 const alertDiv = document.createElement('div');
-                alertDiv.className = 'bg-amber-100 border-l-4 border-amber-600 text-amber-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
+                alertDiv.className = 'bg-amber-100/80 border-l-4 border-amber-500 text-amber-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
                 alertDiv.innerHTML = `
                     <div class="flex items-center gap-2">
                         <span class="text-base">⚠️</span>
@@ -1767,15 +1788,19 @@
                 alertContainer.appendChild(alertDiv);
             }
 
-            // PERHITUNGAN SATUAN SECARA TERPISAH (FOOD VS NON FOOD & PER SATUAN)
-            const countFoodBox = dataDamaged.filter(i => (i.kategori || 'Food') === 'Food' && (i.satuan || '').includes('Box')).reduce((acc, c) => acc + (c.qty || 0), 0);
-            const countFoodPcs = dataDamaged.filter(i => (i.kategori || 'Food') === 'Food' && !(i.satuan || '').includes('Box')).reduce((acc, c) => acc + (c.qty || 0), 0);
-            
-            const countNonFoodBox = dataDamaged.filter(i => i.kategori === 'Non Food' && (i.satuan || '').includes('Box')).reduce((acc, c) => acc + (c.qty || 0), 0);
-            const countNonFoodPcs = dataDamaged.filter(i => i.kategori === 'Non Food' && !(i.satuan || '').includes('Box')).reduce((acc, c) => acc + (c.qty || 0), 0);
+            // BOBOT KATEGORI DAMAGED (BOX DIHITUNG x1000 UNTUK RASIO SKALA NILAI KERUSAKAN BARANG FISIK)
+            let foodScore = 0;
+            let nonFoodScore = 0;
 
-            const totalFoodItems = countFoodBox + countFoodPcs;
-            const totalNonFoodItems = countNonFoodBox + countNonFoodPcs;
+            dataDamaged.forEach(item => {
+                const q = item.qty || 0;
+                const s = item.satuan || 'Pcs';
+                const k = item.kategori || 'Food';
+                const weight = (s.includes('Box') || s.includes('Karton') || s.includes('Master')) ? q * 1000 : q;
+
+                if (k === 'Food') foodScore += weight;
+                else nonFoodScore += weight;
+            });
 
             const canvasKat = document.getElementById('chartKategori');
             if (canvasKat && typeof Chart !== 'undefined') {
@@ -1783,28 +1808,34 @@
                 if (chartKategoriInstance) chartKategoriInstance.destroy();
                 chartKategoriInstance = new Chart(ctxKategori, {
                     type: 'doughnut',
-                    data: { labels: ['Food 🍔', 'Non Food 📦'], datasets: [{ data: [totalFoodItems, totalNonFoodItems], backgroundColor: ['#D97706', '#2563EB'], borderWidth: 2 }] },
+                    data: { labels: ['Food 🍔', 'Non Food 📦'], datasets: [{ data: [foodScore, nonFoodScore], backgroundColor: ['#D97706', '#2563EB'], borderWidth: 2 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
                 });
             }
 
-            // PERHITUNGAN TOP PRODUCT SESUAI SATUAN
-            const productQtyMap = {};
+            // PERHITUNGAN RANKING DENGAN HIRARKI SKALA (BOX JAUH LEBIH TINGGI DIBANDING PCS)
+            const productAggrMap = {};
             dataDamaged.forEach(item => {
-                const satuanStr = item.satuan || 'Pcs';
-                const key = `${item.nama} [${satuanStr}]`;
-                productQtyMap[key] = (productQtyMap[key] || 0) + (item.qty || 0);
+                const s = item.satuan || 'Pcs';
+                const isBox = s.includes('Box') || s.includes('Karton') || s.includes('Master');
+                const key = `${item.nama} [${s}]`;
+
+                if (!productAggrMap[key]) {
+                    productAggrMap[key] = { name: key, rawQty: 0, score: 0, isBox };
+                }
+
+                productAggrMap[key].rawQty += (item.qty || 0);
+                productAggrMap[key].score += (isBox ? (item.qty || 0) * 1000 : (item.qty || 0));
             });
 
-            const sortedProducts = Object.keys(productQtyMap)
-                .map(k => ({ name: k, qty: productQtyMap[k] }))
-                .sort((a, b) => b.qty - a.qty).slice(0, 5);
+            const sortedProducts = Object.values(productAggrMap)
+                .sort((a, b) => b.score - a.score).slice(0, 5);
 
             const elTopName = document.getElementById('stat-damaged-top-name');
             const elTopQty = document.getElementById('stat-damaged-top-qty');
             if (sortedProducts.length > 0) {
                 if (elTopName) elTopName.innerText = sortedProducts[0].name;
-                if (elTopQty) elTopQty.innerText = `${sortedProducts[0].qty} Damaged`;
+                if (elTopQty) elTopQty.innerText = `${sortedProducts[0].rawQty} Damaged`;
             } else {
                 if (elTopName) elTopName.innerText = '-';
                 if (elTopQty) elTopQty.innerText = '0 Qty';
@@ -1818,7 +1849,7 @@
                     type: 'bar',
                     data: {
                         labels: sortedProducts.map(p => p.name.length > 22 ? p.name.slice(0,22) + '...' : p.name),
-                        datasets: [{ label: 'Total Qty Rusak', data: sortedProducts.map(p => p.qty), backgroundColor: '#1D4ED8', borderRadius: 6 }]
+                        datasets: [{ label: 'Skala Bobot Damaged', data: sortedProducts.map(p => p.rawQty), backgroundColor: sortedProducts.map(p => p.isBox ? '#1D4ED8' : '#D97706'), borderRadius: 6 }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
                 });
