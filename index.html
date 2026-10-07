@@ -238,9 +238,9 @@
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500 flex justify-between items-center">
                 <div>
                     <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Total Qty Rusak</span>
-                    <div class="mt-1 flex items-baseline gap-2">
-                        <span id="stat-damaged-qty" class="text-3xl font-extrabold text-red-600">0</span>
-                        <span class="text-sm font-semibold text-gray-500">Items</span>
+                    <div class="mt-1">
+                        <div id="stat-damaged-qty" class="text-3xl font-extrabold text-red-600">0 Items</div>
+                        <div id="stat-damaged-satuan-detail" class="text-[11px] font-bold text-gray-600 mt-0.5">0 Box | 0 Pcs</div>
                     </div>
                 </div>
                 <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">⚠️</div>
@@ -248,10 +248,10 @@
 
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
                 <div>
-                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Food vs Non Food</span>
-                    <div class="mt-1 flex items-baseline gap-1 text-xs font-bold text-gray-700">
-                        <span id="stat-damaged-food" class="text-amber-700">Food: 0</span> | 
-                        <span id="stat-damaged-nonfood" class="text-blue-700">Non: 0</span>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Rincian Food vs Non Food</span>
+                    <div class="mt-1 text-[11px] font-bold text-gray-700 space-y-0.5">
+                        <div id="stat-damaged-food" class="text-amber-700">Food: 0</div>
+                        <div id="stat-damaged-nonfood" class="text-blue-700">Non Food: 0</div>
                     </div>
                 </div>
                 <div class="bg-themeblue-50 p-3 rounded-full text-themeblue-700 text-xl">🍔</div>
@@ -280,8 +280,8 @@
 
             <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 lg:col-span-2 flex flex-col justify-between">
                 <div>
-                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">5 Produk Damaged Tertinggi (Qty)</h3>
-                    <p class="text-[11px] text-gray-400 mb-4">Produk dengan tingkat kerusakan terbanyak di gudang</p>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">5 Produk Damaged Tertinggi (Qty Berdasarkan Satuan)</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Produk dengan tingkat kerusakan terbanyak beserta keterangannya</p>
                 </div>
                 <div class="relative max-h-52">
                     <canvas id="chartTopProducts"></canvas>
@@ -1454,7 +1454,7 @@
 
             const expProductMap = {};
             dataExpired.forEach(item => {
-                const key = `${item.nama} (${item.matId || '-'})`;
+                const key = `${item.nama} [${item.satuan || 'Pcs'}]`;
                 expProductMap[key] = (expProductMap[key] || 0) + (item.qty || 0);
             });
 
@@ -1469,7 +1469,7 @@
                 chartTopExpiredInstance = new Chart(ctxTopExp, {
                     type: 'bar',
                     data: {
-                        labels: sortedExpProducts.map(p => p.name.length > 20 ? p.name.slice(0,20) + '...' : p.name),
+                        labels: sortedExpProducts.map(p => p.name.length > 22 ? p.name.slice(0,22) + '...' : p.name),
                         datasets: [{ label: 'Total Qty ED', data: sortedExpProducts.map(p => p.qty), backgroundColor: '#DC2626', borderRadius: 6 }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
@@ -1748,7 +1748,7 @@
                         <span class="text-base">🚨</span>
                         <div>
                             <strong class="font-bold">PERINGATAN TINGKAT DAMAGED TINGGI:</strong> 
-                            Produk <span class="font-extrabold underline">${topHigh.nama}</span> [Mat ID: ${topHigh.matId || '-'}] memiliki jumlah kerusakan tinggi sebesar <strong>${topHigh.qty} ${topHigh.satuan}</strong> di lokasi ${topHigh.lokasi}!
+                            Produk <span class="font-extrabold underline">${topHigh.nama}</span> [Mat ID: ${topHigh.matId || '-'}] memiliki jumlah kerusakan tinggi sebesar <strong>${topHigh.qty} ${topHigh.satuan || 'Pcs'}</strong> di lokasi ${topHigh.lokasi}!
                         </div>
                     </div>
                 `;
@@ -1767,8 +1767,15 @@
                 alertContainer.appendChild(alertDiv);
             }
 
-            const countFood = dataDamaged.filter(i => (i.kategori || 'Food') === 'Food').reduce((acc, c) => acc + (c.qty || 0), 0);
-            const countNonFood = dataDamaged.filter(i => i.kategori === 'Non Food').reduce((acc, c) => acc + (c.qty || 0), 0);
+            // PERHITUNGAN SATUAN SECARA TERPISAH (FOOD VS NON FOOD & PER SATUAN)
+            const countFoodBox = dataDamaged.filter(i => (i.kategori || 'Food') === 'Food' && (i.satuan || '').includes('Box')).reduce((acc, c) => acc + (c.qty || 0), 0);
+            const countFoodPcs = dataDamaged.filter(i => (i.kategori || 'Food') === 'Food' && !(i.satuan || '').includes('Box')).reduce((acc, c) => acc + (c.qty || 0), 0);
+            
+            const countNonFoodBox = dataDamaged.filter(i => i.kategori === 'Non Food' && (i.satuan || '').includes('Box')).reduce((acc, c) => acc + (c.qty || 0), 0);
+            const countNonFoodPcs = dataDamaged.filter(i => i.kategori === 'Non Food' && !(i.satuan || '').includes('Box')).reduce((acc, c) => acc + (c.qty || 0), 0);
+
+            const totalFoodItems = countFoodBox + countFoodPcs;
+            const totalNonFoodItems = countNonFoodBox + countNonFoodPcs;
 
             const canvasKat = document.getElementById('chartKategori');
             if (canvasKat && typeof Chart !== 'undefined') {
@@ -1776,14 +1783,16 @@
                 if (chartKategoriInstance) chartKategoriInstance.destroy();
                 chartKategoriInstance = new Chart(ctxKategori, {
                     type: 'doughnut',
-                    data: { labels: ['Food 🍔', 'Non Food 📦'], datasets: [{ data: [countFood, countNonFood], backgroundColor: ['#D97706', '#2563EB'], borderWidth: 2 }] },
+                    data: { labels: ['Food 🍔', 'Non Food 📦'], datasets: [{ data: [totalFoodItems, totalNonFoodItems], backgroundColor: ['#D97706', '#2563EB'], borderWidth: 2 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
                 });
             }
 
+            // PERHITUNGAN TOP PRODUCT SESUAI SATUAN
             const productQtyMap = {};
             dataDamaged.forEach(item => {
-                const key = `${item.nama} (${item.matId || '-'})`;
+                const satuanStr = item.satuan || 'Pcs';
+                const key = `${item.nama} [${satuanStr}]`;
                 productQtyMap[key] = (productQtyMap[key] || 0) + (item.qty || 0);
             });
 
@@ -1795,7 +1804,7 @@
             const elTopQty = document.getElementById('stat-damaged-top-qty');
             if (sortedProducts.length > 0) {
                 if (elTopName) elTopName.innerText = sortedProducts[0].name;
-                if (elTopQty) elTopQty.innerText = `${sortedProducts[0].qty} Qty Rusak`;
+                if (elTopQty) elTopQty.innerText = `${sortedProducts[0].qty} Damaged`;
             } else {
                 if (elTopName) elTopName.innerText = '-';
                 if (elTopQty) elTopQty.innerText = '0 Qty';
@@ -1808,7 +1817,7 @@
                 chartTopProductsInstance = new Chart(ctxTop, {
                     type: 'bar',
                     data: {
-                        labels: sortedProducts.map(p => p.name.length > 20 ? p.name.slice(0,20) + '...' : p.name),
+                        labels: sortedProducts.map(p => p.name.length > 22 ? p.name.slice(0,22) + '...' : p.name),
                         datasets: [{ label: 'Total Qty Rusak', data: sortedProducts.map(p => p.qty), backgroundColor: '#1D4ED8', borderRadius: 6 }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
@@ -1938,7 +1947,7 @@
                     <td class="py-3 px-4">${badgeKategori}</td>
                     <td class="py-3 px-4 text-xs font-mono font-bold text-themeblue-800">${item.matId || '-'}</td>
                     <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
-                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan}</td>
+                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan || 'Pcs'}</td>
                     <td class="py-3 px-4 text-xs">${item.lokasi}</td>
                     <td class="py-3 px-4 text-xs font-semibold">${item.pelapor}</td>
                     <td class="py-3 px-4">${badgeStatus}</td>
@@ -2362,19 +2371,49 @@
             if (elSel) elSel.innerText = dataJadwal.filter(i => i.status === 'Selesai').length;
             if (elPen) elPen.innerText = dataJadwal.filter(i => i.status !== 'Selesai').length;
 
-            const totalDamagedQty = dataDamaged.reduce((acc, curr) => acc + (curr.qty || 0), 0);
-            const foodQty = dataDamaged.filter(i => (i.kategori || 'Food') === 'Food').reduce((acc, curr) => acc + (curr.qty || 0), 0);
-            const nonFoodQty = dataDamaged.filter(i => i.kategori === 'Non Food').reduce((acc, curr) => acc + (curr.qty || 0), 0);
+            // AKUMULASI PERHITUNGAN SPESIFIK SATUAN (BOX / PCS / PALLET)
+            let boxCount = 0;
+            let pcsCount = 0;
+            let palletCount = 0;
+
+            let foodBox = 0, foodPcs = 0;
+            let nonBox = 0, nonPcs = 0;
+
+            dataDamaged.forEach(item => {
+                const q = item.qty || 0;
+                const s = item.satuan || 'Pcs';
+                const k = item.kategori || 'Food';
+
+                if (s.includes('Box') || s.includes('Karton') || s.includes('Master')) {
+                    boxCount += q;
+                    if (k === 'Food') foodBox += q; else nonBox += q;
+                } else if (s.includes('Pallet')) {
+                    palletCount += q;
+                } else {
+                    pcsCount += q;
+                    if (k === 'Food') foodPcs += q; else nonPcs += q;
+                }
+            });
 
             const elDamTot = document.getElementById('stat-damaged-total');
             const elDamQty = document.getElementById('stat-damaged-qty');
+            const elDamSatuanDetail = document.getElementById('stat-damaged-satuan-detail');
             const elDamFood = document.getElementById('stat-damaged-food');
             const elDamNon = document.getElementById('stat-damaged-nonfood');
 
             if (elDamTot) elDamTot.innerText = dataDamaged.length;
-            if (elDamQty) elDamQty.innerText = totalDamagedQty;
-            if (elDamFood) elDamFood.innerText = `Food: ${foodQty}`;
-            if (elDamNon) elDamNon.innerText = `Non: ${nonFoodQty}`;
+            if (elDamQty) elDamQty.innerText = `${dataDamaged.reduce((a,c) => a + (c.qty || 0), 0)} Items`;
+            
+            let detailSatuanStr = [];
+            if (boxCount > 0) detailSatuanStr.push(`${boxCount} Box/Karton`);
+            if (pcsCount > 0) detailSatuanStr.push(`${pcsCount} Pcs`);
+            if (palletCount > 0) detailSatuanStr.push(`${palletCount} Pallet`);
+            if (detailSatuanStr.length === 0) detailSatuanStr.push('0 Box | 0 Pcs');
+
+            if (elDamSatuanDetail) elDamSatuanDetail.innerText = detailSatuanStr.join(' | ');
+
+            if (elDamFood) elDamFood.innerText = `Food: ${foodBox > 0 ? foodBox + ' Box, ' : ''}${foodPcs} Pcs`;
+            if (elDamNon) elDamNon.innerText = `Non Food: ${nonBox > 0 ? nonBox + ' Box, ' : ''}${nonPcs} Pcs`;
         }
 
         function bukaModalTambah() {
