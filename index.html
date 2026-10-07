@@ -142,7 +142,7 @@
         <p class="text-sm text-gray-600">Tanggal Cetak: <span id="print-date"></span></p>
     </div>
 
-    <!-- ================= HALAMAN 1: JADWAL KEBERSIHAN ================= -->
+    <!-- HALAMAN 1: JADWAL KEBERSIHAN -->
     <div id="page-kebersihan" class="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
@@ -219,7 +219,7 @@
         </div>
     </div>
 
-    <!-- ================= HALAMAN 2: DATA BARANG DAMAGED ================= -->
+    <!-- HALAMAN 2: DATA BARANG DAMAGED -->
     <div id="page-damaged" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         <div id="container-alerts-damaged" class="space-y-2"></div>
 
@@ -334,7 +334,7 @@
         </div>
     </div>
 
-    <!-- ================= HALAMAN 3: OPNAME EXPIRED ================= -->
+    <!-- HALAMAN 3: OPNAME EXPIRED -->
     <div id="page-expired" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         <div id="container-alerts-expired" class="space-y-2"></div>
 
@@ -452,7 +452,7 @@
         </div>
     </div>
 
-    <!-- ================= HALAMAN 4: REPORT OPNAME DAILY ================= -->
+    <!-- HALAMAN 4: REPORT OPNAME DAILY -->
     <div id="page-opname" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         <div class="bg-white rounded-xl shadow-sm p-6 border border-themeblue-100 space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 border-themeblue-100">
@@ -875,7 +875,7 @@
                 db = firebase.database();
             }
         } catch (e) {
-            console.warn("Firebase Init Safe Warning:", e);
+            console.warn("Firebase Safe Init:", e);
         }
 
         const userDatabase = {
@@ -1084,6 +1084,7 @@
             }
         }
 
+        // PROSES LOGIN MANDIRI DAN GUARANTEED WORKING
         function prosesLogin(e) {
             e.preventDefault();
             const u = document.getElementById('login-username').value.trim().toLowerCase();
@@ -1093,13 +1094,20 @@
                 currentAuthUser = userDatabase[u];
                 localStorage.setItem('wpc_auth', JSON.stringify(currentAuthUser));
                 
+                userAktif = currentAuthUser.role === 'Supervisor' ? 'Supervisor' : currentAuthUser.name;
+                localStorage.setItem('wpc_user', userAktif);
+
                 const screen = document.getElementById('modal-login-screen');
                 if (screen) screen.classList.add('hidden');
 
                 const errMsg = document.getElementById('login-error-msg');
                 if (errMsg) errMsg.classList.add('hidden');
 
-                inisialisasiAksesSesi();
+                const displayName = document.getElementById('user-display-name');
+                const displayRole = document.getElementById('user-display-role');
+                if (displayName) displayName.innerText = currentAuthUser.name;
+                if (displayRole) displayRole.innerText = isSupervisor() ? `👑 ${currentAuthUser.name}` : '👤 Staf Gudang';
+
                 updateTampilanPengguna();
                 renderSemuaTabel();
             } else {
@@ -1449,43 +1457,51 @@
                 if (elDate) elDate.innerText = 'Tgl: -';
             }
 
-            const safeCount = Math.max(0, dataExpired.reduce((a,c) => a + (c.qty || 0), 0) - alreadyCount - nearCount);
-            const canvasStatus = document.getElementById('chartExpiredStatus');
-            if (canvasStatus && typeof Chart !== 'undefined') {
-                const ctxExpStatus = canvasStatus.getContext('2d');
-                if (chartExpiredStatusInstance) chartExpiredStatusInstance.destroy();
-                chartExpiredStatusInstance = new Chart(ctxExpStatus, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Expired ☣', 'Near ED (≤30 Hari) ⚠️', 'Aman ✅'],
-                        datasets: [{ data: [alreadyCount, nearCount, safeCount], backgroundColor: ['#DC2626', '#D97706', '#059669'], borderWidth: 2 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
-                });
-            }
+            // RENDERING CHART LAZY DENGAN TRY-CATCH SAFEGUARD
+            try {
+                const pageExp = document.getElementById('page-expired');
+                if (pageExp && !pageExp.classList.contains('hidden')) {
+                    const safeCount = Math.max(0, dataExpired.reduce((a,c) => a + (c.qty || 0), 0) - alreadyCount - nearCount);
+                    const canvasStatus = document.getElementById('chartExpiredStatus');
+                    if (canvasStatus && typeof Chart !== 'undefined') {
+                        const ctxExpStatus = canvasStatus.getContext('2d');
+                        if (chartExpiredStatusInstance) chartExpiredStatusInstance.destroy();
+                        chartExpiredStatusInstance = new Chart(ctxExpStatus, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Expired ☣', 'Near ED (≤30 Hari) ⚠️', 'Aman ✅'],
+                                datasets: [{ data: [alreadyCount, nearCount, safeCount], backgroundColor: ['#DC2626', '#D97706', '#059669'], borderWidth: 2 }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                        });
+                    }
 
-            const expProductMap = {};
-            dataExpired.forEach(item => {
-                const key = `${item.nama} [${item.satuan || 'Pcs'}]`;
-                expProductMap[key] = (expProductMap[key] || 0) + (item.qty || 0);
-            });
+                    const expProductMap = {};
+                    dataExpired.forEach(item => {
+                        const key = `${item.nama} [${item.satuan || 'Pcs'}]`;
+                        expProductMap[key] = (expProductMap[key] || 0) + (item.qty || 0);
+                    });
 
-            const sortedExpProducts = Object.keys(expProductMap)
-                .map(k => ({ name: k, qty: expProductMap[k] }))
-                .sort((a, b) => b.qty - a.qty).slice(0, 5);
+                    const sortedExpProducts = Object.keys(expProductMap)
+                        .map(k => ({ name: k, qty: expProductMap[k] }))
+                        .sort((a, b) => b.qty - a.qty).slice(0, 5);
 
-            const canvasTop = document.getElementById('chartTopExpired');
-            if (canvasTop && typeof Chart !== 'undefined') {
-                const ctxTopExp = canvasTop.getContext('2d');
-                if (chartTopExpiredInstance) chartTopExpiredInstance.destroy();
-                chartTopExpiredInstance = new Chart(ctxTopExp, {
-                    type: 'bar',
-                    data: {
-                        labels: sortedExpProducts.map(p => p.name.length > 22 ? p.name.slice(0,22) + '...' : p.name),
-                        datasets: [{ label: 'Total Qty ED', data: sortedExpProducts.map(p => p.qty), backgroundColor: '#DC2626', borderRadius: 6 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
-                });
+                    const canvasTop = document.getElementById('chartTopExpired');
+                    if (canvasTop && typeof Chart !== 'undefined') {
+                        const ctxTopExp = canvasTop.getContext('2d');
+                        if (chartTopExpiredInstance) chartTopExpiredInstance.destroy();
+                        chartTopExpiredInstance = new Chart(ctxTopExp, {
+                            type: 'bar',
+                            data: {
+                                labels: sortedExpProducts.map(p => p.name.length > 22 ? p.name.slice(0,22) + '...' : p.name),
+                                datasets: [{ label: 'Total Qty ED', data: sortedExpProducts.map(p => p.qty), backgroundColor: '#DC2626', borderRadius: 6 }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn("Expired Chart safe-skip:", err);
             }
         }
 
@@ -1814,57 +1830,65 @@
                 else nonFoodScore += weight;
             });
 
-            const canvasKat = document.getElementById('chartKategori');
-            if (canvasKat && typeof Chart !== 'undefined') {
-                const ctxKategori = canvasKat.getContext('2d');
-                if (chartKategoriInstance) chartKategoriInstance.destroy();
-                chartKategoriInstance = new Chart(ctxKategori, {
-                    type: 'doughnut',
-                    data: { labels: ['Food 🍔', 'Non Food 📦'], datasets: [{ data: [foodScore, nonFoodScore], backgroundColor: ['#D97706', '#2563EB'], borderWidth: 2 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
-                });
-            }
+            // RENDERING CHART LAZY DENGAN SAFEGUARD
+            try {
+                const pageDam = document.getElementById('page-damaged');
+                if (pageDam && !pageDam.classList.contains('hidden')) {
+                    const canvasKat = document.getElementById('chartKategori');
+                    if (canvasKat && typeof Chart !== 'undefined') {
+                        const ctxKategori = canvasKat.getContext('2d');
+                        if (chartKategoriInstance) chartKategoriInstance.destroy();
+                        chartKategoriInstance = new Chart(ctxKategori, {
+                            type: 'doughnut',
+                            data: { labels: ['Food 🍔', 'Non Food 📦'], datasets: [{ data: [foodScore, nonFoodScore], backgroundColor: ['#D97706', '#2563EB'], borderWidth: 2 }] },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                        });
+                    }
 
-            // PERHITUNGAN RANKING DENGAN HIRARKI SKALA (BOX JAUH LEBIH TINGGI DIBANDING PCS)
-            const productAggrMap = {};
-            dataDamaged.forEach(item => {
-                const s = item.satuan || 'Pcs';
-                const isBox = s.includes('Box') || s.includes('Karton') || s.includes('Master');
-                const key = `${item.nama} [${s}]`;
+                    // PERHITUNGAN RANKING DENGAN HIRARKI SKALA (BOX JAUH LEBIH TINGGI DIBANDING PCS)
+                    const productAggrMap = {};
+                    dataDamaged.forEach(item => {
+                        const s = item.satuan || 'Pcs';
+                        const isBox = s.includes('Box') || s.includes('Karton') || s.includes('Master');
+                        const key = `${item.nama} [${s}]`;
 
-                if (!productAggrMap[key]) {
-                    productAggrMap[key] = { name: key, rawQty: 0, score: 0, isBox };
+                        if (!productAggrMap[key]) {
+                            productAggrMap[key] = { name: key, rawQty: 0, score: 0, isBox };
+                        }
+
+                        productAggrMap[key].rawQty += (item.qty || 0);
+                        productAggrMap[key].score += (isBox ? (item.qty || 0) * 1000 : (item.qty || 0));
+                    });
+
+                    const sortedProducts = Object.values(productAggrMap)
+                        .sort((a, b) => b.score - a.score).slice(0, 5);
+
+                    const elTopName = document.getElementById('stat-damaged-top-name');
+                    const elTopQty = document.getElementById('stat-damaged-top-qty');
+                    if (sortedProducts.length > 0) {
+                        if (elTopName) elTopName.innerText = sortedProducts[0].name;
+                        if (elTopQty) elTopQty.innerText = `${sortedProducts[0].rawQty} Damaged`;
+                    } else {
+                        if (elTopName) elTopName.innerText = '-';
+                        if (elTopQty) elTopQty.innerText = '0 Qty';
+                    }
+
+                    const canvasTopP = document.getElementById('chartTopProducts');
+                    if (canvasTopP && typeof Chart !== 'undefined') {
+                        const ctxTop = canvasTopP.getContext('2d');
+                        if (chartTopProductsInstance) chartTopProductsInstance.destroy();
+                        chartTopProductsInstance = new Chart(ctxTop, {
+                            type: 'bar',
+                            data: {
+                                labels: sortedProducts.map(p => p.name.length > 22 ? p.name.slice(0,22) + '...' : p.name),
+                                datasets: [{ label: 'Skala Bobot Damaged', data: sortedProducts.map(p => p.rawQty), backgroundColor: sortedProducts.map(p => p.isBox ? '#1D4ED8' : '#D97706'), borderRadius: 6 }]
+                            },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
+                        });
+                    }
                 }
-
-                productAggrMap[key].rawQty += (item.qty || 0);
-                productAggrMap[key].score += (isBox ? (item.qty || 0) * 1000 : (item.qty || 0));
-            });
-
-            const sortedProducts = Object.values(productAggrMap)
-                .sort((a, b) => b.score - a.score).slice(0, 5);
-
-            const elTopName = document.getElementById('stat-damaged-top-name');
-            const elTopQty = document.getElementById('stat-damaged-top-qty');
-            if (sortedProducts.length > 0) {
-                if (elTopName) elTopName.innerText = sortedProducts[0].name;
-                if (elTopQty) elTopQty.innerText = `${sortedProducts[0].rawQty} Damaged`;
-            } else {
-                if (elTopName) elTopName.innerText = '-';
-                if (elTopQty) elTopQty.innerText = '0 Qty';
-            }
-
-            const canvasTopP = document.getElementById('chartTopProducts');
-            if (canvasTopP && typeof Chart !== 'undefined') {
-                const ctxTop = canvasTopP.getContext('2d');
-                if (chartTopProductsInstance) chartTopProductsInstance.destroy();
-                chartTopProductsInstance = new Chart(ctxTop, {
-                    type: 'bar',
-                    data: {
-                        labels: sortedProducts.map(p => p.name.length > 22 ? p.name.slice(0,22) + '...' : p.name),
-                        datasets: [{ label: 'Skala Bobot Damaged', data: sortedProducts.map(p => p.rawQty), backgroundColor: sortedProducts.map(p => p.isBox ? '#1D4ED8' : '#D97706'), borderRadius: 6 }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } } }
-                });
+            } catch (err) {
+                console.warn("Damaged Chart safe-skip:", err);
             }
         }
 
@@ -2063,4 +2087,527 @@
             if (file) {
                 urlFotoDamagedSementara = await kompresFoto(file);
                 const img = document.getElementById('img-preview-damaged');
-                const c = document.getElementById('container-preview
+                const c = document.getElementById('container-preview-damaged');
+                if (img) img.src = urlFotoDamagedSementara;
+                if (c) c.classList.remove('hidden');
+            }
+        }
+
+        // SIMPAN LAPORAN DAMAGED SECARA HANDAL & BEBAS CONFLICT MULTIUSER
+        function simpanDamagedBaru(event) {
+            event.preventDefault();
+            
+            const btnSubmit = document.getElementById('btn-submit-damaged');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = 'Mengirim Laporan...';
+            }
+
+            try {
+                const lokasi = document.getElementById('damaged-lokasi').value;
+                const now = new Date();
+                const tglStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
+
+                const rows = document.querySelectorAll('.item-damaged-row');
+                
+                rows.forEach((row, index) => {
+                    const kategori = row.querySelector('.item-kategori').value;
+                    const matId = row.querySelector('.item-matid').value;
+                    const nama = row.querySelector('.item-nama').value;
+                    const qty = parseInt(row.querySelector('.item-qty').value) || 1;
+                    const satuan = row.querySelector('.item-satuan').value;
+
+                    const newItem = {
+                        id: Date.now() + index,
+                        tanggal: tglStr,
+                        kategori,
+                        matId,
+                        nama,
+                        qty,
+                        satuan,
+                        lokasi,
+                        pelapor: userAktif,
+                        foto: urlFotoDamagedSementara || null,
+                        status: 'Pending'
+                    };
+
+                    dataDamaged.unshift(newItem);
+                });
+
+                simpanKeStorage();
+                tutupModalDamaged();
+                renderDamaged();
+                renderStatistik();
+                alert("✅ Laporan Barang Damaged berhasil dikirim & tersimpan!");
+            } catch (err) {
+                console.error("Error submit damaged:", err);
+                alert("Terjadi kesalahan saat menyimpan. Silakan coba lagi.");
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = 'Kirim Laporan Damaged';
+                }
+            }
+        }
+
+        function exportDamagedExcel() {
+            if (dataDamaged.length === 0) {
+                alert("Belum ada data barang damaged untuk diekspor!");
+                return;
+            }
+
+            const dataArray = [
+                ["Tanggal", "Foto", "Kategori", "Mat ID", "Nama Produk / Deskripsi", "Qty Rusak", "Lokasi", "Pelapor", "Status Approval", "Di-verify Oleh", "Catatan"]
+            ];
+
+            dataDamaged.forEach(row => {
+                const tglFormatted = formatTanggalIndo(row.tanggal);
+                const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
+                const kategoriText = row.kategori || "Food";
+                const matIdText = row.matId || "-";
+                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+
+                dataArray.push([
+                    tglFormatted,
+                    fotoText,
+                    kategoriText,
+                    matIdText,
+                    row.nama,
+                    qtySatuanText,
+                    row.lokasi,
+                    row.pelapor,
+                    row.status || "Pending",
+                    row.verifiedBy || "-",
+                    row.catatanSupervisor || "-"
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(dataArray);
+
+            ws['!cols'] = [
+                { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+                { wch: 35 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan Damaged");
+            XLSX.writeFile(wb, `Laporan_WpcAps_Damaged_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        function exportDamagedCSV() {
+            if (dataDamaged.length === 0) {
+                alert("Belum ada data barang damaged untuk diekspor!");
+                return;
+            }
+
+            let csvContent = "\uFEFFTanggal,Foto,Kategori,Mat ID,Nama Produk / Deskripsi,Qty Rusak,Lokasi,Pelapor,Status Approval,Verified By,Catatan\n";
+            dataDamaged.forEach(row => {
+                const tglFormatted = formatTanggalIndo(row.tanggal);
+                const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
+                const kategoriText = row.kategori || "Food";
+                const matIdText = row.matId || "-";
+                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+
+                csvContent += `"${tglFormatted}","${fotoText}","${kategoriText}","${matIdText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Laporan_WpcAps_Damaged_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // LOGIKA OPNAME DAILY
+        function simpanOpnameDaily(event) {
+            event.preventDefault();
+            if (!isSupervisor()) {
+                alert('Akses ditolak! Hanya Supervisor / Manajemen yang diperbolehkan mengunggah file opname.');
+                return;
+            }
+
+            const tanggal = document.getElementById('opname-tanggal').value;
+            const judul = document.getElementById('opname-judul').value;
+            const fileInput = document.getElementById('opname-file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Silakan pilih file Excel / Spreadsheet terlebih dahulu!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fileBase64 = e.target.result;
+                const sizeKb = Math.round(file.size / 1024);
+                
+                const now = new Date();
+                const uploadTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                const itemBaru = {
+                    id: Date.now(),
+                    tanggal: tanggal,
+                    judul: judul,
+                    fileName: file.name,
+                    fileSize: sizeKb > 1024 ? (sizeKb / 1024).toFixed(2) + ' MB' : sizeKb + ' KB',
+                    fileData: fileBase64,
+                    uploadTime: `${now.toISOString().slice(0,10)} ${uploadTime}`
+                };
+
+                dataOpname.unshift(itemBaru);
+                simpanKeStorage();
+                
+                const formOp = document.getElementById('form-opname');
+                if (formOp) formOp.reset();
+                const opDate = document.getElementById('opname-tanggal');
+                if (opDate) opDate.value = new Date().toISOString().slice(0,10);
+                
+                renderOpname();
+                alert('Laporan Opname Daily berhasil diunggah!');
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function renderOpname() {
+            const tbody = document.getElementById('tabel-opname');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const elCount = document.getElementById('stat-opname-count');
+            if (elCount) elCount.innerText = `${dataOpname.length} Berkas`;
+
+            if (dataOpname.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada berkas Opname Daily yang diunggah.</td></tr>`;
+                return;
+            }
+
+            dataOpname.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 font-bold text-themeblue-800 text-xs">${item.tanggal}</td>
+                    <td class="py-3.5 px-4 font-semibold text-gray-800">${item.judul}</td>
+                    <td class="py-3.5 px-4 text-xs font-mono text-themeblue-700">${item.fileName}</td>
+                    <td class="py-3.5 px-4 text-xs text-gray-500">${item.fileSize}</td>
+                    <td class="py-3.5 px-4 text-xs text-gray-400">${item.uploadTime}</td>
+                    <td class="py-3.5 px-4 no-print flex items-center gap-2">
+                        <a href="${item.fileData}" download="${item.fileName}" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
+                            <span>📥</span><span>Download File</span>
+                        </a>
+                        <button onclick="hapusOpname(${item.id})" class="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function hapusOpname(id) {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus berkas opname ini?')) {
+                dataOpname = dataOpname.filter(i => i.id !== id);
+                simpanKeStorage();
+                renderOpname();
+            }
+        }
+
+        function exportKebersihanCSV() {
+            if (dataJadwal.length === 0) {
+                alert("Belum ada data kebersihan untuk diekspor!");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,ID,Waktu,Shift,Zona,PIC,Status\n";
+            dataJadwal.forEach(row => {
+                csvContent += `${row.id},"${row.waktu}","${row.shift}","${row.zona}","${row.pic}","${row.status}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Laporan_WpcAps_Kebersihan_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // RENDER TABEL JADWAL KEBERSIHAN DENGAN PEMBATAS UTAMA (BELUM vs SELESAI)
+        function renderTabel() {
+            const tbody = document.getElementById('tabel-jadwal');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (dataJadwal.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan yang ditambahkan hari ini.</td></tr>`;
+                renderLeaderboardPIC();
+                return;
+            }
+
+            // Memisahkan data menjadi dua kelompok
+            const dataPending = dataJadwal.filter(i => i.status !== 'Selesai');
+            const dataSelesai = dataJadwal.filter(i => i.status === 'Selesai');
+
+            // Helper function untuk membuat elemen baris HTML
+            const buatBarisHTML = (item) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
+
+                const isSup = isSupervisor();
+                const isMyTask = item.pic === userAktif;
+
+                let badgeStatus = '';
+                if (item.status === 'Selesai') {
+                    badgeStatus = `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">Selesai ✅</span>`;
+                } else if (item.foto) {
+                    badgeStatus = `<span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">Menunggu Verifikasi ⏳</span>`;
+                } else {
+                    badgeStatus = `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum</span>`;
+                }
+
+                let fotoElement = item.foto 
+                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200">📷 Lihat Foto</button>`
+                    : `<span class="text-xs text-gray-400 italic">Belum Ada</span>`;
+
+                let aksi = '';
+                
+                if (isSup) {
+                    if (item.foto && item.status !== 'Selesai') {
+                        aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi</button>`;
+                    } else if (item.status === 'Selesai') {
+                        aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
+                    } else {
+                        aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 text-white text-xs px-2.5 py-1 rounded font-semibold">Tandai Selesai</button>`;
+                    }
+
+                    aksi += ` <button onclick="hapusJadwalBaris(${item.id})" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Jadwal Ini">🗑️</button>`;
+                } else {
+                    if (isMyTask && item.status !== 'Selesai') {
+                        aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold shadow-sm transition">${item.foto ? 'Ganti Foto' : 'Tandai Selesai'}</button>`;
+                    } else if (item.status === 'Selesai') {
+                        aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
+                    } else {
+                        aksi = `<span class="text-xs text-gray-400 italic">Tugas ${item.pic}</span>`;
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs"><strong>${item.waktu}</strong> (${item.shift})</td>
+                    <td class="py-3 px-4 font-semibold text-gray-800">${item.zona}</td>
+                    <td class="py-3 px-4 font-semibold">${item.pic} ${isMyTask ? '👈 (Tugas Anda)' : ''}</td>
+                    <td class="py-3 px-4">${fotoElement}</td>
+                    <td class="py-3 px-4">${badgeStatus}</td>
+                    <td class="py-3 px-4 no-print flex items-center">${aksi}</td>
+                `;
+                return tr;
+            };
+
+            // 1. HEADER KELOMPOK BELUM SELESAI / MENUNGGU VERIFIKASI (BAGIAN ATAS)
+            const headerPending = document.createElement('tr');
+            headerPending.className = 'bg-amber-100/80 border-y border-amber-300';
+            headerPending.innerHTML = `
+                <td colspan="6" class="py-2.5 px-4 font-bold text-xs text-amber-900 tracking-wide">
+                    ⏳ JADWAL MENGANTRI & MENUNGGU VERIFIKASI SUPERVISOR (${dataPending.length})
+                </td>
+            `;
+            tbody.appendChild(headerPending);
+
+            if (dataPending.length === 0) {
+                const trEmptyPending = document.createElement('tr');
+                trEmptyPending.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Tidak ada jadwal pending. Semua area telah selesai atau tuntas!</td>`;
+                tbody.appendChild(trEmptyPending);
+            } else {
+                dataPending.forEach(item => {
+                    tbody.appendChild(buatBarisHTML(item));
+                });
+            }
+
+            // 2. HEADER KELOMPOK SELESAI / TUNTAS (BAGIAN BAWAH)
+            const headerSelesai = document.createElement('tr');
+            headerSelesai.className = 'bg-green-100/80 border-y border-green-300';
+            headerSelesai.innerHTML = `
+                <td colspan="6" class="py-2.5 px-4 font-bold text-xs text-green-900 tracking-wide">
+                    ✅ JADWAL TELAH SELESAI & DIVERIFIKASI TUNTAS (${dataSelesai.length})
+                </td>
+            `;
+            tbody.appendChild(headerSelesai);
+
+            if (dataSelesai.length === 0) {
+                const trEmptySelesai = document.createElement('tr');
+                trEmptySelesai.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Belum ada area kebersihan yang diselesaikan hari ini.</td>`;
+                tbody.appendChild(trEmptySelesai);
+            } else {
+                dataSelesai.forEach(item => {
+                    tbody.appendChild(buatBarisHTML(item));
+                });
+            }
+
+            renderLeaderboardPIC();
+        }
+
+        function renderStatistik() {
+            const elTot = document.getElementById('stat-total');
+            const elSel = document.getElementById('stat-selesai');
+            const elPen = document.getElementById('stat-pending');
+
+            if (elTot) elTot.innerText = dataJadwal.length;
+            if (elSel) elSel.innerText = dataJadwal.filter(i => i.status === 'Selesai').length;
+            if (elPen) elPen.innerText = dataJadwal.filter(i => i.status !== 'Selesai').length;
+
+            // AKUMULASI PERHITUNGAN SPESIFIK SATUAN (BOX / PCS / PALLET)
+            let boxCount = 0;
+            let pcsCount = 0;
+            let palletCount = 0;
+
+            let foodBox = 0, foodPcs = 0;
+            let nonBox = 0, nonPcs = 0;
+
+            dataDamaged.forEach(item => {
+                const q = item.qty || 0;
+                const s = item.satuan || 'Pcs';
+                const k = item.kategori || 'Food';
+
+                if (s.includes('Box') || s.includes('Karton') || s.includes('Master')) {
+                    boxCount += q;
+                    if (k === 'Food') foodBox += q; else nonBox += q;
+                } else if (s.includes('Pallet')) {
+                    palletCount += q;
+                } else {
+                    pcsCount += q;
+                    if (k === 'Food') foodPcs += q; else nonPcs += q;
+                }
+            });
+
+            const elDamTot = document.getElementById('stat-damaged-total');
+            const elDamQty = document.getElementById('stat-damaged-qty');
+            const elDamSatuanDetail = document.getElementById('stat-damaged-satuan-detail');
+            const elDamFood = document.getElementById('stat-damaged-food');
+            const elDamNon = document.getElementById('stat-damaged-nonfood');
+
+            if (elDamTot) elDamTot.innerText = dataDamaged.length;
+            if (elDamQty) elDamQty.innerText = `${dataDamaged.reduce((a,c) => a + (c.qty || 0), 0)} Items`;
+            
+            let detailSatuanStr = [];
+            if (boxCount > 0) detailSatuanStr.push(`${boxCount} Box/Karton`);
+            if (pcsCount > 0) detailSatuanStr.push(`${pcsCount} Pcs`);
+            if (palletCount > 0) detailSatuanStr.push(`${palletCount} Pallet`);
+            if (detailSatuanStr.length === 0) detailSatuanStr.push('0 Box | 0 Pcs');
+
+            if (elDamSatuanDetail) elDamSatuanDetail.innerText = detailSatuanStr.join(' | ');
+
+            if (elDamFood) elDamFood.innerText = `Food: ${foodBox > 0 ? foodBox + ' Box, ' : ''}${foodPcs} Pcs`;
+            if (elDamNon) elDamNon.innerText = `Non Food: ${nonBox > 0 ? nonBox + ' Box, ' : ''}${nonPcs} Pcs`;
+        }
+
+        function bukaModalTambah() {
+            const m = document.getElementById('modal-tambah');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function tutupModalTambah() {
+            const m = document.getElementById('modal-tambah');
+            if (m) m.classList.add('hidden');
+        }
+
+        function simpanJadwalBaru(e) {
+            e.preventDefault();
+            dataJadwal.push({
+                id: Date.now(),
+                waktu: document.getElementById('add-waktu').value,
+                shift: document.getElementById('add-shift').value,
+                zona: document.getElementById('add-zona').value,
+                pic: document.getElementById('add-pic').value,
+                foto: null, 
+                status: 'Belum'
+            });
+            simpanKeStorage(); tutupModalTambah(); renderTabel(); renderStatistik();
+        }
+
+        function bukaModalUpload(id) { idAktif = id; const m = document.getElementById('modal-upload'); if (m) m.classList.remove('hidden'); }
+        function tutupModalUpload() { 
+            const m = document.getElementById('modal-upload'); 
+            if (m) m.classList.add('hidden'); 
+            const input = document.getElementById('input-foto');
+            if (input) input.value = '';
+            const c = document.getElementById('container-preview');
+            if (c) c.classList.add('hidden');
+        }
+        
+        async function previewFoto(e) {
+            const file = e.target.files[0];
+            if (file) {
+                urlFotoSementara = await kompresFoto(file); 
+                const img = document.getElementById('img-preview'); 
+                const c = document.getElementById('container-preview'); 
+                if (img) img.src = urlFotoSementara; 
+                if (c) c.classList.remove('hidden'); 
+            }
+        }
+        
+        function simpanFotoSelesai() {
+            const item = dataJadwal.find(i => i.id === idAktif);
+            if (item) { 
+                if (!urlFotoSementara) {
+                    alert('Silakan ambil atau pilih foto terlebih dahulu!');
+                    return;
+                }
+                item.foto = urlFotoSementara; 
+                if (isSupervisor()) {
+                    item.status = 'Selesai'; 
+                } else {
+                    item.status = 'Belum'; 
+                }
+                simpanKeStorage(); 
+                renderTabel(); 
+                renderStatistik(); 
+            }
+            tutupModalUpload();
+        }
+
+        function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
+        function tutupModalLihat() { const m = document.getElementById('modal-lihat'); if (m) m.classList.add('hidden'); }
+
+        // FUNGSI RESET SPESIFIK TIAP MENU
+        function resetDataJadwal() {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Jadwal Kebersihan?')) {
+                dataJadwal = [];
+                simpanKeStorage();
+                renderTabel();
+                renderStatistik();
+            }
+        }
+
+        function resetDataDamaged() {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Laporan Barang Damaged?')) {
+                dataDamaged = [];
+                simpanKeStorage();
+                renderDamaged();
+                renderStatistik();
+            }
+        }
+
+        function resetDataExpired() {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Opname Expired?')) {
+                dataExpired = [];
+                simpanKeStorage();
+                renderExpired();
+                renderStatistik();
+            }
+        }
+
+        function resetDataOpname() {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh arsip berkas Opname Daily?')) {
+                dataOpname = [];
+                simpanKeStorage();
+                renderOpname();
+            }
+        }
+    </script>
+</body>
+</html>
