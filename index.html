@@ -759,7 +759,7 @@
 
                 <div class="flex justify-end space-x-2 pt-3 border-t">
                     <button type="button" onclick="tutupModalDamaged()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">Kirim Laporan Damaged</button>
+                    <button type="submit" id="btn-submit-damaged" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">Kirim Laporan Damaged</button>
                 </div>
             </form>
         </div>
@@ -924,8 +924,8 @@
         let chartExpiredStatusInstance = null;
         let chartTopExpiredInstance = null;
 
-        // FUNGSI KOMPRESI FOTO DARI KAMERA HP UNTUK MENCEGAH BUG/LAG
-        function kompresFoto(file, maxWidth = 800, maxHeight = 800, quality = 0.6) {
+        // FUNGSI KOMPRESI FOTO RINGAN UNTUK MENCEGAH LAG MULTIUSER (Maks 600px, Kualitas 0.5)
+        function kompresFoto(file, maxWidth = 600, maxHeight = 600, quality = 0.5) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -961,7 +961,7 @@
             });
         }
 
-        // FUNGSI SIMPAN KE STORAGE & FIREBASE
+        // FUNGSI SIMPAN KE STORAGE & FIREBASE (SYNC MULTIUSER SECARA ATOMIC)
         function simpanKeStorage() {
             localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
             localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
@@ -976,21 +976,31 @@
                     opname: dataOpname,
                     updatedAt: Date.now()
                 }).then(() => {
-                    setIndikatorStatus('green', 'Terhubung ke Firebase Realtime');
+                    setIndikatorStatus('green', 'Terhubung Realtime ke Cloud Server');
                 }).catch(err => {
-                    console.error("Firebase Sync Error:", err);
-                    setIndikatorStatus('amber', 'Mode Penyimpanan Lokal');
+                    console.warn("Firebase Sync Warning:", err);
+                    setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
                 });
             } else {
-                setIndikatorStatus('amber', 'Mode Penyimpanan Lokal');
+                setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
             }
         }
 
         function inisialisasiFirebaseListener() {
             if (!db) {
-                setIndikatorStatus('amber', 'Mode Penyimpanan Lokal');
+                setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
                 return;
             }
+            
+            // INDIKATOR STATUS KONEKSI FIREBASE
+            db.ref('.info/connected').on('value', (snap) => {
+                if (snap.val() === true) {
+                    setIndikatorStatus('green', 'Terhubung Realtime ke Cloud Server');
+                } else {
+                    setIndikatorStatus('amber', 'Penyimpanan Lokal (Offline / Menghubungkan)');
+                }
+            });
+
             db.ref('wpc_cloud_data').on('value', (snapshot) => {
                 const val = snapshot.val();
                 if (val) {
@@ -1005,11 +1015,10 @@
                     localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
 
                     renderSemuaTabel();
-                    setIndikatorStatus('green', 'Terhubung ke Firebase Realtime');
                 }
             }, (error) => {
                 console.warn("Realtime listener error:", error);
-                setIndikatorStatus('amber', 'Mode Penyimpanan Lokal');
+                setIndikatorStatus('amber', 'Penyimpanan Lokal Aktif');
             });
         }
 
@@ -1108,7 +1117,7 @@
                 const parts = tglStr.split(' ');
                 const dateParts = parts[0].split('-');
                 if (dateParts.length === 3) {
-                    return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${parts[1] || ''}`.trim();
+                    return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}${parts[1] || ''}`.trim();
                 }
             }
             return tglStr;
@@ -1219,7 +1228,7 @@
                 card.className = `p-3.5 rounded-xl border ${pic.name === userAktif ? 'border-themeblue-500 bg-themeblue-50/70' : 'border-gray-200 bg-gray-50/60'} relative space-y-1.5 shadow-sm`;
                 card.innerHTML = `
                     <span class="absolute top-2.5 right-3 text-lg">${rankBadge}</span>
-                    <p class="font-bold text-gray-800 text-xs truncate max-w-[170px]">${pic.name} ${pic.name === userAktif ? '(Anda)' : ''}</p>
+                    <p class="font-bold text-gray-800 text-xs truncate max-w-[170px]">${pic.name}${pic.name === userAktif ? '(Anda)' : ''}</p>
                     <div class="space-y-1">
                         <div class="flex justify-between text-[11px] font-semibold">
                             <span class="text-gray-500">Penyelesaian</span>
@@ -1327,8 +1336,8 @@
 
             document.getElementById('appr-item-id').value = id;
             document.getElementById('appr-item-type').value = type;
-            document.getElementById('appr-item-name').innerText = `${item.nama} [Mat ID: ${item.matId || '-'}]`;
-            document.getElementById('appr-item-qty').innerText = `${item.qty} ${item.satuan || ''}`;
+            document.getElementById('appr-item-name').innerText = `${item.nama} [Mat ID:${item.matId || '-'}]`;
+            document.getElementById('appr-item-qty').innerText = `${item.qty}${item.satuan || ''}`;
             document.getElementById('appr-item-pelapor').innerText = item.pelapor;
 
             document.getElementById('appr-status').value = item.status === 'Ditolak' ? 'Ditolak' : 'Disetujui';
@@ -1528,7 +1537,7 @@
                     <td class="py-3 px-4">${badgeED}</td>
                     <td class="py-3 px-4 text-xs font-mono font-bold text-themeblue-800">${item.matId || '-'}</td>
                     <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
-                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan}</td>
+                    <td class="py-3 px-4 font-bold text-red-600">${item.qty}${item.satuan}</td>
                     <td class="py-3 px-4 text-xs">${item.lokasi}</td>
                     <td class="py-3 px-4 text-xs font-semibold">${item.pelapor}</td>
                     <td class="py-3 px-4">${fotoElement}</td>
@@ -1676,7 +1685,7 @@
                 const tglLaporFormatted = formatTanggalIndo(row.tanggal);
                 const tglEdFormatted = formatTanggalIndo(row.expDate);
                 const matIdText = row.matId || "-";
-                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+                const qtySatuanText = `${row.qty}${row.satuan || ''}`.trim();
 
                 dataArray.push([
                     tglLaporFormatted,
@@ -1716,9 +1725,9 @@
                 const tglLaporFormatted = formatTanggalIndo(row.tanggal);
                 const tglEdFormatted = formatTanggalIndo(row.expDate);
                 const matIdText = row.matId || "-";
-                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+                const qtySatuanText = `${row.qty}${row.satuan || ''}`.trim();
 
-                csvContent += `"${tglLaporFormatted}","${tglEdFormatted}","Food","${matIdText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
+                csvContent += `"${tglLaporFormatted}","${tglEdFormatted}","Food","${matIdText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy \vert{}\vert{} '-'}","${row.catatanSupervisor || '-'}"\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -1752,7 +1761,7 @@
                         <span class="text-base">📦</span>
                         <div>
                             <strong class="font-bold">PERINGATAN DAMAGED BOX TINGGI:</strong> 
-                            Produk <span class="font-extrabold underline">${topBox.nama}</span> [Mat ID: ${topBox.matId || '-'}] memiliki jumlah kerusakan tinggi sebesar <strong>${topBox.qty} ${topBox.satuan || 'Box'}</strong> di lokasi ${topBox.lokasi}!
+                            Produk <span class="font-extrabold underline">${topBox.nama}</span> [Mat ID: ${topBox.matId \vert{}\vert{} '-'}] memiliki jumlah kerusakan tinggi sebesar <strong>${topBox.qty} ${topBox.satuan \vert{}\vert{} 'Box'}</strong> di lokasi${topBox.lokasi}!
                         </div>
                     </div>
                 `;
@@ -1769,7 +1778,7 @@
                         <span class="text-base">🛍️</span>
                         <div>
                             <strong class="font-bold">PERINGATAN DAMAGED PCS TINGGI:</strong> 
-                            Produk <span class="font-extrabold underline">${topPcs.nama}</span> [Mat ID: ${topPcs.matId || '-'}] memiliki jumlah kerusakan eceran sebesar <strong>${topPcs.qty} ${topPcs.satuan || 'Pcs'}</strong> di lokasi ${topPcs.lokasi}!
+                            Produk <span class="font-extrabold underline">${topPcs.nama}</span> [Mat ID: ${topPcs.matId \vert{}\vert{} '-'}] memiliki jumlah kerusakan eceran sebesar <strong>${topPcs.qty} ${topPcs.satuan \vert{}\vert{} 'Pcs'}</strong> di lokasi${topPcs.lokasi}!
                         </div>
                     </div>
                 `;
@@ -1978,7 +1987,7 @@
                     <td class="py-3 px-4">${badgeKategori}</td>
                     <td class="py-3 px-4 text-xs font-mono font-bold text-themeblue-800">${item.matId || '-'}</td>
                     <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
-                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan || 'Pcs'}</td>
+                    <td class="py-3 px-4 font-bold text-red-600">${item.qty}${item.satuan || 'Pcs'}</td>
                     <td class="py-3 px-4 text-xs">${item.lokasi}</td>
                     <td class="py-3 px-4 text-xs font-semibold">${item.pelapor}</td>
                     <td class="py-3 px-4">${badgeStatus}</td>
@@ -2044,6 +2053,7 @@
             if (f) f.reset();
             const p = document.getElementById('container-preview-damaged');
             if (p) p.classList.add('hidden');
+            urlFotoDamagedSementara = '';
         }
 
         async function previewFotoDamaged(event) {
@@ -2057,43 +2067,61 @@
             }
         }
 
+        // SIMPAN LAPORAN DAMAGED SECARA HANDAL & BEBAS CONFLICT MULTIUSER
         function simpanDamagedBaru(event) {
             event.preventDefault();
-            const lokasi = document.getElementById('damaged-lokasi').value;
-            const now = new Date();
-            const tglStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
-
-            const rows = document.querySelectorAll('.item-damaged-row');
             
-            rows.forEach((row, index) => {
-                const kategori = row.querySelector('.item-kategori').value;
-                const matId = row.querySelector('.item-matid').value;
-                const nama = row.querySelector('.item-nama').value;
-                const qty = parseInt(row.querySelector('.item-qty').value) || 1;
-                const satuan = row.querySelector('.item-satuan').value;
+            const btnSubmit = document.getElementById('btn-submit-damaged');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = 'Mengirim Laporan...';
+            }
 
-                const newItem = {
-                    id: Date.now() + index,
-                    tanggal: tglStr,
-                    kategori,
-                    matId,
-                    nama,
-                    qty,
-                    satuan,
-                    lokasi,
-                    pelapor: userAktif === 'Supervisor' ? 'Supervisor' : userAktif,
-                    foto: urlFotoDamagedSementara,
-                    status: 'Pending'
-                };
+            try {
+                const lokasi = document.getElementById('damaged-lokasi').value;
+                const now = new Date();
+                const tglStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
 
-                dataDamaged.unshift(newItem);
-            });
+                const rows = document.querySelectorAll('.item-damaged-row');
+                
+                rows.forEach((row, index) => {
+                    const kategori = row.querySelector('.item-kategori').value;
+                    const matId = row.querySelector('.item-matid').value;
+                    const nama = row.querySelector('.item-nama').value;
+                    const qty = parseInt(row.querySelector('.item-qty').value) || 1;
+                    const satuan = row.querySelector('.item-satuan').value;
 
-            simpanKeStorage();
-            tutupModalDamaged();
-            renderDamaged();
-            renderStatistik();
-            alert("Laporan Barang Damaged berhasil dikirim (Status: Menunggu Approval Supervisor).");
+                    const newItem = {
+                        id: Date.now() + index,
+                        tanggal: tglStr,
+                        kategori,
+                        matId,
+                        nama,
+                        qty,
+                        satuan,
+                        lokasi,
+                        pelapor: userAktif === 'Supervisor' ? 'Supervisor' : userAktif,
+                        foto: urlFotoDamagedSementara || null,
+                        status: 'Pending'
+                    };
+
+                    dataDamaged.unshift(newItem);
+                });
+
+                simpanKeStorage();
+                tutupModalDamaged();
+                renderDamaged();
+                renderStatistik();
+                alert("✅ Laporan Barang Damaged berhasil dikirim & tersimpan!");
+            } catch (err) {
+                console.error("Error submit damaged:", err);
+                alert("Terjadi kesalahan saat menyimpan. Silakan coba lagi.");
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = 'Kirim Laporan Damaged';
+                }
+            }
         }
 
         function exportDamagedExcel() {
@@ -2111,7 +2139,7 @@
                 const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
                 const kategoriText = row.kategori || "Food";
                 const matIdText = row.matId || "-";
-                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+                const qtySatuanText = `${row.qty}${row.satuan || ''}`.trim();
 
                 dataArray.push([
                     tglFormatted,
@@ -2152,9 +2180,9 @@
                 const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
                 const kategoriText = row.kategori || "Food";
                 const matIdText = row.matId || "-";
-                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
+                const qtySatuanText = `${row.qty}${row.satuan || ''}`.trim();
 
-                csvContent += `"${tglFormatted}","${fotoText}","${kategoriText}","${matIdText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
+                csvContent += `"${tglFormatted}","${fotoText}","${kategoriText}","${matIdText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy \vert{}\vert{} '-'}","${row.catatanSupervisor || '-'}"\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -2199,7 +2227,7 @@
                     fileName: file.name,
                     fileSize: sizeKb > 1024 ? (sizeKb / 1024).toFixed(2) + ' MB' : sizeKb + ' KB',
                     fileData: fileBase64,
-                    uploadTime: `${now.toISOString().slice(0,10)} ${uploadTime}`
+                    uploadTime: `${now.toISOString().slice(0,10)}${uploadTime}`
                 };
 
                 dataOpname.unshift(itemBaru);
@@ -2321,239 +2349,4 @@
                 
                 if (isSupervisor) {
                     if (item.foto && item.status !== 'Selesai') {
-                        aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi</button>`;
-                    } else if (item.status === 'Selesai') {
-                        aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
-                    } else {
-                        aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 text-white text-xs px-2.5 py-1 rounded font-semibold">Tandai Selesai</button>`;
-                    }
-
-                    aksi += ` <button onclick="hapusJadwalBaris(${item.id})" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Jadwal Ini">🗑️</button>`;
-                } else {
-                    if (isMyTask && item.status !== 'Selesai') {
-                        aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold shadow-sm transition">${item.foto ? 'Ganti Foto' : 'Tandai Selesai'}</button>`;
-                    } else if (item.status === 'Selesai') {
-                        aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
-                    } else {
-                        aksi = `<span class="text-xs text-gray-400 italic">Tugas ${item.pic}</span>`;
-                    }
-                }
-
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-xs"><strong>${item.waktu}</strong> (${item.shift})</td>
-                    <td class="py-3 px-4 font-semibold text-gray-800">${item.zona}</td>
-                    <td class="py-3 px-4 font-semibold">${item.pic} ${isMyTask ? '👈 (Tugas Anda)' : ''}</td>
-                    <td class="py-3 px-4">${fotoElement}</td>
-                    <td class="py-3 px-4">${badgeStatus}</td>
-                    <td class="py-3 px-4 no-print flex items-center">${aksi}</td>
-                `;
-                return tr;
-            };
-
-            // 1. HEADER KELOMPOK BELUM SELESAI / MENUNGGU VERIFIKASI (BAGIAN ATAS)
-            const headerPending = document.createElement('tr');
-            headerPending.className = 'bg-amber-100/80 border-y border-amber-300';
-            headerPending.innerHTML = `
-                <td colspan="6" class="py-2.5 px-4 font-bold text-xs text-amber-900 tracking-wide">
-                    ⏳ JADWAL MENGANTRI & MENUNGGU VERIFIKASI SUPERVISOR (${dataPending.length})
-                </td>
-            `;
-            tbody.appendChild(headerPending);
-
-            if (dataPending.length === 0) {
-                const trEmptyPending = document.createElement('tr');
-                trEmptyPending.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Tidak ada jadwal pending. Semua area telah selesai atau tuntas!</td>`;
-                tbody.appendChild(trEmptyPending);
-            } else {
-                dataPending.forEach(item => {
-                    tbody.appendChild(buatBarisHTML(item));
-                });
-            }
-
-            // 2. HEADER KELOMPOK SELESAI / TUNTAS (BAGIAN BAWAH)
-            const headerSelesai = document.createElement('tr');
-            headerSelesai.className = 'bg-green-100/80 border-y border-green-300';
-            headerSelesai.innerHTML = `
-                <td colspan="6" class="py-2.5 px-4 font-bold text-xs text-green-900 tracking-wide">
-                    ✅ JADWAL TELAH SELESAI & DIVERIFIKASI TUNTAS (${dataSelesai.length})
-                </td>
-            `;
-            tbody.appendChild(headerSelesai);
-
-            if (dataSelesai.length === 0) {
-                const trEmptySelesai = document.createElement('tr');
-                trEmptySelesai.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Belum ada area kebersihan yang diselesaikan hari ini.</td>`;
-                tbody.appendChild(trEmptySelesai);
-            } else {
-                dataSelesai.forEach(item => {
-                    tbody.appendChild(buatBarisHTML(item));
-                });
-            }
-
-            renderLeaderboardPIC();
-        }
-
-        function renderStatistik() {
-            const elTot = document.getElementById('stat-total');
-            const elSel = document.getElementById('stat-selesai');
-            const elPen = document.getElementById('stat-pending');
-
-            if (elTot) elTot.innerText = dataJadwal.length;
-            if (elSel) elSel.innerText = dataJadwal.filter(i => i.status === 'Selesai').length;
-            if (elPen) elPen.innerText = dataJadwal.filter(i => i.status !== 'Selesai').length;
-
-            // AKUMULASI PERHITUNGAN SPESIFIK SATUAN (BOX / PCS / PALLET)
-            let boxCount = 0;
-            let pcsCount = 0;
-            let palletCount = 0;
-
-            let foodBox = 0, foodPcs = 0;
-            let nonBox = 0, nonPcs = 0;
-
-            dataDamaged.forEach(item => {
-                const q = item.qty || 0;
-                const s = item.satuan || 'Pcs';
-                const k = item.kategori || 'Food';
-
-                if (s.includes('Box') || s.includes('Karton') || s.includes('Master')) {
-                    boxCount += q;
-                    if (k === 'Food') foodBox += q; else nonBox += q;
-                } else if (s.includes('Pallet')) {
-                    palletCount += q;
-                } else {
-                    pcsCount += q;
-                    if (k === 'Food') foodPcs += q; else nonPcs += q;
-                }
-            });
-
-            const elDamTot = document.getElementById('stat-damaged-total');
-            const elDamQty = document.getElementById('stat-damaged-qty');
-            const elDamSatuanDetail = document.getElementById('stat-damaged-satuan-detail');
-            const elDamFood = document.getElementById('stat-damaged-food');
-            const elDamNon = document.getElementById('stat-damaged-nonfood');
-
-            if (elDamTot) elDamTot.innerText = dataDamaged.length;
-            if (elDamQty) elDamQty.innerText = `${dataDamaged.reduce((a,c) => a + (c.qty || 0), 0)} Items`;
-            
-            let detailSatuanStr = [];
-            if (boxCount > 0) detailSatuanStr.push(`${boxCount} Box/Karton`);
-            if (pcsCount > 0) detailSatuanStr.push(`${pcsCount} Pcs`);
-            if (palletCount > 0) detailSatuanStr.push(`${palletCount} Pallet`);
-            if (detailSatuanStr.length === 0) detailSatuanStr.push('0 Box | 0 Pcs');
-
-            if (elDamSatuanDetail) elDamSatuanDetail.innerText = detailSatuanStr.join(' | ');
-
-            if (elDamFood) elDamFood.innerText = `Food: ${foodBox > 0 ? foodBox + ' Box, ' : ''}${foodPcs} Pcs`;
-            if (elDamNon) elDamNon.innerText = `Non Food: ${nonBox > 0 ? nonBox + ' Box, ' : ''}${nonPcs} Pcs`;
-        }
-
-        function bukaModalTambah() {
-            const m = document.getElementById('modal-tambah');
-            if (m) m.classList.remove('hidden');
-        }
-
-        function tutupModalTambah() {
-            const m = document.getElementById('modal-tambah');
-            if (m) m.classList.add('hidden');
-        }
-
-        function simpanJadwalBaru(e) {
-            e.preventDefault();
-            dataJadwal.push({
-                id: Date.now(),
-                waktu: document.getElementById('add-waktu').value,
-                shift: document.getElementById('add-shift').value,
-                zona: document.getElementById('add-zona').value,
-                pic: document.getElementById('add-pic').value,
-                foto: null, 
-                status: 'Belum'
-            });
-            simpanKeStorage(); tutupModalTambah(); renderTabel(); renderStatistik();
-        }
-
-        function bukaModalUpload(id) { idAktif = id; const m = document.getElementById('modal-upload'); if (m) m.classList.remove('hidden'); }
-        function tutupModalUpload() { 
-            const m = document.getElementById('modal-upload'); 
-            if (m) m.classList.add('hidden'); 
-            const input = document.getElementById('input-foto');
-            if (input) input.value = '';
-            const c = document.getElementById('container-preview');
-            if (c) c.classList.add('hidden');
-        }
-        
-        async function previewFoto(e) {
-            const file = e.target.files[0];
-            if (file) {
-                urlFotoSementara = await kompresFoto(file); 
-                const img = document.getElementById('img-preview'); 
-                const c = document.getElementById('container-preview'); 
-                if (img) img.src = urlFotoSementara; 
-                if (c) c.classList.remove('hidden'); 
-            }
-        }
-        
-        function simpanFotoSelesai() {
-            const item = dataJadwal.find(i => i.id === idAktif);
-            if (item) { 
-                if (!urlFotoSementara) {
-                    alert('Silakan ambil atau pilih foto terlebih dahulu!');
-                    return;
-                }
-                item.foto = urlFotoSementara; 
-                if (userAktif === 'Supervisor') {
-                    item.status = 'Selesai'; 
-                } else {
-                    item.status = 'Belum'; 
-                }
-                simpanKeStorage(); 
-                renderTabel(); 
-                renderStatistik(); 
-            }
-            tutupModalUpload();
-        }
-
-        function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
-        function tutupModalLihat() { const m = document.getElementById('modal-lihat'); if (m) m.classList.add('hidden'); }
-
-        // FUNGSI RESET SPESIFIK TIAP MENU
-        function resetDataJadwal() {
-            if (userAktif !== 'Supervisor') return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Jadwal Kebersihan?')) {
-                dataJadwal = [];
-                simpanKeStorage();
-                renderTabel();
-                renderStatistik();
-            }
-        }
-
-        function resetDataDamaged() {
-            if (userAktif !== 'Supervisor') return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Laporan Barang Damaged?')) {
-                dataDamaged = [];
-                simpanKeStorage();
-                renderDamaged();
-                renderStatistik();
-            }
-        }
-
-        function resetDataExpired() {
-            if (userAktif !== 'Supervisor') return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Opname Expired?')) {
-                dataExpired = [];
-                simpanKeStorage();
-                renderExpired();
-                renderStatistik();
-            }
-        }
-
-        function resetDataOpname() {
-            if (userAktif !== 'Supervisor') return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh arsip berkas Opname Daily?')) {
-                dataOpname = [];
-                simpanKeStorage();
-                renderOpname();
-            }
-        }
-    </script>
-</body>
-</html>
+                        aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑
