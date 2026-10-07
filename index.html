@@ -1390,7 +1390,7 @@
                 alertDiv.className = 'bg-red-100 border-l-4 border-red-600 text-red-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
                 alertDiv.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="text-base">☣️</span>
+                        <span class="text-base">☣️️</span>
                         <div><strong class="font-bold">PERINGATAN EXPIRED:</strong> Terdapat <strong>${alreadyCount} Qty Food</strong> yang <span class="font-extrabold underline">SUDAH KEDALUWARSA</span>!</div>
                     </div>
                 `;
@@ -1434,7 +1434,7 @@
                 chartExpiredStatusInstance = new Chart(ctxExpStatus, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Expired ☣️', 'Near ED (≤30 Hari) ⚠️', 'Aman ✅'],
+                        labels: ['Expired ☣️️', 'Near ED (≤30 Hari) ⚠️', 'Aman ✅'],
                         datasets: [{ data: [alreadyCount, nearCount, safeCount], backgroundColor: ['#DC2626', '#D97706', '#059669'], borderWidth: 2 }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
@@ -2165,7 +2165,7 @@
             document.body.removeChild(link);
         }
 
-        // RENDER TABEL JADWAL KEBERSIHAN
+        // RENDER TABEL JADWAL KEBERSIHAN DENGAN PEMBATAS UTAMA (BELUM vs SELESAI)
         function renderTabel() {
             const tbody = document.getElementById('tabel-jadwal');
             if (!tbody) return;
@@ -2177,7 +2177,12 @@
                 return;
             }
 
-            dataJadwal.forEach(item => {
+            // Memisahkan data menjadi dua kelompok
+            const dataPending = dataJadwal.filter(i => i.status !== 'Selesai');
+            const dataSelesai = dataJadwal.filter(i => i.status === 'Selesai');
+
+            // Helper function untuk membuat elemen baris HTML
+            const buatBarisHTML = (item) => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
 
@@ -2227,8 +2232,48 @@
                     <td class="py-3 px-4">${badgeStatus}</td>
                     <td class="py-3 px-4 no-print flex items-center">${aksi}</td>
                 `;
-                tbody.appendChild(tr);
-            });
+                return tr;
+            };
+
+            // 1. HEADER KELOMPOK BELUM SELESAI / MENUNGGU VERIFIKASI (BAGIAN ATAS)
+            const headerPending = document.createElement('tr');
+            headerPending.className = 'bg-amber-100/80 border-y border-amber-300';
+            headerPending.innerHTML = `
+                <td colspan="6" class="py-2.5 px-4 font-bold text-xs text-amber-900 tracking-wide">
+                    ⏳ JADWAL MENGANTRI & MENUNGGU VERIFIKASI SUPERVISOR (${dataPending.length})
+                </td>
+            `;
+            tbody.appendChild(headerPending);
+
+            if (dataPending.length === 0) {
+                const trEmptyPending = document.createElement('tr');
+                trEmptyPending.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Tidak ada jadwal pending. Semua area telah selesai atau tuntas!</td>`;
+                tbody.appendChild(trEmptyPending);
+            } else {
+                dataPending.forEach(item => {
+                    tbody.appendChild(buatBarisHTML(item));
+                });
+            }
+
+            // 2. HEADER KELOMPOK SELESAI / TUNTAS (BAGIAN BAWAH)
+            const headerSelesai = document.createElement('tr');
+            headerSelesai.className = 'bg-green-100/80 border-y border-green-300';
+            headerSelesai.innerHTML = `
+                <td colspan="6" class="py-2.5 px-4 font-bold text-xs text-green-900 tracking-wide">
+                    ✅ JADWAL TELAH SELESAI & DIVERIFIKASI TUNTAS (${dataSelesai.length})
+                </td>
+            `;
+            tbody.appendChild(headerSelesai);
+
+            if (dataSelesai.length === 0) {
+                const trEmptySelesai = document.createElement('tr');
+                trEmptySelesai.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Belum ada area kebersihan yang diselesaikan hari ini.</td>`;
+                tbody.appendChild(trEmptySelesai);
+            } else {
+                dataSelesai.forEach(item => {
+                    tbody.appendChild(buatBarisHTML(item));
+                });
+            }
 
             renderLeaderboardPIC();
         }
