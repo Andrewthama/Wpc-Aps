@@ -1872,23 +1872,6 @@
             }
         }
 
-        // HAPUS BARIS LAPORAN DAMAGED
-        function hapusDamagedBaris(id) {
-            const isSupervisor = userAktif === 'Supervisor';
-            if (!isSupervisor) {
-                alert('Akses ditolak! Hanya Supervisor / Manajemen yang dapat menghapus laporan damaged.');
-                return;
-            }
-
-            if (confirm('Apakah Anda yakin ingin menghapus data pendataan barang damaged ini?')) {
-                dataDamaged = dataDamaged.filter(item => item.id !== id);
-                simpanKeStorage();
-                renderDamaged();
-                renderStatistik();
-            }
-        }
-
-        // RENDER TABEL BARANG DAMAGED DENGAN PEMBATAS BERDASARKAN STATUS APPROVAL
         function renderDamaged() {
             const tbody = document.getElementById('tabel-damaged');
             if (!tbody) return;
@@ -1900,12 +1883,7 @@
                 return;
             }
 
-            // Memisahkan data berdasarkan status
-            const listPending = dataDamaged.filter(i => (i.status || 'Pending') === 'Pending');
-            const listDisetujui = dataDamaged.filter(i => i.status === 'Disetujui');
-            const listDitolak = dataDamaged.filter(i => i.status === 'Ditolak');
-
-            const buatBarisDamaged = (item) => {
+            dataDamaged.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
 
@@ -1929,7 +1907,7 @@
 
                 const isSupervisor = userAktif === 'Supervisor';
                 let aksi = isSupervisor
-                    ? `<button onclick="bukaModalApproval(${item.id}, 'damaged')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition shadow-sm">👑 Verifikasi</button> <button onclick="hapusDamagedBaris(${item.id})" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Laporan Ini">🗑️</button>`
+                    ? `<button onclick="bukaModalApproval(${item.id}, 'damaged')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition shadow-sm">👑 Verifikasi</button>`
                     : `<span class="text-xs text-gray-400 italic">Khusus Supervisor</span>`;
 
                 tr.innerHTML = `
@@ -1944,50 +1922,8 @@
                     <td class="py-3 px-4">${badgeStatus}</td>
                     <td class="py-3 px-4 no-print">${aksi}</td>
                 `;
-                return tr;
-            };
-
-            // 1. KELOMPOK PENDING VERIFIKASI
-            const headerPending = document.createElement('tr');
-            headerPending.className = 'bg-amber-100/80 border-y border-amber-300';
-            headerPending.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-amber-900 tracking-wide">⏳ LAPORAN PENDING VERIFIKASI SUPERVISOR (${listPending.length})</td>`;
-            tbody.appendChild(headerPending);
-
-            if (listPending.length === 0) {
-                const emptyTr = document.createElement('tr');
-                emptyTr.innerHTML = `<td colspan="10" class="text-center py-3 text-gray-400 text-xs italic bg-white">Tidak ada laporan pending. Semua telah diverifikasi!</td>`;
-                tbody.appendChild(emptyTr);
-            } else {
-                listPending.forEach(item => tbody.appendChild(buatBarisDamaged(item)));
-            }
-
-            // 2. KELOMPOK DISETUJUI
-            const headerDisetujui = document.createElement('tr');
-            headerDisetujui.className = 'bg-green-100/80 border-y border-green-300';
-            headerDisetujui.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-green-900 tracking-wide">✅ LAPORAN DISETUJUI / VERIFIED (${listDisetujui.length})</td>`;
-            tbody.appendChild(headerDisetujui);
-
-            if (listDisetujui.length === 0) {
-                const emptyTr = document.createElement('tr');
-                emptyTr.innerHTML = `<td colspan="10" class="text-center py-3 text-gray-400 text-xs italic bg-white">Belum ada laporan damaged yang disetujui.</td>`;
-                tbody.appendChild(emptyTr);
-            } else {
-                listDisetujui.forEach(item => tbody.appendChild(buatBarisDamaged(item)));
-            }
-
-            // 3. KELOMPOK DITOLAK
-            const headerDitolak = document.createElement('tr');
-            headerDitolak.className = 'bg-red-100/80 border-y border-red-300';
-            headerDitolak.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-red-900 tracking-wide">❌ LAPORAN DITOLAK / REJECTED (${listDitolak.length})</td>`;
-            tbody.appendChild(headerDitolak);
-
-            if (listDitolak.length === 0) {
-                const emptyTr = document.createElement('tr');
-                emptyTr.innerHTML = `<td colspan="10" class="text-center py-3 text-gray-400 text-xs italic bg-white">Tidak ada laporan yang ditolak.</td>`;
-                tbody.appendChild(emptyTr);
-            } else {
-                listDitolak.forEach(item => tbody.appendChild(buatBarisDamaged(item)));
-            }
+                tbody.appendChild(tr);
+            });
 
             renderDashboardDamagedVisual();
         }
