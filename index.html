@@ -76,7 +76,7 @@
 
             <div class="bg-themeblue-50 p-3 rounded-xl border border-themeblue-200 text-[11px] text-themeblue-900 space-y-1">
                 <p class="font-bold">🔑 Bantuan Akun Login Default:</p>
-                <p>• <strong>Manajemen:</strong> `supervisor`, `dcmanager`, `logistics`, `headwh` | Pass: `admin123`</p>
+                <p>• <strong>Manajemen & Checker:</strong> `supervisor`, `dcmanager`, `harry`, `ilham`, `robby`, `jimmy`, `agusbangun` | Pass: `admin123`</p>
                 <p>• <strong>Staf Gudang:</strong> Username `[nama_depan]` (contoh: `agus`, `aldy`, `bobby`) | Pass: `123456`</p>
             </div>
         </div>
@@ -883,6 +883,14 @@
             'dcmanager': { password: 'admin123', name: 'DC Manager', role: 'Supervisor' },
             'logistics': { password: 'admin123', name: 'Logistic Manager', role: 'Supervisor' },
             'headwh': { password: 'admin123', name: 'Head Warehouse', role: 'Supervisor' },
+            
+            // AKUN CHECKER BARU DENGAN HAK AKSES SUPERVISOR
+            'harry': { password: 'admin123', name: 'Checker M.Harry', role: 'Supervisor' },
+            'ilham': { password: 'admin123', name: 'Checker Ilham Syahputra', role: 'Supervisor' },
+            'robby': { password: 'admin123', name: 'Checker M.Robby', role: 'Supervisor' },
+            'jimmy': { password: 'admin123', name: 'Checker Jimmy Ginting', role: 'Supervisor' },
+            'agusbangun': { password: 'admin123', name: 'Checker Agus Bangun', role: 'Supervisor' },
+
             'agus': { password: '123456', name: 'Agus Suwandani', role: 'Staf Kebersihan / Gudang' },
             'aldy': { password: '123456', name: 'Aldy Surya Pratama', role: 'Staf Kebersihan / Gudang' },
             'andri': { password: '123456', name: 'Andri Sembiring', role: 'Staf Kebersihan / Gudang' },
@@ -979,7 +987,6 @@
                 localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
             } catch (err) {
                 console.warn("Storage Quota Exceeded! Cleaning old photo cache...", err);
-                // BERSIHKAN CACHE FOTO PADA LAPORAN LAMA AGAR LAPORAN BARU BISA MASUK
                 dataDamaged.forEach((item, idx) => { if (idx > 20) item.foto = null; });
                 dataExpired.forEach((item, idx) => { if (idx > 20) item.foto = null; });
                 dataJadwal.forEach((item, idx) => { if (idx > 30) item.foto = null; });
