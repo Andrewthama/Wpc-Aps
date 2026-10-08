@@ -1297,7 +1297,7 @@
             }
         }
 
-        // VERIFIKASI KEBERSIHAN SUPERVISOR
+        // VERIFIKASI KEBERSIHAN SUPERVISOR (MEMPERTAHANKAN FOTO STAF 100%)
         function bukaModalApprovalKebersihan(id) {
             if (!isSupervisor()) {
                 alert("Hanya Supervisor / Manajemen yang berwenang melakukan verifikasi kebersihan!");
@@ -1344,6 +1344,7 @@
             if (item) {
                 if (status === 'Selesai') {
                     item.status = 'Selesai';
+                    // FOTO BUKTI DIKUNCI AGAR TIDAK HILANG / RESET
                 } else {
                     item.status = 'Belum';
                     item.foto = null;
@@ -2577,8 +2578,15 @@
 
         function bukaModalUpload(id) { 
             idAktif = id; 
+            urlFotoSementara = '';
             const m = document.getElementById('modal-upload'); 
             if (m) m.classList.remove('hidden'); 
+            
+            const btnSimpan = document.getElementById('btn-simpan-foto');
+            if (btnSimpan) {
+                btnSimpan.disabled = false;
+                btnSimpan.innerText = 'Selesai';
+            }
         }
 
         function tutupModalUpload() { 
@@ -2594,15 +2602,26 @@
         async function previewFoto(e) {
             const file = e.target.files[0];
             if (file) {
+                const btnSimpan = document.getElementById('btn-simpan-foto');
+                if (btnSimpan) {
+                    btnSimpan.disabled = true;
+                    btnSimpan.innerText = 'Memproses Foto...';
+                }
+                
                 urlFotoSementara = await kompresFoto(file); 
                 const img = document.getElementById('img-preview'); 
                 const c = document.getElementById('container-preview'); 
                 if (img) img.src = urlFotoSementara; 
                 if (c) c.classList.remove('hidden'); 
+                
+                if (btnSimpan) {
+                    btnSimpan.disabled = false;
+                    btnSimpan.innerText = 'Selesai';
+                }
             }
         }
         
-        // DIBERSIHKAN DARI BUG PERBANDINGAN ID SAFE (==) & STATUS HANDAL
+        // DIBERSIHKAN DARI BUG: PERBANDINGAN ID SAFE (==) + MENCEGAH FOTO TERTINGGAL
         function simpanFotoSelesai() {
             if (!idAktif) {
                 alert("ID Jadwal tidak valid!");
@@ -2616,6 +2635,7 @@
                     return;
                 }
                 
+                // JIKA USER MEMILIH FOTO BARU, GUNAKAN FOTO BARU
                 if (urlFotoSementara) {
                     item.foto = urlFotoSementara;
                 }
