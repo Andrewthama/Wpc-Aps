@@ -2399,7 +2399,8 @@
                 let aksi = '';
                 
                 if (isSup) {
-                    // SUPERVISOR BISA VERIFIKASI JIKA STATUS MENUNGGU VERIFIKASI ATAU ADA FOTO BUKTI
+                    // PERBAIKAN AKSI SUPERVISOR:
+                    // TOMBOL "👑 Verifikasi" OTOMATIS MUNCUL JIKA STATUS "Menunggu Verifikasi" ATAU SUDAH ADA FOTO!
                     if (item.status === 'Menunggu Verifikasi' || item.foto) {
                         if (item.status !== 'Selesai') {
                             aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi</button>`;
@@ -2601,7 +2602,7 @@
             }
         }
         
-        // DIBERSIHKAN DARI BUG: PERBANDINGAN ID SAFE (==) + ATUR TANGGAL PENGERJAAN OTOMATIS & STATUS
+        // DIBERSIHKAN DARI BUG PERBANDINGAN ID SAFE (==) & STATUS HANDAL
         function simpanFotoSelesai() {
             if (!idAktif) {
                 alert("ID Jadwal tidak valid!");
