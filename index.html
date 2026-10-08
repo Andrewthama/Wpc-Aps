@@ -2585,22 +2585,29 @@
             }
         }
         
+        // DIBERSIHKAN DARI BUG: FOTO STAF DIPERTAHANKAN DAN STATUS BERUBAH KE MENUNGGU VERIFIKASI
         function simpanFotoSelesai() {
             const item = dataJadwal.find(i => i.id === idAktif);
             if (item) { 
-                if (!urlFotoSementara) {
+                if (!urlFotoSementara && !item.foto) {
                     alert('Silakan ambil atau pilih foto terlebih dahulu!');
                     return;
                 }
-                item.foto = urlFotoSementara; 
+                
+                if (urlFotoSementara) {
+                    item.foto = urlFotoSementara;
+                }
+                
                 if (isSupervisor()) {
                     item.status = 'Selesai'; 
                 } else {
-                    item.status = 'Belum'; 
+                    item.status = 'Menunggu Verifikasi'; 
                 }
+                
                 simpanKeStorage(); 
                 renderTabel(); 
                 renderStatistik(); 
+                alert(isSupervisor() ? "✅ Kebersihan tuntas & diverifikasi!" : "✅ Foto bukti terkirim! Menunggu verifikasi Supervisor.");
             }
             tutupModalUpload();
         }
