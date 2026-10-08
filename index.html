@@ -1209,7 +1209,7 @@
             const badgeRole = document.getElementById('badge-role-type');
 
             if (isSup) {
-                if (bannerText) bannerText.innerHTML = `Mode Pengguna: <strong>Supervisor / Manajemen</strong> (Akses Seluruh Data & Laporan)`;
+                if (bannerText) bannerText.innerHTML = `Mode Pengguna: <strong>Supervisor / Manajemen / Checker</strong> (Akses Seluruh Data & Laporan)`;
                 if (badgeRole) {
                     badgeRole.innerText = 'Akses Penuh';
                     badgeRole.className = 'bg-themeblue-700 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
@@ -2399,8 +2399,13 @@
                 let aksi = '';
                 
                 if (isSup) {
-                    if (item.foto && item.status !== 'Selesai') {
-                        aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi</button>`;
+                    // SUPERVISOR BISA VERIFIKASI JIKA STATUS MENUNGGU VERIFIKASI ATAU ADA FOTO BUKTI
+                    if (item.status === 'Menunggu Verifikasi' || item.foto) {
+                        if (item.status !== 'Selesai') {
+                            aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi</button>`;
+                        } else {
+                            aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
+                        }
                     } else if (item.status === 'Selesai') {
                         aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
                     } else {
