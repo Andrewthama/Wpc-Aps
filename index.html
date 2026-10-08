@@ -205,7 +205,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
-                            <th class="py-3 px-4">Waktu & Shift</th>
+                            <th class="py-3 px-4">Tanggal & Waktu Shift</th>
                             <th class="py-3 px-4">Area / Zona</th>
                             <th class="py-3 px-4">Petugas (PIC)</th>
                             <th class="py-3 px-4">Foto Bukti</th>
@@ -1290,7 +1290,7 @@
             }
 
             if (confirm('Apakah Anda yakin ingin menghapus jadwal kebersihan ini?')) {
-                dataJadwal = dataJadwal.filter(item => item.id !== id);
+                dataJadwal = dataJadwal.filter(item => item.id != id);
                 simpanKeStorage();
                 renderTabel();
                 renderStatistik();
@@ -1304,7 +1304,7 @@
                 return;
             }
 
-            const item = dataJadwal.find(i => i.id === id);
+            const item = dataJadwal.find(i => i.id == id);
             if (!item) return;
 
             document.getElementById('appr-keb-id').value = id;
@@ -1336,10 +1336,10 @@
 
         function simpanApprovalKebersihan(e) {
             e.preventDefault();
-            const id = parseInt(document.getElementById('appr-keb-id').value);
+            const id = document.getElementById('appr-keb-id').value;
             const status = document.getElementById('appr-keb-status').value;
 
-            const item = dataJadwal.find(i => i.id === id);
+            const item = dataJadwal.find(i => i.id == id);
 
             if (item) {
                 if (status === 'Selesai') {
@@ -1365,8 +1365,8 @@
             }
 
             let item = null;
-            if (type === 'damaged') item = dataDamaged.find(i => i.id === id);
-            else if (type === 'expired') item = dataExpired.find(i => i.id === id);
+            if (type === 'damaged') item = dataDamaged.find(i => i.id == id);
+            else if (type === 'expired') item = dataExpired.find(i => i.id == id);
 
             if (!item) return;
 
@@ -1392,13 +1392,13 @@
 
         function simpanApprovalSupervisor(e) {
             e.preventDefault();
-            const id = parseInt(document.getElementById('appr-item-id').value);
+            const id = document.getElementById('appr-item-id').value;
             const type = document.getElementById('appr-item-type').value;
             const status = document.getElementById('appr-status').value;
             const catatan = document.getElementById('appr-catatan').value;
 
             let targetList = type === 'damaged' ? dataDamaged : dataExpired;
-            const item = targetList.find(i => i.id === id);
+            const item = targetList.find(i => i.id == id);
 
             if (item) {
                 item.status = status;
@@ -1981,7 +1981,7 @@
             }
 
             if (confirm('Apakah Anda yakin ingin menghapus data pendataan barang damaged ini?')) {
-                dataDamaged = dataDamaged.filter(item => item.id !== id);
+                dataDamaged = dataDamaged.filter(item => item.id != id);
                 simpanKeStorage();
                 renderDamaged();
                 renderStatistik();
@@ -2333,7 +2333,7 @@
         function hapusOpname(id) {
             if (!isSupervisor()) return;
             if (confirm('Apakah Anda yakin ingin menghapus berkas opname ini?')) {
-                dataOpname = dataOpname.filter(i => i.id !== id);
+                dataOpname = dataOpname.filter(i => i.id != id);
                 simpanKeStorage();
                 renderOpname();
             }
@@ -2345,9 +2345,9 @@
                 return;
             }
 
-            let csvContent = "data:text/csv;charset=utf-8,ID,Waktu,Shift,Zona,PIC,Status\n";
+            let csvContent = "data:text/csv;charset=utf-8,ID,Tanggal Pengerjaan,Waktu,Shift,Zona,PIC,Status\n";
             dataJadwal.forEach(row => {
-                csvContent += `${row.id},"${row.waktu}","${row.shift}","${row.zona}","${row.pic}","${row.status}"\n`;
+                csvContent += `${row.id},"${row.tanggalPengerjaan || '-'}","${row.waktu}","${row.shift}","${row.zona}","${row.pic}","${row.status}"\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -2359,7 +2359,7 @@
             document.body.removeChild(link);
         }
 
-        // RENDER TABEL JADWAL KEBERSIHAN DENGAN PEMBATAS UTAMA (BELUM vs SELESAI)
+        // RENDER TABEL JADWAL KEBERSIHAN DENGAN PEMBATAS UTAMA (BELUM vs SELESAI) + TANGGAL OTOMATIS
         function renderTabel() {
             const tbody = document.getElementById('tabel-jadwal');
             if (!tbody) return;
@@ -2386,14 +2386,14 @@
                 let badgeStatus = '';
                 if (item.status === 'Selesai') {
                     badgeStatus = `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">Selesai ✅</span>`;
-                } else if (item.foto) {
+                } else if (item.status === 'Menunggu Verifikasi' || item.foto) {
                     badgeStatus = `<span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">Menunggu Verifikasi ⏳</span>`;
                 } else {
                     badgeStatus = `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum</span>`;
                 }
 
                 let fotoElement = item.foto 
-                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200">📷 Lihat Foto</button>`
+                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200 font-semibold">📷 Lihat Foto</button>`
                     : `<span class="text-xs text-gray-400 italic">Belum Ada</span>`;
 
                 let aksi = '';
@@ -2404,7 +2404,7 @@
                     } else if (item.status === 'Selesai') {
                         aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
                     } else {
-                        aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 text-white text-xs px-2.5 py-1 rounded font-semibold">Tandai Selesai</button>`;
+                        aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition">Tandai Selesai</button>`;
                     }
 
                     aksi += ` <button onclick="hapusJadwalBaris(${item.id})" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Jadwal Ini">🗑️</button>`;
@@ -2418,13 +2418,18 @@
                     }
                 }
 
+                const tglDisplay = item.tanggalPengerjaan ? `<div class="text-[10px] text-gray-500 font-normal">Tgl: ${formatTanggalIndo(item.tanggalPengerjaan)}</div>` : '';
+
                 tr.innerHTML = `
-                    <td class="py-3 px-4 text-xs"><strong>${item.waktu}</strong> (${item.shift})</td>
+                    <td class="py-3 px-4 text-xs">
+                        <strong>${item.waktu}</strong> (${item.shift})
+                        ${tglDisplay}
+                    </td>
                     <td class="py-3 px-4 font-semibold text-gray-800">${item.zona}</td>
                     <td class="py-3 px-4 font-semibold">${item.pic} ${isMyTask ? '👈 (Tugas Anda)' : ''}</td>
                     <td class="py-3 px-4">${fotoElement}</td>
                     <td class="py-3 px-4">${badgeStatus}</td>
-                    <td class="py-3 px-4 no-print flex items-center">${aksi}</td>
+                    <td class="py-3 px-4 no-print flex items-center gap-1">${aksi}</td>
                 `;
                 return tr;
             };
@@ -2553,7 +2558,8 @@
                 zona: zona,
                 pic: pic,
                 foto: null, 
-                status: 'Belum'
+                status: 'Belum',
+                tanggalPengerjaan: null
             });
 
             simpanKeStorage(); 
@@ -2563,7 +2569,12 @@
             alert("✅ Jadwal Kebersihan berhasil ditambahkan!");
         }
 
-        function bukaModalUpload(id) { idAktif = id; const m = document.getElementById('modal-upload'); if (m) m.classList.remove('hidden'); }
+        function bukaModalUpload(id) { 
+            idAktif = id; 
+            const m = document.getElementById('modal-upload'); 
+            if (m) m.classList.remove('hidden'); 
+        }
+
         function tutupModalUpload() { 
             const m = document.getElementById('modal-upload'); 
             if (m) m.classList.add('hidden'); 
@@ -2585,9 +2596,14 @@
             }
         }
         
-        // DIBERSIHKAN DARI BUG: FOTO STAF DIPERTAHANKAN DAN STATUS BERUBAH KE MENUNGGU VERIFIKASI
+        // DIBERSIHKAN DARI BUG: PERBANDINGAN ID SAFE (==) + ATUR TANGGAL PENGERJAAN OTOMATIS & STATUS
         function simpanFotoSelesai() {
-            const item = dataJadwal.find(i => i.id === idAktif);
+            if (!idAktif) {
+                alert("ID Jadwal tidak valid!");
+                return;
+            }
+
+            const item = dataJadwal.find(i => i.id == idAktif);
             if (item) { 
                 if (!urlFotoSementara && !item.foto) {
                     alert('Silakan ambil atau pilih foto terlebih dahulu!');
@@ -2598,6 +2614,10 @@
                     item.foto = urlFotoSementara;
                 }
                 
+                const now = new Date();
+                const nowStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
+                item.tanggalPengerjaan = nowStr;
+
                 if (isSupervisor()) {
                     item.status = 'Selesai'; 
                 } else {
@@ -2607,7 +2627,9 @@
                 simpanKeStorage(); 
                 renderTabel(); 
                 renderStatistik(); 
-                alert(isSupervisor() ? "✅ Kebersihan tuntas & diverifikasi!" : "✅ Foto bukti terkirim! Menunggu verifikasi Supervisor.");
+                alert(isSupervisor() ? "✅ Kebersihan tuntas & diverifikasi!" : "✅ Foto bukti terkirim! Status berubah ke Menunggu Verifikasi.");
+            } else {
+                alert("Gagal menemukan jadwal kebersihan!");
             }
             tutupModalUpload();
         }
