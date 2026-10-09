@@ -1297,7 +1297,7 @@
             }
         }
 
-        // VERIFIKASI KEBERSIHAN SUPERVISOR (MEMPERTAHANKAN FOTO STAF 100%)
+        // VERIFIKASI KEBERSIHAN SUPERVISOR (PENGUNCIAN MUTER HARUS MEMPERTAHANKAN FOTO STAF 100%)
         function bukaModalApprovalKebersihan(id) {
             if (!isSupervisor()) {
                 alert("Hanya Supervisor / Manajemen yang berwenang melakukan verifikasi kebersihan!");
@@ -1344,7 +1344,7 @@
             if (item) {
                 if (status === 'Selesai') {
                     item.status = 'Selesai';
-                    // FOTO BUKTI DIKUNCI AGAR TIDAK HILANG / RESET
+                    // FOTO BUKTI STAF DIKUNCI MATI AGAR TIDAK BISA HILANG
                 } else {
                     item.status = 'Belum';
                     item.foto = null;
@@ -2621,25 +2621,41 @@
             }
         }
         
-        // DIBERSIHKAN DARI BUG: PERBANDINGAN ID SAFE (==) + MENCEGAH FOTO TERTINGGAL
-        function simpanFotoSelesai() {
+        // FUNGSI UTAMA PENYERAPAN FOTO (100% GARANSI KUNCIAN FOTO TERSIMPAN SINKRON)
+        async function simpanFotoSelesai() {
             if (!idAktif) {
                 alert("ID Jadwal tidak valid!");
                 return;
             }
 
             const item = dataJadwal.find(i => i.id == idAktif);
-            if (item) { 
-                if (!urlFotoSementara && !item.foto) {
+            if (!item) {
+                alert("Gagal menemukan jadwal kebersihan!");
+                return;
+            }
+
+            const btnSimpan = document.getElementById('btn-simpan-foto');
+            if (btnSimpan) {
+                btnSimpan.disabled = true;
+                btnSimpan.innerText = 'Mengunggah Foto...';
+            }
+
+            try {
+                const fileInput = document.getElementById('input-foto');
+                const fileDirect = fileInput && fileInput.files && fileInput.files[0];
+
+                // JIKA FILE LANGSUNG DARI INPUT CHOOSE FILE DIBACA TERLEBIH DAHULU
+                if (fileDirect) {
+                    item.foto = await kompresFoto(fileDirect);
+                } else if (urlFotoSementara) {
+                    item.foto = urlFotoSementara;
+                }
+
+                if (!item.foto) {
                     alert('Silakan ambil atau pilih foto terlebih dahulu!');
                     return;
                 }
-                
-                // JIKA USER MEMILIH FOTO BARU, GUNAKAN FOTO BARU
-                if (urlFotoSementara) {
-                    item.foto = urlFotoSementara;
-                }
-                
+
                 const now = new Date();
                 const nowStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
                 item.tanggalPengerjaan = nowStr;
@@ -2649,15 +2665,21 @@
                 } else {
                     item.status = 'Menunggu Verifikasi'; 
                 }
-                
+
                 simpanKeStorage(); 
                 renderTabel(); 
                 renderStatistik(); 
+                tutupModalUpload();
                 alert(isSupervisor() ? "✅ Kebersihan tuntas & diverifikasi!" : "✅ Foto bukti terkirim! Status berubah ke Menunggu Verifikasi.");
-            } else {
-                alert("Gagal menemukan jadwal kebersihan!");
+            } catch (err) {
+                console.error("Error simpan foto:", err);
+                alert("Terjadi kesalahan saat memproses foto. Silakan coba lagi.");
+            } finally {
+                if (btnSimpan) {
+                    btnSimpan.disabled = false;
+                    btnSimpan.innerText = 'Selesai';
+                }
             }
-            tutupModalUpload();
         }
 
         function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
