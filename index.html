@@ -452,19 +452,26 @@
         </div>
     </div>
 
-    <!-- HALAMAN 4: REPORT OPNAME DAILY (DENGAN DASHBOARD AUTO-PARSING SELISIH) -->
+    <!-- HALAMAN 4: REPORT OPNAME DAILY (DENGAN DASHBOARD & FILTER TANGGAL REALTIME) -->
     <div id="page-opname" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         
-        <!-- DASHBOARD ANALITIKA SELISIH OPNAME DAILY -->
+        <!-- DASHBOARD ANALITIKA SELISIH OPNAME DAILY DENGAN FILTER TANGGAL -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-themeblue-100 space-y-4">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b pb-3 border-themeblue-100">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
                 <div>
                     <h2 class="text-base font-bold text-themeblue-900 flex items-center gap-2">
                         <span>📈</span><span>Dashboard Ringkasan Selisih Opname (Diff Case & Diff Pack)</span>
                     </h2>
                     <p class="text-xs text-gray-500">Sistem otomatis mendeteksi & mengekstrak data selisih dari kolom `Diff. Case` & `Diff. Pack` Excel harian</p>
                 </div>
-                <span class="bg-themeblue-100 text-themeblue-800 text-[10px] font-bold px-2.5 py-1 rounded-full border border-themeblue-300">Auto-Parsed Realtime</span>
+                
+                <!-- ELEMEN FILTER TANGGAL DASHBOARD -->
+                <div class="flex items-center gap-2 bg-themeblue-50 p-1.5 px-3 rounded-lg border border-themeblue-200">
+                    <label for="filter-opname-date" class="text-xs font-bold text-themeblue-900 whitespace-nowrap">📅 Filter Tanggal:</label>
+                    <select id="filter-opname-date" onchange="renderDashboardOpnameVisual()" class="bg-white border border-themeblue-300 rounded-md text-xs font-bold text-themeblue-900 p-1.5 focus:ring-2 focus:ring-themeblue-600 outline-none">
+                        <option value="ALL">Semua Tanggal (Akumulasi Total)</option>
+                    </select>
+                </div>
             </div>
 
             <!-- CARD RINGKASAN KPI SELISIH -->
@@ -1384,7 +1391,6 @@
             });
         }
 
-        // HAPUS JADWAL KEBERSIHAN
         function hapusJadwalBaris(id) {
             if (!isSupervisor()) {
                 alert('Akses ditolak! Hanya Supervisor / Checker yang dapat menghapus jadwal kebersihan.');
@@ -1779,7 +1785,7 @@
                 }
 
                 const fotoElement = item.foto 
-                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-red-50 text-red-800 px-2 py-1 rounded border border-red-200">📷 Lihat Foto</button>`
+                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-red-50 text-red-800 px-2 py-1 rounded border border-red-200 font-semibold">📷 Lihat Foto</button>`
                     : `<span class="text-xs text-gray-400 italic">Tanpa Foto</span>`;
 
                 const isSup = isSupervisor();
@@ -2466,18 +2472,16 @@
                         let diffCaseItems = 0, diffCaseQty = 0;
                         let diffPackItems = 0, diffPackQty = 0;
 
-                        // Baca seluruh sheet yang tersedia (secara khusus sheet 'Report' atau sheet utama)
                         workbook.SheetNames.forEach(sheetName => {
                             const worksheet = workbook.Sheets[sheetName];
                             const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                             if (jsonSheet.length > 0) {
-                                // Cari baris header yang berisi tulisan 'Diff. Case' dan 'Diff. Pack'
                                 let colDiffCaseIdx = -1;
                                 let colDiffPackIdx = -1;
 
                                 jsonSheet.forEach((row, rIdx) => {
-                                    if (rIdx < 5) { // Cek 5 baris pertama
+                                    if (rIdx < 5) {
                                         row.forEach((cellVal, cIdx) => {
                                             if (cellVal) {
                                                 const strVal = String(cellVal).trim().toLowerCase();
@@ -2492,10 +2496,8 @@
                                     }
                                 });
 
-                                // Mulai membaca data selisih
                                 jsonSheet.forEach((row, rIdx) => {
                                     if (rIdx > 0 && row.length > 0) {
-                                        // 1. hitung Diff Case
                                         if (colDiffCaseIdx !== -1 && row[colDiffCaseIdx] !== undefined) {
                                             const valCase = parseFloat(row[colDiffCaseIdx]);
                                             if (!isNaN(valCase) && valCase !== 0) {
@@ -2504,7 +2506,6 @@
                                             }
                                         }
 
-                                        // 2. hitung Diff Pack
                                         if (colDiffPackIdx !== -1 && row[colDiffPackIdx] !== undefined) {
                                             const valPack = parseFloat(row[colDiffPackIdx]);
                                             if (!isNaN(valPack) && valPack !== 0) {
@@ -2532,7 +2533,6 @@
             });
         }
 
-        // UNGGAH OPNAME DAILY DENGAN DASHBOARD PARSING AUTO
         async function simpanOpnameDaily(event) {
             event.preventDefault();
             if (!isSupervisor()) {
@@ -2560,7 +2560,6 @@
                 return;
             }
 
-            // Membaca isi selisih dari kolom Diff. Case dan Diff. Pack
             const ekstraksi = await prosesEkstraksiSelisihExcel(file);
 
             const reader = new FileReader();
@@ -2604,7 +2603,42 @@
             reader.readAsDataURL(file);
         }
 
+        // PENGEMBANGAN LOGIKA VISUAL DASHBOARD DENGAN FILTER TANGGAL REALTIME
+        function updateOpsiFilterTanggalOpname() {
+            const selectFilter = document.getElementById('filter-opname-date');
+            if (!selectFilter) return;
+
+            const selectedVal = selectFilter.value;
+            
+            // Ambil seluruh daftar tanggal unik dari dataOpname
+            const setTanggal = new Set();
+            dataOpname.forEach(item => {
+                if (item.tanggal) setTanggal.add(item.tanggal);
+            });
+
+            const arrayTanggal = Array.from(setTanggal).sort().reverse();
+
+            selectFilter.innerHTML = `<option value="ALL">Semua Tanggal (Akumulasi Total)</option>`;
+            arrayTanggal.forEach(tgl => {
+                const opt = document.createElement('option');
+                opt.value = tgl;
+                opt.innerText = formatTanggalIndo(tgl);
+                if (tgl === selectedVal) opt.selected = true;
+                selectFilter.appendChild(opt);
+            });
+        }
+
         function renderDashboardOpnameVisual() {
+            updateOpsiFilterTanggalOpname();
+
+            const filterSelect = document.getElementById('filter-opname-date');
+            const selectedDate = filterSelect ? filterSelect.value : 'ALL';
+
+            let filteredData = dataOpname;
+            if (selectedDate && selectedDate !== 'ALL') {
+                filteredData = dataOpname.filter(i => i.tanggal === selectedDate);
+            }
+
             let totalCaseItems = 0, totalCaseQty = 0;
             let totalPackItems = 0, totalPackQty = 0;
 
@@ -2612,17 +2646,17 @@
             const dataTrendCase = [];
             const dataTrendPack = [];
 
-            const recentOpname = dataOpname.slice(0, 7).reverse();
-
-            dataOpname.forEach(item => {
+            filteredData.forEach(item => {
                 totalCaseItems += (item.diffCaseItems || 0);
                 totalCaseQty += (item.diffCaseQty || 0);
                 totalPackItems += (item.diffPackItems || 0);
                 totalPackQty += (item.diffPackQty || 0);
             });
 
+            // Ambil 7 data terbaru sesuai filter untuk grafik
+            const recentOpname = filteredData.slice(0, 7).reverse();
             recentOpname.forEach(item => {
-                labelsTrend.push(item.tanggal || 'Tgl');
+                labelsTrend.push(formatTanggalIndo(item.tanggal));
                 dataTrendCase.push(item.diffCaseQty || 0);
                 dataTrendPack.push(item.diffPackQty || 0);
             });
@@ -2694,7 +2728,7 @@
                 `;
 
                 tr.innerHTML = `
-                    <td class="py-3.5 px-4 font-bold text-themeblue-800 text-xs">${item.tanggal}</td>
+                    <td class="py-3.5 px-4 font-bold text-themeblue-800 text-xs">${formatTanggalIndo(item.tanggal)}</td>
                     <td class="py-3.5 px-4 font-semibold text-gray-800">${item.judul}</td>
                     <td class="py-3.5 px-4 text-xs font-mono text-themeblue-700">${item.fileName}</td>
                     <td class="py-3.5 px-4">${badgeSelisih}</td>
