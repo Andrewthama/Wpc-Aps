@@ -205,12 +205,12 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
-                            <th class="py-3 px-4">Tanggal & Waktu Shift</th>
+                            <th class="py-3 px-4">Tanggal & Shift</th>
                             <th class="py-3 px-4">Area / Zona</th>
                             <th class="py-3 px-4">Petugas (PIC)</th>
-                            <th class="py-3 px-4">Foto Bukti</th>
-                            <th class="py-3 px-4">Status</th>
-                            <th class="py-3 px-4 no-print">Aksi</th>
+                            <th class="py-3 px-4">Foto Bukti (Checker)</th>
+                            <th class="py-3 px-4">Status Pengerjaan</th>
+                            <th class="py-3 px-4 no-print">Aksi Lanjutan</th>
                         </tr>
                     </thead>
                     <tbody id="tabel-jadwal" class="divide-y divide-themeblue-100 text-sm font-medium"></tbody>
@@ -519,67 +519,62 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: VERIFIKASI / APPROVAL SUPERVISOR LAPORAN DAMAGED & EXPIRED -->
-    <div id="modal-approval" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
-        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700 my-8">
+    <!-- MODAL POPUP: CHECKER INSPEKSI & FOTO KEBERSIHAN (TAHAP 3 LOGIKA BARU) -->
+    <div id="modal-checker-inspeksi" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600 my-8">
             <div class="flex justify-between items-center border-b pb-2">
                 <div>
-                    <h3 class="text-base font-bold text-themeblue-900">Verifikasi & Approval Supervisor</h3>
-                    <p class="text-[11px] text-gray-500">Tinjau dan tindak lanjuti laporan staf gudang</p>
+                    <h3 class="text-base font-bold text-gray-800">Pengecekan Kebersihan & Lampirkan Foto</h3>
+                    <p class="text-[11px] text-gray-500">Checker mengambil foto bukti pengerjaan yang sudah selesai dibersihkan oleh staf</p>
                 </div>
-                <button onclick="tutupModalApproval()" class="text-gray-400 font-bold">✕</button>
+                <button onclick="tutupModalCheckerInspeksi()" class="text-gray-400 font-bold">✕</button>
             </div>
 
-            <div class="bg-themeblue-50 p-3.5 rounded-lg border border-themeblue-200 text-xs space-y-1">
-                <p><strong>Item Produk:</strong> <span id="appr-item-name" class="font-semibold text-themeblue-900">-</span></p>
-                <p><strong>Jumlah Qty:</strong> <span id="appr-item-qty" class="font-bold text-red-600">-</span></p>
-                <p><strong>Dilaporkan Oleh:</strong> <span id="appr-item-pelapor" class="font-medium text-gray-700">-</span></p>
+            <div class="bg-amber-50 p-3.5 rounded-lg border border-amber-200 text-xs space-y-1">
+                <p><strong>Zona / Area:</strong> <span id="check-keb-zona" class="font-bold text-amber-900">-</span></p>
+                <p><strong>Petugas (PIC):</strong> <span id="check-keb-pic" class="font-semibold text-gray-800">-</span></p>
+                <p><strong>Waktu Shift:</strong> <span id="check-keb-waktu" class="font-medium text-gray-700">-</span></p>
             </div>
 
-            <form id="form-approval" onsubmit="simpanApprovalSupervisor(event)" class="space-y-4">
-                <input type="hidden" id="appr-item-id">
-                <input type="hidden" id="appr-item-type">
+            <form id="form-checker-inspeksi" onsubmit="simpanFotoChecker(event)" class="space-y-4">
+                <input type="hidden" id="check-keb-id">
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keputusan Verifikasi *</label>
-                    <select id="appr-status" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none font-bold">
-                        <option value="Disetujui">✅ Setujui / Disetujui (Verified)</option>
-                        <option value="Ditolak">❌ Tolak Laporan (Rejected)</option>
-                    </select>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ambil / Unggah Foto Bukti Kebersihan *</label>
+                    <input type="file" id="checker-input-foto" accept="image/*" capture="environment" onchange="previewFotoChecker(event)" required class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Catatan / Alasan Supervisor *</label>
-                    <textarea id="appr-catatan" required rows="3" placeholder="Contoh: Barang telah diverifikasi & dipindahkan ke area karantina Damaged" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none"></textarea>
+                <div id="container-checker-preview" class="hidden border rounded-lg p-2 bg-gray-50 text-center">
+                    <img id="img-checker-preview" src="" class="max-h-48 mx-auto rounded shadow-sm">
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-2 border-t">
-                    <button type="button" onclick="tutupModalApproval()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg hover:bg-themeblue-800 shadow-sm">Simpan Keputusan</button>
+                    <button type="button" onclick="tutupModalCheckerInspeksi()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" id="btn-submit-checker" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">📷 Kirim Hasil Pengecekan</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL POPUP: VERIFIKASI KEBERSIHAN OLEH SUPERVISOR -->
+    <!-- MODAL POPUP: VERIFIKASI SUPERVISOR (TAHAP 4 LOGIKA BARU) -->
     <div id="modal-approval-kebersihan" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
-        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600 my-8">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-green-600 my-8">
             <div class="flex justify-between items-center border-b pb-2">
                 <div>
-                    <h3 class="text-base font-bold text-gray-800">Verifikasi Kebersihan Zona</h3>
-                    <p class="text-[11px] text-gray-500">Supervisor meninjau hasil pekerjaan kebersihan staf</p>
+                    <h3 class="text-base font-bold text-gray-800">Verifikasi Kebersihan Tuntas</h3>
+                    <p class="text-[11px] text-gray-500">Supervisor meninjau foto bukti kebersihan dari Checker</p>
                 </div>
                 <button onclick="tutupModalApprovalKebersihan()" class="text-gray-400 font-bold">✕</button>
             </div>
 
-            <div class="bg-amber-50 p-3.5 rounded-lg border border-amber-200 text-xs space-y-1">
-                <p><strong>Zona / Area:</strong> <span id="appr-keb-zona" class="font-bold text-amber-900">-</span></p>
+            <div class="bg-green-50 p-3.5 rounded-lg border border-green-200 text-xs space-y-1">
+                <p><strong>Zona / Area:</strong> <span id="appr-keb-zona" class="font-bold text-green-900">-</span></p>
                 <p><strong>Petugas (PIC):</strong> <span id="appr-keb-pic" class="font-semibold text-gray-800">-</span></p>
-                <p><strong>Waktu & Shift:</strong> <span id="appr-keb-waktu" class="font-medium text-gray-700">-</span></p>
+                <p><strong>Diperiksa Oleh Checker:</strong> <span id="appr-keb-checker" class="font-semibold text-amber-800">-</span></p>
             </div>
 
             <div id="container-appr-keb-foto" class="text-center border rounded-lg p-2 bg-gray-50 hidden">
-                <p class="text-[11px] text-gray-500 mb-1 font-semibold">Bukti Foto Staf:</p>
+                <p class="text-[11px] text-gray-500 mb-1 font-semibold">Bukti Foto dari Checker:</p>
                 <img id="img-appr-keb-foto" src="" class="max-h-48 mx-auto rounded shadow-sm cursor-pointer" onclick="lihatFoto(this.src)">
             </div>
 
@@ -587,8 +582,8 @@
                 <input type="hidden" id="appr-keb-id">
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keputusan Verifikasi *</label>
-                    <select id="appr-keb-status" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-amber-600 outline-none font-bold">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keputusan Verifikasi Supervisor *</label>
+                    <select id="appr-keb-status" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-green-600 outline-none font-bold">
                         <option value="Selesai">✅ Disetujui (Kebersihan Bersih & Tuntas)</option>
                         <option value="Belum">❌ Tolak / Minta Bersihkan Ulang (Kurang Bersih)</option>
                     </select>
@@ -596,7 +591,7 @@
 
                 <div class="flex justify-end space-x-2 pt-2 border-t">
                     <button type="button" onclick="tutupModalApprovalKebersihan()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">Simpan Keputusan</button>
+                    <button type="submit" class="px-4 py-2 bg-green-700 text-white text-xs font-semibold rounded-lg hover:bg-green-800 shadow-sm">Simpan Keputusan</button>
                 </div>
             </form>
         </div>
@@ -824,23 +819,6 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: UPLOAD FOTO BUKTI KEBERSIHAN -->
-    <div id="modal-upload" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print">
-        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700">
-            <h3 class="text-base font-bold text-gray-800 border-b pb-2">Upload Bukti Kebersihan</h3>
-            <div>
-                <input type="file" id="input-foto" accept="image/*" capture="environment" onchange="previewFoto(event)" class="w-full text-xs text-gray-500">
-            </div>
-            <div id="container-preview" class="hidden border rounded-lg p-2 text-center">
-                <img id="img-preview" src="" class="max-h-48 mx-auto rounded shadow-sm">
-            </div>
-            <div class="flex justify-end space-x-2 pt-2 border-t">
-                <button onclick="tutupModalUpload()" class="px-4 py-2 bg-gray-100 text-xs font-semibold rounded-lg">Batal</button>
-                <button id="btn-simpan-foto" onclick="simpanFotoSelesai()" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg">Selesai</button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODAL POPUP: LIHAT FOTO FULL -->
     <div id="modal-lihat" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-50 no-print" onclick="tutupModalLihat()">
         <div class="bg-white rounded-xl max-w-lg w-full p-4 shadow-xl space-y-3 relative" onclick="event.stopPropagation()">
@@ -884,7 +862,7 @@
             'logistics': { password: 'admin123', name: 'Logistic Manager', role: 'Supervisor' },
             'headwh': { password: 'admin123', name: 'Head Warehouse', role: 'Supervisor' },
             
-            // AKUN CHECKER BARU DENGAN HAK AKSES SUPERVISOR
+            // AKUN CHECKER DENGAN HAK AKSES CHECKER/SUPERVISOR
             'harry': { password: 'admin123', name: 'Checker M.Harry', role: 'Supervisor' },
             'ilham': { password: 'admin123', name: 'Checker Ilham Syahputra', role: 'Supervisor' },
             'robby': { password: 'admin123', name: 'Checker M.Robby', role: 'Supervisor' },
@@ -926,13 +904,12 @@
         let currentAuthUser = JSON.parse(localStorage.getItem('wpc_auth')) || null;
         let userAktif = localStorage.getItem('wpc_user') || 'Supervisor';
 
-        // PENOLONG CEK PERAN SUPERVISOR/MANAJEMEN SAFELY
         function isSupervisor() {
             return currentAuthUser && currentAuthUser.role === 'Supervisor';
         }
 
         let idAktif = null;
-        let urlFotoSementara = '';
+        let urlFotoCheckerSementara = '';
         let urlFotoDamagedSementara = '';
         let urlFotoExpiredSementara = '';
 
@@ -941,7 +918,7 @@
         let chartExpiredStatusInstance = null;
         let chartTopExpiredInstance = null;
 
-        // FUNGSI KOMPRESI FOTO SANGAT RINGAN UNTUK MENCEGAH LOCALSTORAGE FULL (Maks 400px, Quality 0.4)
+        // FUNGSI KOMPRESI FOTO SANGAT RINGAN
         function kompresFoto(file, maxWidth = 400, maxHeight = 400, quality = 0.4) {
             return new Promise((resolve) => {
                 if (!file) {
@@ -984,7 +961,6 @@
             });
         }
 
-        // FUNGSI SIMPAN DENGAN AUTO-CLEANUP CACHE FOTO LAMA JIKA LOCALSTORAGE FULL
         function simpanKeStorage() {
             try {
                 localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
@@ -1037,12 +1013,11 @@
                     if (val) {
                         const cloudJadwal = val.jadwal || [];
                         
-                        // FIX: PROTEKSI SUPAYA DATA FOTO LOKAL YANG SEDANG PENDING TIDAK TERTINDAH NULL DARI CLOUD
+                        // LOGIKA BARU: MEMASTIKAN FOTO CHECKER DARI CLOUD DAN LOKAL SELALU DISINKRONKAN TANPA TERTINDAH
                         cloudJadwal.forEach(cloudItem => {
                             const localItem = dataJadwal.find(l => l.id == cloudItem.id);
                             if (localItem && localItem.foto && !cloudItem.foto) {
                                 cloudItem.foto = localItem.foto;
-                                cloudItem.status = localItem.status;
                             }
                         });
 
@@ -1232,7 +1207,7 @@
                     badgeRole.className = 'bg-themeblue-700 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
                 }
             } else {
-                if (bannerText) bannerText.innerHTML = `Mode Staf: <strong>${userAktif}</strong> (Bisa Laporkan Barang & Kebersihan)`;
+                if (bannerText) bannerText.innerHTML = `Mode Staf: <strong>${userAktif}</strong> (Bisa Laporkan Kebersihan Selesai & Damaged)`;
                 if (badgeRole) {
                     badgeRole.innerText = 'Mode Staf / PIC';
                     badgeRole.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
@@ -1302,7 +1277,7 @@
         // HAPUS JADWAL KEBERSIHAN
         function hapusJadwalBaris(id) {
             if (!isSupervisor()) {
-                alert('Akses ditolak! Hanya Supervisor / Manajemen yang dapat menghapus jadwal kebersihan.');
+                alert('Akses ditolak! Hanya Supervisor / Checker yang dapat menghapus jadwal kebersihan.');
                 return;
             }
 
@@ -1314,10 +1289,122 @@
             }
         }
 
-        // VERIFIKASI KEBERSIHAN SUPERVISOR
+        // TAHAP 2 LOGIKA BARU: STAF KLIK "SELESAI DIBERSIHKAN" (TANPA FOTO)
+        function stafSelesaiPengerjaan(id) {
+            const itemIndex = dataJadwal.findIndex(i => i.id == id);
+            if (itemIndex !== -1) {
+                const item = dataJadwal[itemIndex];
+                const now = new Date();
+                const nowStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
+
+                item.status = 'Menunggu Pengecekan Checker';
+                item.tanggalPengerjaan = nowStr;
+
+                if (db) {
+                    db.ref('wpc_cloud_data/jadwal/' + itemIndex).set(item);
+                }
+
+                simpanKeStorage();
+                renderTabel();
+                renderStatistik();
+                alert("✅ Pengerjaan dilaporkan selesai! Menunggu Checker melakukan inspeksi & foto bukti.");
+            }
+        }
+
+        // TAHAP 3 LOGIKA BARU: CHECKER MELAKUKAN INSPEKSI & LAMPIRKAN FOTO BUKTI
+        function bukaModalCheckerInspeksi(id) {
+            if (!isSupervisor()) {
+                alert("Hanya Checker / Supervisor yang berwenang melakukan inspeksi & pengunggahan foto!");
+                return;
+            }
+
+            const item = dataJadwal.find(i => i.id == id);
+            if (!item) return;
+
+            idAktif = id;
+            document.getElementById('check-keb-id').value = id;
+            document.getElementById('check-keb-zona').innerText = item.zona;
+            document.getElementById('check-keb-pic').innerText = item.pic;
+            document.getElementById('check-keb-waktu').innerText = `${item.waktu} (${item.shift})`;
+
+            const c = document.getElementById('container-checker-preview');
+            if (c) c.classList.add('hidden');
+            urlFotoCheckerSementara = '';
+
+            const m = document.getElementById('modal-checker-inspeksi');
+            if (m) m.classList.remove('hidden');
+        }
+
+        function tutupModalCheckerInspeksi() {
+            const m = document.getElementById('modal-checker-inspeksi');
+            if (m) m.classList.add('hidden');
+            const f = document.getElementById('form-checker-inspeksi');
+            if (f) f.reset();
+            urlFotoCheckerSementara = '';
+        }
+
+        async function previewFotoChecker(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const btn = document.getElementById('btn-submit-checker');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = '⏳ Memproses Foto...';
+                }
+
+                urlFotoCheckerSementara = await kompresFoto(file);
+                const img = document.getElementById('img-checker-preview');
+                const c = document.getElementById('container-checker-preview');
+                if (img) img.src = urlFotoCheckerSementara;
+                if (c) c.classList.remove('hidden');
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '📷 Kirim Hasil Pengecekan';
+                }
+            }
+        }
+
+        async function simpanFotoChecker(e) {
+            e.preventDefault();
+            const id = document.getElementById('check-keb-id').value;
+            const itemIndex = dataJadwal.findIndex(i => i.id == id);
+
+            if (itemIndex !== -1) {
+                const item = dataJadwal[itemIndex];
+                const fileInput = document.getElementById('checker-input-foto');
+                const fileDirect = fileInput && fileInput.files && fileInput.files[0];
+
+                if (fileDirect) {
+                    item.foto = await kompresFoto(fileDirect);
+                } else if (urlFotoCheckerSementara) {
+                    item.foto = urlFotoCheckerSementara;
+                }
+
+                if (!item.foto) {
+                    alert('⚠️ Foto bukti kebersihan wajib dilampirkan oleh Checker!');
+                    return;
+                }
+
+                item.checkerName = currentAuthUser ? currentAuthUser.name : 'Checker Gudang';
+                item.status = 'Menunggu Verifikasi Supervisor';
+
+                if (db) {
+                    db.ref('wpc_cloud_data/jadwal/' + itemIndex).set(item);
+                }
+
+                simpanKeStorage();
+                tutupModalCheckerInspeksi();
+                renderTabel();
+                renderStatistik();
+                alert("✅ Foto bukti berhasil diunggah oleh Checker! Menunggu verifikasi akhir Supervisor.");
+            }
+        }
+
+        // TAHAP 4 LOGIKA BARU: SUPERVISOR VERIFIKASI AKHIR
         function bukaModalApprovalKebersihan(id) {
             if (!isSupervisor()) {
-                alert("Hanya Supervisor / Manajemen yang berwenang melakukan verifikasi kebersihan!");
+                alert("Hanya Supervisor / Manajemen yang berwenang melakukan verifikasi akhir!");
                 return;
             }
 
@@ -1327,7 +1414,7 @@
             document.getElementById('appr-keb-id').value = id;
             document.getElementById('appr-keb-zona').innerText = item.zona;
             document.getElementById('appr-keb-pic').innerText = item.pic;
-            document.getElementById('appr-keb-waktu').innerText = `${item.waktu} (${item.shift})`;
+            document.getElementById('appr-keb-checker').innerText = item.checkerName || 'Checker Gudang';
 
             const containerFoto = document.getElementById('container-appr-keb-foto');
             const imgFoto = document.getElementById('img-appr-keb-foto');
@@ -1365,10 +1452,9 @@
                 } else {
                     item.status = 'Belum';
                     item.foto = null;
-                    alert('Hasil pengerjaan kebersihan ditolak. Status dikembalikan ke "Belum".');
+                    alert('Pengecekan ditolak oleh Supervisor. Status dikembalikan ke "Belum".');
                 }
 
-                // DIRECT UPDATE KE FIREBASE NODE HINGGA SINKRON PENUH
                 if (db) {
                     db.ref('wpc_cloud_data/jadwal/' + itemIndex).set(item);
                 }
@@ -2368,9 +2454,9 @@
                 return;
             }
 
-            let csvContent = "data:text/csv;charset=utf-8,ID,Tanggal Pengerjaan,Waktu,Shift,Zona,PIC,Status\n";
+            let csvContent = "data:text/csv;charset=utf-8,ID,Tanggal Pengerjaan,Waktu,Shift,Zona,PIC,Status,Checker\n";
             dataJadwal.forEach(row => {
-                csvContent += `${row.id},"${row.tanggalPengerjaan || '-'}","${row.waktu}","${row.shift}","${row.zona}","${row.pic}","${row.status}"\n`;
+                csvContent += `${row.id},"${row.tanggalPengerjaan || '-'}","${row.waktu}","${row.shift}","${row.zona}","${row.pic}","${row.status}","${row.checkerName || '-'}"\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -2382,7 +2468,7 @@
             document.body.removeChild(link);
         }
 
-        // RENDER TABEL JADWAL KEBERSIHAN DENGAN PEMBATAS UTAMA (BELUM vs SELESAI) + TANGGAL OTOMATIS
+        // RENDER TABEL JADWAL KEBERSIHAN (LOGIKA BARU 4 TAHAP)
         function renderTabel() {
             const tbody = document.getElementById('tabel-jadwal');
             if (!tbody) return;
@@ -2394,11 +2480,9 @@
                 return;
             }
 
-            // Memisahkan data menjadi dua kelompok
             const dataPending = dataJadwal.filter(i => i.status !== 'Selesai');
             const dataSelesai = dataJadwal.filter(i => i.status === 'Selesai');
 
-            // Helper function untuk membuat elemen baris HTML
             const buatBarisHTML = (item) => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
@@ -2408,11 +2492,13 @@
 
                 let badgeStatus = '';
                 if (item.status === 'Selesai') {
-                    badgeStatus = `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">Selesai ✅</span>`;
-                } else if (item.status === 'Menunggu Verifikasi' || item.foto) {
-                    badgeStatus = `<span class="bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">Menunggu Verifikasi ⏳</span>`;
+                    badgeStatus = `<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold">Selesai ✅</span>`;
+                } else if (item.status === 'Menunggu Pengecekan Checker') {
+                    badgeStatus = `<span class="bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold">Pengerjaan Staf Selesai (Cek Checker) ⏳</span>`;
+                } else if (item.status === 'Menunggu Verifikasi Supervisor') {
+                    badgeStatus = `<span class="bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold">Diperiksa Checker (Cek Supervisor) 🔍</span>`;
                 } else {
-                    badgeStatus = `<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Belum</span>`;
+                    badgeStatus = `<span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-[10px] font-bold">Belum</span>`;
                 }
 
                 let fotoElement = item.foto 
@@ -2420,28 +2506,28 @@
                     : `<span class="text-xs text-gray-400 italic">Belum Ada</span>`;
 
                 let aksi = '';
-                
+
+                // HAK AKSES DAN AKSI BERDASARKAN LOGIKA BARU 4 TAHAP
                 if (isSup) {
-                    // PERBAIKAN AKSI SUPERVISOR:
-                    // TOMBOL "👑 Verifikasi" OTOMATIS MUNCUL JIKA STATUS "Menunggu Verifikasi" ATAU SUDAH ADA FOTO!
-                    if (item.status === 'Menunggu Verifikasi' || item.foto) {
-                        if (item.status !== 'Selesai') {
-                            aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi</button>`;
-                        } else {
-                            aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
-                        }
+                    if (item.status === 'Menunggu Pengecekan Checker') {
+                        aksi = `<button onclick="bukaModalCheckerInspeksi(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">📷 Cek & Foto (Checker)</button>`;
+                    } else if (item.status === 'Menunggu Verifikasi Supervisor') {
+                        aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-green-700 hover:bg-green-800 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi Supervisor</button>`;
                     } else if (item.status === 'Selesai') {
                         aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
                     } else {
-                        aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition">Tandai Selesai</button>`;
+                        aksi = `<button onclick="bukaModalCheckerInspeksi(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition">Inspeksi Langsung</button>`;
                     }
 
                     aksi += ` <button onclick="hapusJadwalBaris(${item.id})" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Jadwal Ini">🗑️</button>`;
                 } else {
-                    if (isMyTask && item.status !== 'Selesai') {
-                        aksi = `<button onclick="bukaModalUpload(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold shadow-sm transition">${item.foto ? 'Ganti Foto' : 'Tandai Selesai'}</button>`;
+                    // AKSI STAF GUDANG: HANYA MENANGANIKAN SELESAI PENGERJAAN TANPA UPLOAD FOTO
+                    if (isMyTask && item.status === 'Belum') {
+                        aksi = `<button onclick="stafSelesaiPengerjaan(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold shadow-sm transition">🧹 Selesai Dibersihkan</button>`;
                     } else if (item.status === 'Selesai') {
                         aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
+                    } else if (item.status === 'Menunggu Pengecekan Checker' || item.status === 'Menunggu Verifikasi Supervisor') {
+                        aksi = `<span class="text-xs text-amber-700 font-semibold italic">Prospek Pengecekan ⏳</span>`;
                     } else {
                         aksi = `<span class="text-xs text-gray-400 italic">Tugas ${item.pic}</span>`;
                     }
@@ -2463,12 +2549,12 @@
                 return tr;
             };
 
-            // 1. HEADER KELOMPOK BELUM SELESAI / MENUNGGU VERIFIKASI (BAGIAN ATAS)
+            // 1. HEADER KELOMPOK BELUM SELESAI / DALAM PROSES PENGECEKAN
             const headerPending = document.createElement('tr');
             headerPending.className = 'bg-amber-100/80 border-y border-amber-300';
             headerPending.innerHTML = `
                 <td colspan="6" class="py-2.5 px-4 font-bold text-xs text-amber-900 tracking-wide">
-                    ⏳ JADWAL MENGANTRI & MENUNGGU VERIFIKASI SUPERVISOR (${dataPending.length})
+                    ⏳ JADWAL MENGANTRI & DALAM PENGECEKAN CHECKER / SUPERVISOR (${dataPending.length})
                 </td>
             `;
             tbody.appendChild(headerPending);
@@ -2515,11 +2601,7 @@
             if (elSel) elSel.innerText = dataJadwal.filter(i => i.status === 'Selesai').length;
             if (elPen) elPen.innerText = dataJadwal.filter(i => i.status !== 'Selesai').length;
 
-            // AKUMULASI PERHITUNGAN SPESIFIK SATUAN (BOX / PCS / PALLET)
-            let boxCount = 0;
-            let pcsCount = 0;
-            let palletCount = 0;
-
+            let boxCount = 0, pcsCount = 0, palletCount = 0;
             let foodBox = 0, foodPcs = 0;
             let nonBox = 0, nonPcs = 0;
 
@@ -2572,7 +2654,6 @@
             if (f) f.reset();
         }
 
-        // SIMPAN JADWAL KEBERSIHAN BARU DENGAN BEBAS BUG
         function simpanJadwalBaru(e) {
             e.preventDefault();
             const zona = document.getElementById('add-zona').value;
@@ -2588,7 +2669,8 @@
                 pic: pic,
                 foto: null, 
                 status: 'Belum',
-                tanggalPengerjaan: null
+                tanggalPengerjaan: null,
+                checkerName: null
             });
 
             simpanKeStorage(); 
@@ -2596,121 +2678,6 @@
             renderTabel(); 
             renderStatistik();
             alert("✅ Jadwal Kebersihan berhasil ditambahkan!");
-        }
-
-        function bukaModalUpload(id) { 
-            idAktif = id; 
-            urlFotoSementara = '';
-            const m = document.getElementById('modal-upload'); 
-            if (m) m.classList.remove('hidden'); 
-            
-            const btnSimpan = document.getElementById('btn-simpan-foto');
-            if (btnSimpan) {
-                btnSimpan.disabled = false;
-                btnSimpan.innerText = 'Selesai';
-            }
-        }
-
-        function tutupModalUpload() { 
-            const m = document.getElementById('modal-upload'); 
-            if (m) m.classList.add('hidden'); 
-            const input = document.getElementById('input-foto');
-            if (input) input.value = '';
-            const c = document.getElementById('container-preview');
-            if (c) c.classList.add('hidden');
-            urlFotoSementara = '';
-        }
-        
-        async function previewFoto(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const btnSimpan = document.getElementById('btn-simpan-foto');
-                if (btnSimpan) {
-                    btnSimpan.disabled = true;
-                    btnSimpan.innerText = '⏳ Memproses Foto...';
-                }
-                
-                urlFotoSementara = await kompresFoto(file); 
-                const img = document.getElementById('img-preview'); 
-                const c = document.getElementById('container-preview'); 
-                if (img) img.src = urlFotoSementara; 
-                if (c) c.classList.remove('hidden'); 
-                
-                if (btnSimpan) {
-                    btnSimpan.disabled = false;
-                    btnSimpan.innerText = 'Selesai';
-                }
-            }
-        }
-        
-        // FUNGSI UTAMA PENYERAPAN FOTO (DIRANCANG MENGUPDATE HANYA NODE TERKAIT DI FIREBASE)
-        async function simpanFotoSelesai() {
-            if (!idAktif) {
-                alert("ID Jadwal tidak valid!");
-                return;
-            }
-
-            const itemIndex = dataJadwal.findIndex(i => i.id == idAktif);
-            if (itemIndex === -1) {
-                alert("Gagal menemukan jadwal kebersihan!");
-                return;
-            }
-
-            const item = dataJadwal[itemIndex];
-            const btnSimpan = document.getElementById('btn-simpan-foto');
-            if (btnSimpan) {
-                btnSimpan.disabled = true;
-                btnSimpan.innerText = 'Mengunggah Foto...';
-            }
-
-            try {
-                const fileInput = document.getElementById('input-foto');
-                const fileDirect = fileInput && fileInput.files && fileInput.files[0];
-
-                if (fileDirect) {
-                    item.foto = await kompresFoto(fileDirect);
-                } else if (urlFotoSementara) {
-                    item.foto = urlFotoSementara;
-                }
-
-                if (!item.foto) {
-                    alert('⚠️ Foto belum terpilih atau masih diproses kamera. Silakan pilih/ambil foto ulang!');
-                    if (btnSimpan) {
-                        btnSimpan.disabled = false;
-                        btnSimpan.innerText = 'Selesai';
-                    }
-                    return;
-                }
-
-                const now = new Date();
-                const nowStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
-                item.tanggalPengerjaan = nowStr;
-
-                if (isSupervisor()) {
-                    item.status = 'Selesai'; 
-                } else {
-                    item.status = 'Menunggu Verifikasi'; 
-                }
-
-                // SECARA SPESIFIK MENGUPDATE NODE ITEM DI FIREBASE AGAR TIDAK TERTINDAH OLEH ARRAY GLOBAL
-                if (db) {
-                    db.ref('wpc_cloud_data/jadwal/' + itemIndex).set(item);
-                }
-
-                simpanKeStorage(); 
-                renderTabel(); 
-                renderStatistik(); 
-                tutupModalUpload();
-                alert(isSupervisor() ? "✅ Kebersihan tuntas & diverifikasi!" : "✅ Foto bukti terkirim! Status berubah ke Menunggu Verifikasi.");
-            } catch (err) {
-                console.error("Error simpan foto:", err);
-                alert("Terjadi kesalahan saat memproses foto. Silakan coba lagi.");
-            } finally {
-                if (btnSimpan) {
-                    btnSimpan.disabled = false;
-                    btnSimpan.innerText = 'Selesai';
-                }
-            }
         }
 
         function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
