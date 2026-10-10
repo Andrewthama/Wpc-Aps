@@ -943,7 +943,7 @@
 
         // FUNGSI KOMPRESI FOTO SANGAT RINGAN UNTUK MENCEGAH LOCALSTORAGE FULL (Maks 400px, Quality 0.4)
         function kompresFoto(file, maxWidth = 400, maxHeight = 400, quality = 0.4) {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 if (!file) {
                     resolve('');
                     return;
@@ -978,9 +978,9 @@
                         const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
                         resolve(compressedBase64);
                     };
-                    img.onerror = (err) => resolve('');
+                    img.onerror = () => resolve('');
                 };
-                reader.onerror = (err) => resolve('');
+                reader.onerror = () => resolve('');
             });
         }
 
@@ -1035,7 +1035,18 @@
                 db.ref('wpc_cloud_data').on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val) {
-                        dataJadwal = val.jadwal || [];
+                        const cloudJadwal = val.jadwal || [];
+                        
+                        // FIX: PROTEKSI SUPAYA DATA FOTO LOKAL YANG SEDANG PENDING TIDAK TERTINDAH NULL DARI CLOUD
+                        cloudJadwal.forEach(cloudItem => {
+                            const localItem = dataJadwal.find(l => l.id == cloudItem.id);
+                            if (localItem && localItem.foto && !cloudItem.foto) {
+                                cloudItem.foto = localItem.foto;
+                                cloudItem.status = localItem.status;
+                            }
+                        });
+
+                        dataJadwal = cloudJadwal;
                         dataDamaged = val.damaged || [];
                         dataExpired = val.expired || [];
                         dataOpname = val.opname || [];
@@ -1345,15 +1356,21 @@
             const id = document.getElementById('appr-keb-id').value;
             const status = document.getElementById('appr-keb-status').value;
 
-            const item = dataJadwal.find(i => i.id == id);
+            const itemIndex = dataJadwal.findIndex(i => i.id == id);
 
-            if (item) {
+            if (itemIndex !== -1) {
+                const item = dataJadwal[itemIndex];
                 if (status === 'Selesai') {
                     item.status = 'Selesai';
                 } else {
                     item.status = 'Belum';
                     item.foto = null;
                     alert('Hasil pengerjaan kebersihan ditolak. Status dikembalikan ke "Belum".');
+                }
+
+                // DIRECT UPDATE KE FIREBASE NODE HINGGA SINKRON PENUH
+                if (db) {
+                    db.ref('wpc_cloud_data/jadwal/' + itemIndex).set(item);
                 }
 
                 simpanKeStorage();
@@ -2626,19 +2643,20 @@
             }
         }
         
-        // FUNGSI UTAMA PENYERAPAN FOTO (100% GARANSI KUNCIAN FOTO TERSIMPAN SINKRON)
+        // FUNGSI UTAMA PENYERAPAN FOTO (DIRANCANG MENGUPDATE HANYA NODE TERKAIT DI FIREBASE)
         async function simpanFotoSelesai() {
             if (!idAktif) {
                 alert("ID Jadwal tidak valid!");
                 return;
             }
 
-            const item = dataJadwal.find(i => i.id == idAktif);
-            if (!item) {
+            const itemIndex = dataJadwal.findIndex(i => i.id == idAktif);
+            if (itemIndex === -1) {
                 alert("Gagal menemukan jadwal kebersihan!");
                 return;
             }
 
+            const item = dataJadwal[itemIndex];
             const btnSimpan = document.getElementById('btn-simpan-foto');
             if (btnSimpan) {
                 btnSimpan.disabled = true;
@@ -2649,7 +2667,6 @@
                 const fileInput = document.getElementById('input-foto');
                 const fileDirect = fileInput && fileInput.files && fileInput.files[0];
 
-                // BACA DIREK FILE ATAU VARIABEL SEMENTARA UNTUK MENJAMIN FOTO DITANGKAP SEPENUHNYA
                 if (fileDirect) {
                     item.foto = await kompresFoto(fileDirect);
                 } else if (urlFotoSementara) {
@@ -2673,6 +2690,11 @@
                     item.status = 'Selesai'; 
                 } else {
                     item.status = 'Menunggu Verifikasi'; 
+                }
+
+                // SECARA SPESIFIK MENGUPDATE NODE ITEM DI FIREBASE AGAR TIDAK TERTINDAH OLEH ARRAY GLOBAL
+                if (db) {
+                    db.ref('wpc_cloud_data/jadwal/' + itemIndex).set(item);
                 }
 
                 simpanKeStorage(); 
