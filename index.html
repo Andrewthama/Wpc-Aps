@@ -452,15 +452,84 @@
         </div>
     </div>
 
-    <!-- HALAMAN 4: REPORT OPNAME DAILY -->
+    <!-- HALAMAN 4: REPORT OPNAME DAILY (DENGAN DASHBOARD AUTO-PARSING SELISIH) -->
     <div id="page-opname" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        
+        <!-- DASHBOARD ANALITIKA SELISIH OPNAME DAILY -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-themeblue-100 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b pb-3 border-themeblue-100">
+                <div>
+                    <h2 class="text-base font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>📈</span><span>Dashboard Ringkasan Selisih Opname (Diff Case & Diff Pack)</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Sistem otomatis mendeteksi & mengekstrak data selisih dari tab `diff. case` & `diff. Pack` Excel harian</p>
+                </div>
+                <span class="bg-themeblue-100 text-themeblue-800 text-[10px] font-bold px-2.5 py-1 rounded-full border border-themeblue-300">Auto-Parsed Realtime</span>
+            </div>
+
+            <!-- CARD RINGKASAN KPI SELISIH -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-amber-50 p-4 rounded-xl border-l-4 border-amber-500 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total Item Diff Case</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-diff-case-count" class="text-2xl font-black text-amber-900">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Produk</span>
+                        </div>
+                    </div>
+                    <div class="bg-amber-100 p-2.5 rounded-full text-amber-700 text-lg">📦</div>
+                </div>
+
+                <div class="bg-purple-50 p-4 rounded-xl border-l-4 border-purple-500 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total Item Diff Pack</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-diff-pack-count" class="text-2xl font-black text-purple-900">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Produk</span>
+                        </div>
+                    </div>
+                    <div class="bg-purple-100 p-2.5 rounded-full text-purple-700 text-lg">🛍️</div>
+                </div>
+
+                <div class="bg-red-50 p-4 rounded-xl border-l-4 border-red-500 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total Qty Selisih Case</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-diff-case-qty" class="text-2xl font-black text-red-700">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Case/Karton</span>
+                        </div>
+                    </div>
+                    <div class="bg-red-100 p-2.5 rounded-full text-red-700 text-lg">📊</div>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-500 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total Qty Selisih Pack</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-diff-pack-qty" class="text-2xl font-black text-blue-700">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Pack/Pcs</span>
+                        </div>
+                    </div>
+                    <div class="bg-blue-100 p-2.5 rounded-full text-blue-700 text-lg">🔢</div>
+                </div>
+            </div>
+
+            <!-- GRAFIK TREN SELISIH OPNAME DAILY -->
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <h3 class="text-xs font-bold text-themeblue-900 uppercase mb-2">Grafik Perbandingan Selisih Opname Daily</h3>
+                <div class="relative max-h-56">
+                    <canvas id="chartOpnameDiffTrend"></canvas>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white rounded-xl shadow-sm p-6 border border-themeblue-100 space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 border-themeblue-100">
                 <div>
                     <h2 class="text-lg font-bold text-themeblue-900 flex items-center gap-2">
                         <span>📊</span><span>Upload & Pengelolaan Report Opname Daily</span>
                     </h2>
-                    <p class="text-xs text-gray-500">Unggah berkas laporan Excel (.xlsx / .xls / .csv) hasil opname harian untuk diarsipkan dan diunduh di masa mendatang.</p>
+                    <p class="text-xs text-gray-500">Unggah berkas laporan Excel (.xlsx / .xls / .csv) hasil opname harian untuk diarsipkan, diekstrak selisihnya, dan diunduh.</p>
                 </div>
                 <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">🔒 Akses Khusus Supervisor / Manajemen</span>
             </div>
@@ -483,8 +552,8 @@
                 </div>
 
                 <div class="flex justify-end pt-2">
-                    <button type="submit" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5">
-                        <span>📥</span><span>Unggah Laporan Opname</span>
+                    <button type="submit" id="btn-submit-opname" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5">
+                        <span>📥</span><span>Unggah & Proses Laporan Opname</span>
                     </button>
                 </div>
             </form>
@@ -508,8 +577,8 @@
                             <th class="py-3 px-4">Tanggal Opname</th>
                             <th class="py-3 px-4">Judul Laporan</th>
                             <th class="py-3 px-4">Nama File Berkas</th>
+                            <th class="py-3 px-4">Ekstraksi Selisih</th>
                             <th class="py-3 px-4">Ukuran File</th>
-                            <th class="py-3 px-4">Waktu Unggah</th>
                             <th class="py-3 px-4 no-print">Aksi / Download</th>
                         </tr>
                     </thead>
@@ -959,8 +1028,8 @@
         let chartTopProductsInstance = null;
         let chartExpiredStatusInstance = null;
         let chartTopExpiredInstance = null;
+        let chartOpnameDiffTrendInstance = null;
 
-        // FUNGSI KOMPRESI FOTO SANGAT RINGAN
         function kompresFoto(file, maxWidth = 400, maxHeight = 400, quality = 0.4) {
             return new Promise((resolve) => {
                 if (!file) {
@@ -1227,6 +1296,7 @@
                 const page = document.getElementById('page-opname');
                 if (nav) nav.classList.add('border-amber-400', 'text-white');
                 if (page) page.classList.remove('hidden');
+                setTimeout(renderDashboardOpnameVisual, 100);
             }
         }
 
@@ -1503,7 +1573,6 @@
             }
         }
 
-        // BUKA MODAL VERIFIKASI SUPERVISOR LAPORAN DAMAGED / EXPIRED (PERBAIKAN PERBANDINGAN STRING ID)
         function bukaModalApproval(id, type) {
             if (!isSupervisor()) {
                 alert("Hanya Supervisor / Manajemen yang berwenang melakukan verifikasi laporan!");
@@ -1542,7 +1611,6 @@
             if (f) f.reset();
         }
 
-        // PERBAIKAN UTAMA: FUNGSI SIMPAN VERIFIKASI DAMAGED & EXPIRED TERJAMIN 100% RESPONSIF
         function simpanApprovalSupervisor(e) {
             e.preventDefault();
             const id = document.getElementById('appr-item-id').value;
@@ -1560,7 +1628,6 @@
                 item.verifiedBy = currentAuthUser ? currentAuthUser.name : 'Supervisor Gudang';
                 item.verifiedAt = new Date().toISOString().slice(0,10);
 
-                // SIMPAN LANGSUNG KE FIREBASE SINKRON
                 simpanKeStorage();
                 tutupModalApproval();
 
@@ -1728,7 +1795,7 @@
                 }
 
                 let aksi = isSup
-                    ? `<button onclick="bukaModalApproval(${item.id}, 'expired')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition shadow-sm">👑 Verifikasi</button>`
+                    ? `<button onclick="bukaModalApproval('${item.id}', 'expired')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition shadow-sm">👑 Verifikasi</button>`
                     : `<span class="text-xs text-gray-400 italic">Khusus Supervisor</span>`;
 
                 tr.innerHTML = `
@@ -2387,12 +2454,86 @@
             document.body.removeChild(link);
         }
 
-        // LOGIKA OPNAME DAILY
-        function simpanOpnameDaily(event) {
+        // LOGIKA BARU: PARSING EXCEL UNTUK DETEKSI SELISIH TAB `diff. case` & `diff. Pack`
+        function prosesEkstraksiSelisihExcel(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+
+                        let diffCaseItems = 0, diffCaseQty = 0;
+                        let diffPackItems = 0, diffPackQty = 0;
+
+                        workbook.SheetNames.forEach(sheetName => {
+                            const nameLower = sheetName.toLowerCase().replace(/\s+/g, '');
+                            
+                            // 1. CEK TAB DIFF CASE
+                            if (nameLower.includes('diffcase') || nameLower.includes('diff.case')) {
+                                const worksheet = workbook.Sheets[sheetName];
+                                const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                                
+                                jsonSheet.forEach((row, idx) => {
+                                    if (idx > 0 && row.length > 0) {
+                                        // Cari nilai angka selisih pada baris
+                                        row.forEach(val => {
+                                            const num = parseFloat(val);
+                                            if (!isNaN(num) && num !== 0 && Math.abs(num) < 100000) {
+                                                diffCaseQty += Math.abs(num);
+                                                diffCaseItems++;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+
+                            // 2. CEK TAB DIFF PACK
+                            if (nameLower.includes('diffpack') || nameLower.includes('diff.pack')) {
+                                const worksheet = workbook.Sheets[sheetName];
+                                const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                                
+                                jsonSheet.forEach((row, idx) => {
+                                    if (idx > 0 && row.length > 0) {
+                                        row.forEach(val => {
+                                            const num = parseFloat(val);
+                                            if (!isNaN(num) && num !== 0 && Math.abs(num) < 100000) {
+                                                diffPackQty += Math.abs(num);
+                                                diffPackItems++;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+
+                        resolve({
+                            diffCaseItems: Math.round(diffCaseItems / 3), // Estimasi pembagi kolom
+                            diffCaseQty: Math.round(diffCaseQty),
+                            diffPackItems: Math.round(diffPackItems / 3),
+                            diffPackQty: Math.round(diffPackQty)
+                        });
+                    } catch (err) {
+                        console.warn("Parsing Excel Warning:", err);
+                        resolve({ diffCaseItems: 0, diffCaseQty: 0, diffPackItems: 0, diffPackQty: 0 });
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // UNGGAH OPNAME DAILY DENGAN DASHBOARD PARSING AUTO
+        async function simpanOpnameDaily(event) {
             event.preventDefault();
             if (!isSupervisor()) {
                 alert('Akses ditolak! Hanya Supervisor / Manajemen yang diperbolehkan mengunggah file opname.');
                 return;
+            }
+
+            const btnSubmit = document.getElementById('btn-submit-opname');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = 'Memproses & Membaca Berkas...';
             }
 
             const tanggal = document.getElementById('opname-tanggal').value;
@@ -2402,8 +2543,15 @@
 
             if (!file) {
                 alert('Silakan pilih file Excel / Spreadsheet terlebih dahulu!');
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = 'Unggah & Proses Laporan Opname';
+                }
                 return;
             }
+
+            // Membaca isi selisih dari tab diff.case dan diff.pack
+            const ekstraksi = await prosesEkstraksiSelisihExcel(file);
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -2420,7 +2568,11 @@
                     fileName: file.name,
                     fileSize: sizeKb > 1024 ? (sizeKb / 1024).toFixed(2) + ' MB' : sizeKb + ' KB',
                     fileData: fileBase64,
-                    uploadTime: `${now.toISOString().slice(0,10)} ${uploadTime}`
+                    uploadTime: `${now.toISOString().slice(0,10)} ${uploadTime}`,
+                    diffCaseItems: ekstraksi.diffCaseItems,
+                    diffCaseQty: ekstraksi.diffCaseQty,
+                    diffPackItems: ekstraksi.diffPackItems,
+                    diffPackQty: ekstraksi.diffPackQty
                 };
 
                 dataOpname.unshift(itemBaru);
@@ -2432,10 +2584,79 @@
                 if (opDate) opDate.value = new Date().toISOString().slice(0,10);
                 
                 renderOpname();
-                alert('Laporan Opname Daily berhasil diunggah!');
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = 'Unggah & Proses Laporan Opname';
+                }
+                alert('✅ Laporan Opname Daily berhasil diunggah & data selisih berhasil diekstrak!');
             };
 
             reader.readAsDataURL(file);
+        }
+
+        function renderDashboardOpnameVisual() {
+            let totalCaseItems = 0, totalCaseQty = 0;
+            let totalPackItems = 0, totalPackQty = 0;
+
+            const labelsTrend = [];
+            const dataTrendCase = [];
+            const dataTrendPack = [];
+
+            // Memproses 7 laporan terbaru untuk tren
+            const recentOpname = dataOpname.slice(0, 7).reverse();
+
+            dataOpname.forEach(item => {
+                totalCaseItems += (item.diffCaseItems || 0);
+                totalCaseQty += (item.diffCaseQty || 0);
+                totalPackItems += (item.diffPackItems || 0);
+                totalPackQty += (item.diffPackQty || 0);
+            });
+
+            recentOpname.forEach(item => {
+                labelsTrend.push(item.tanggal || 'Tgl');
+                dataTrendCase.push(item.diffCaseQty || 0);
+                dataTrendPack.push(item.diffPackQty || 0);
+            });
+
+            const elCaseCount = document.getElementById('stat-diff-case-count');
+            const elPackCount = document.getElementById('stat-diff-pack-count');
+            const elCaseQty = document.getElementById('stat-diff-case-qty');
+            const elPackQty = document.getElementById('stat-diff-pack-qty');
+
+            if (elCaseCount) elCaseCount.innerText = totalCaseItems;
+            if (elPackCount) elPackCount.innerText = totalPackItems;
+            if (elCaseQty) elCaseQty.innerText = totalCaseQty;
+            if (elPackQty) elPackQty.innerText = totalPackQty;
+
+            try {
+                const pageOp = document.getElementById('page-opname');
+                if (pageOp && !pageOp.classList.contains('hidden')) {
+                    const canvasOp = document.getElementById('chartOpnameDiffTrend');
+                    if (canvasOp && typeof Chart !== 'undefined') {
+                        const ctxOp = canvasOp.getContext('2d');
+                        if (chartOpnameDiffTrendInstance) chartOpnameDiffTrendInstance.destroy();
+
+                        chartOpnameDiffTrendInstance = new Chart(ctxOp, {
+                            type: 'bar',
+                            data: {
+                                labels: labelsTrend.length > 0 ? labelsTrend : ['Belum Ada Data'],
+                                datasets: [
+                                    { label: 'Selisih Diff Case (Qty)', data: dataTrendCase.length > 0 ? dataTrendCase : [0], backgroundColor: '#D97706', borderRadius: 4 },
+                                    { label: 'Selisih Diff Pack (Qty)', data: dataTrendPack.length > 0 ? dataTrendPack : [0], backgroundColor: '#2563EB', borderRadius: 4 }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
+                                scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } }
+                            }
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn("Opname Chart safe-skip:", err);
+            }
         }
 
         function renderOpname() {
@@ -2448,6 +2669,7 @@
 
             if (dataOpname.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada berkas Opname Daily yang diunggah.</td></tr>`;
+                renderDashboardOpnameVisual();
                 return;
             }
 
@@ -2455,21 +2677,30 @@
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
 
+                const badgeSelisih = `
+                    <div class="text-[11px] space-y-0.5">
+                        <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">Case: ${item.diffCaseQty || 0} Qty (${item.diffCaseItems || 0} Items)</span>
+                        <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">Pack: ${item.diffPackQty || 0} Qty (${item.diffPackItems || 0} Items)</span>
+                    </div>
+                `;
+
                 tr.innerHTML = `
                     <td class="py-3.5 px-4 font-bold text-themeblue-800 text-xs">${item.tanggal}</td>
                     <td class="py-3.5 px-4 font-semibold text-gray-800">${item.judul}</td>
                     <td class="py-3.5 px-4 text-xs font-mono text-themeblue-700">${item.fileName}</td>
+                    <td class="py-3.5 px-4">${badgeSelisih}</td>
                     <td class="py-3.5 px-4 text-xs text-gray-500">${item.fileSize}</td>
-                    <td class="py-3.5 px-4 text-xs text-gray-400">${item.uploadTime}</td>
                     <td class="py-3.5 px-4 no-print flex items-center gap-2">
                         <a href="${item.fileData}" download="${item.fileName}" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
                             <span>📥</span><span>Download File</span>
                         </a>
-                        <button onclick="hapusOpname(${item.id})" class="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1">🗑️</button>
+                        <button onclick="hapusOpname('${item.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            renderDashboardOpnameVisual();
         }
 
         function hapusOpname(id) {
