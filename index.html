@@ -462,7 +462,7 @@
                     <h2 class="text-base font-bold text-themeblue-900 flex items-center gap-2">
                         <span>📈</span><span>Dashboard Ringkasan Selisih Opname (Diff Case & Diff Pack)</span>
                     </h2>
-                    <p class="text-xs text-gray-500">Sistem otomatis mendeteksi & mengekstrak data selisih dari tab `diff. case` & `diff. Pack` Excel harian</p>
+                    <p class="text-xs text-gray-500">Sistem otomatis mendeteksi & mengekstrak data selisih dari kolom `Diff. Case` & `Diff. Pack` Excel harian</p>
                 </div>
                 <span class="bg-themeblue-100 text-themeblue-800 text-[10px] font-bold px-2.5 py-1 rounded-full border border-themeblue-300">Auto-Parsed Realtime</span>
             </div>
@@ -2454,7 +2454,7 @@
             document.body.removeChild(link);
         }
 
-        // LOGIKA BARU: PARSING EXCEL UNTUK DETEKSI SELISIH TAB `diff. case` & `diff. Pack`
+        // LOGIKA BARU DENGAN SANGAT PRESISI UNTUK FILE EXCEL OPNAME SIANG/NIGHT (DETEKSI KOLOM Diff. Case & Diff. Pack)
         function prosesEkstraksiSelisihExcel(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -2466,55 +2466,65 @@
                         let diffCaseItems = 0, diffCaseQty = 0;
                         let diffPackItems = 0, diffPackQty = 0;
 
+                        // Baca seluruh sheet yang tersedia (secara khusus sheet 'Report' atau sheet utama)
                         workbook.SheetNames.forEach(sheetName => {
-                            const nameLower = sheetName.toLowerCase().replace(/\s+/g, '');
-                            
-                            // 1. CEK TAB DIFF CASE
-                            if (nameLower.includes('diffcase') || nameLower.includes('diff.case')) {
-                                const worksheet = workbook.Sheets[sheetName];
-                                const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                                
-                                jsonSheet.forEach((row, idx) => {
-                                    if (idx > 0 && row.length > 0) {
-                                        // Cari nilai angka selisih pada baris
-                                        row.forEach(val => {
-                                            const num = parseFloat(val);
-                                            if (!isNaN(num) && num !== 0 && Math.abs(num) < 100000) {
-                                                diffCaseQty += Math.abs(num);
-                                                diffCaseItems++;
+                            const worksheet = workbook.Sheets[sheetName];
+                            const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                            if (jsonSheet.length > 0) {
+                                // Cari baris header yang berisi tulisan 'Diff. Case' dan 'Diff. Pack'
+                                let colDiffCaseIdx = -1;
+                                let colDiffPackIdx = -1;
+
+                                jsonSheet.forEach((row, rIdx) => {
+                                    if (rIdx < 5) { // Cek 5 baris pertama
+                                        row.forEach((cellVal, cIdx) => {
+                                            if (cellVal) {
+                                                const strVal = String(cellVal).trim().toLowerCase();
+                                                if (strVal === 'diff. case' || strVal === 'diff case' || strVal === 'diff_case') {
+                                                    colDiffCaseIdx = cIdx;
+                                                }
+                                                if (strVal === 'diff. pack' || strVal === 'diff pack' || strVal === 'diff_pack') {
+                                                    colDiffPackIdx = cIdx;
+                                                }
                                             }
                                         });
                                     }
                                 });
-                            }
 
-                            // 2. CEK TAB DIFF PACK
-                            if (nameLower.includes('diffpack') || nameLower.includes('diff.pack')) {
-                                const worksheet = workbook.Sheets[sheetName];
-                                const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                                
-                                jsonSheet.forEach((row, idx) => {
-                                    if (idx > 0 && row.length > 0) {
-                                        row.forEach(val => {
-                                            const num = parseFloat(val);
-                                            if (!isNaN(num) && num !== 0 && Math.abs(num) < 100000) {
-                                                diffPackQty += Math.abs(num);
-                                                diffPackItems++;
+                                // Mulai membaca data selisih
+                                jsonSheet.forEach((row, rIdx) => {
+                                    if (rIdx > 0 && row.length > 0) {
+                                        // 1. hitung Diff Case
+                                        if (colDiffCaseIdx !== -1 && row[colDiffCaseIdx] !== undefined) {
+                                            const valCase = parseFloat(row[colDiffCaseIdx]);
+                                            if (!isNaN(valCase) && valCase !== 0) {
+                                                diffCaseItems++;
+                                                diffCaseQty += Math.abs(valCase);
                                             }
-                                        });
+                                        }
+
+                                        // 2. hitung Diff Pack
+                                        if (colDiffPackIdx !== -1 && row[colDiffPackIdx] !== undefined) {
+                                            const valPack = parseFloat(row[colDiffPackIdx]);
+                                            if (!isNaN(valPack) && valPack !== 0) {
+                                                diffPackItems++;
+                                                diffPackQty += Math.abs(valPack);
+                                            }
+                                        }
                                     }
                                 });
                             }
                         });
 
                         resolve({
-                            diffCaseItems: Math.round(diffCaseItems / 3), // Estimasi pembagi kolom
+                            diffCaseItems: diffCaseItems,
                             diffCaseQty: Math.round(diffCaseQty),
-                            diffPackItems: Math.round(diffPackItems / 3),
+                            diffPackItems: diffPackItems,
                             diffPackQty: Math.round(diffPackQty)
                         });
                     } catch (err) {
-                        console.warn("Parsing Excel Warning:", err);
+                        console.warn("Parsing Excel Error:", err);
                         resolve({ diffCaseItems: 0, diffCaseQty: 0, diffPackItems: 0, diffPackQty: 0 });
                     }
                 };
@@ -2550,7 +2560,7 @@
                 return;
             }
 
-            // Membaca isi selisih dari tab diff.case dan diff.pack
+            // Membaca isi selisih dari kolom Diff. Case dan Diff. Pack
             const ekstraksi = await prosesEkstraksiSelisihExcel(file);
 
             const reader = new FileReader();
@@ -2588,7 +2598,7 @@
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = 'Unggah & Proses Laporan Opname';
                 }
-                alert('✅ Laporan Opname Daily berhasil diunggah & data selisih berhasil diekstrak!');
+                alert(`✅ Berkas Opname Berhasil Diproses!\n• Diff Case: ${ekstraksi.diffCaseItems} Item (${ekstraksi.diffCaseQty} Qty)\n• Diff Pack: ${ekstraksi.diffPackItems} Item (${ekstraksi.diffPackQty} Qty)`);
             };
 
             reader.readAsDataURL(file);
@@ -2602,7 +2612,6 @@
             const dataTrendCase = [];
             const dataTrendPack = [];
 
-            // Memproses 7 laporan terbaru untuk tren
             const recentOpname = dataOpname.slice(0, 7).reverse();
 
             dataOpname.forEach(item => {
