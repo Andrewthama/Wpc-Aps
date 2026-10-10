@@ -597,6 +597,48 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP: VERIFIKASI / APPROVAL SUPERVISOR LAPORAN DAMAGED & EXPIRED -->
+    <div id="modal-approval" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-themeblue-900">Verifikasi & Approval Supervisor</h3>
+                    <p class="text-[11px] text-gray-500">Tinjau dan tindak lanjuti laporan staf gudang</p>
+                </div>
+                <button onclick="tutupModalApproval()" class="text-gray-400 font-bold">✕</button>
+            </div>
+
+            <div class="bg-themeblue-50 p-3.5 rounded-lg border border-themeblue-200 text-xs space-y-1">
+                <p><strong>Item Produk:</strong> <span id="appr-item-name" class="font-semibold text-themeblue-900">-</span></p>
+                <p><strong>Jumlah Qty:</strong> <span id="appr-item-qty" class="font-bold text-red-600">-</span></p>
+                <p><strong>Dilaporkan Oleh:</strong> <span id="appr-item-pelapor" class="font-medium text-gray-700">-</span></p>
+            </div>
+
+            <form id="form-approval" onsubmit="simpanApprovalSupervisor(event)" class="space-y-4">
+                <input type="hidden" id="appr-item-id">
+                <input type="hidden" id="appr-item-type">
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keputusan Verifikasi *</label>
+                    <select id="appr-status" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none font-bold">
+                        <option value="Disetujui">✅ Setujui / Disetujui (Verified)</option>
+                        <option value="Ditolak">❌ Tolak Laporan (Rejected)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Catatan / Alasan Supervisor *</label>
+                    <textarea id="appr-catatan" required rows="3" placeholder="Contoh: Barang telah diverifikasi & dipindahkan ke area karantina Damaged" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t">
+                    <button type="button" onclick="tutupModalApproval()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg hover:bg-themeblue-800 shadow-sm">Simpan Keputusan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL POPUP: DOKUMENTASI OPNAME EXPIRED -->
     <div id="modal-expired" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600 my-8">
@@ -862,7 +904,7 @@
             'logistics': { password: 'admin123', name: 'Logistic Manager', role: 'Supervisor' },
             'headwh': { password: 'admin123', name: 'Head Warehouse', role: 'Supervisor' },
             
-            // AKUN CHECKER BARU DENGAN HAK AKSES SUPERVISOR
+            // AKUN CHECKER DENGAN HAK AKSES SUPERVISOR
             'harry': { password: 'admin123', name: 'Checker M.Harry', role: 'Supervisor' },
             'ilham': { password: 'admin123', name: 'Checker Ilham Syahputra', role: 'Supervisor' },
             'robby': { password: 'admin123', name: 'Checker M.Robby', role: 'Supervisor' },
@@ -1012,10 +1054,8 @@
                     const val = snapshot.val();
                     if (val) {
                         const cloudJadwal = val.jadwal || [];
-                        
-                        // SINKRONISASI KAN FOTO CLOUD DENGAN LOKAL SAFELY
                         cloudJadwal.forEach(cloudItem => {
-                            const localItem = dataJadwal.find(l => l.id == cloudItem.id);
+                            const localItem = dataJadwal.find(l => String(l.id) === String(cloudItem.id));
                             if (localItem && localItem.foto && !cloudItem.foto) {
                                 cloudItem.foto = localItem.foto;
                             }
@@ -1282,16 +1322,15 @@
             }
 
             if (confirm('Apakah Anda yakin ingin menghapus jadwal kebersihan ini?')) {
-                dataJadwal = dataJadwal.filter(item => item.id != id);
+                dataJadwal = dataJadwal.filter(item => String(item.id) !== String(id));
                 simpanKeStorage();
                 renderTabel();
                 renderStatistik();
             }
         }
 
-        // TAHAP 2 LOGIKA BARU: STAF KLIK "SELESAI DIBERSIHKAN" (TANPA FOTO)
         function stafSelesaiPengerjaan(id) {
-            const itemIndex = dataJadwal.findIndex(i => i.id == id);
+            const itemIndex = dataJadwal.findIndex(i => String(i.id) === String(id));
             if (itemIndex !== -1) {
                 const item = dataJadwal[itemIndex];
                 const now = new Date();
@@ -1311,14 +1350,13 @@
             }
         }
 
-        // TAHAP 3 LOGIKA BARU: CHECKER MELAKUKAN INSPEKSI & LAMPIRKAN FOTO BUKTI
         function bukaModalCheckerInspeksi(id) {
             if (!isSupervisor()) {
                 alert("Hanya Checker / Supervisor yang berwenang melakukan inspeksi & pengunggahan foto!");
                 return;
             }
 
-            const item = dataJadwal.find(i => i.id == id);
+            const item = dataJadwal.find(i => String(i.id) === String(id));
             if (!item) return;
 
             idAktif = id;
@@ -1368,7 +1406,7 @@
         async function simpanFotoChecker(e) {
             e.preventDefault();
             const id = document.getElementById('check-keb-id').value;
-            const itemIndex = dataJadwal.findIndex(i => i.id == id);
+            const itemIndex = dataJadwal.findIndex(i => String(i.id) === String(id));
 
             if (itemIndex !== -1) {
                 const item = dataJadwal[itemIndex];
@@ -1401,14 +1439,13 @@
             }
         }
 
-        // TAHAP 4 LOGIKA BARU: SUPERVISOR VERIFIKASI AKHIR
         function bukaModalApprovalKebersihan(id) {
             if (!isSupervisor()) {
                 alert("Hanya Supervisor / Manajemen yang berwenang melakukan verifikasi akhir!");
                 return;
             }
 
-            const item = dataJadwal.find(i => i.id == id);
+            const item = dataJadwal.find(i => String(i.id) === String(id));
             if (!item) return;
 
             document.getElementById('appr-keb-id').value = id;
@@ -1438,12 +1475,12 @@
             if (f) f.reset();
         }
 
-        function simpanApprovalSupervisor(e) {
+        function simpanApprovalKebersihan(e) {
             e.preventDefault();
             const id = document.getElementById('appr-keb-id').value;
             const status = document.getElementById('appr-keb-status').value;
 
-            const itemIndex = dataJadwal.findIndex(i => i.id == id);
+            const itemIndex = dataJadwal.findIndex(i => String(i.id) === String(id));
 
             if (itemIndex !== -1) {
                 const item = dataJadwal[itemIndex];
@@ -1466,7 +1503,7 @@
             }
         }
 
-        // SISTEM VERIFIKASI / APPROVAL DAMAGED & EXPIRED (FIX TERPASTIKAN SAMPAI TUNTAS)
+        // BUKA MODAL VERIFIKASI SUPERVISOR LAPORAN DAMAGED / EXPIRED (PERBAIKAN PERBANDINGAN STRING ID)
         function bukaModalApproval(id, type) {
             if (!isSupervisor()) {
                 alert("Hanya Supervisor / Manajemen yang berwenang melakukan verifikasi laporan!");
@@ -1474,12 +1511,18 @@
             }
 
             let item = null;
-            if (type === 'damaged') item = dataDamaged.find(i => i.id == id);
-            else if (type === 'expired') item = dataExpired.find(i => i.id == id);
+            if (type === 'damaged') {
+                item = dataDamaged.find(i => String(i.id) === String(id));
+            } else if (type === 'expired') {
+                item = dataExpired.find(i => String(i.id) === String(id));
+            }
 
-            if (!item) return;
+            if (!item) {
+                alert("Gagal memuat detail data untuk diverifikasi!");
+                return;
+            }
 
-            document.getElementById('appr-item-id').value = id;
+            document.getElementById('appr-item-id').value = String(id);
             document.getElementById('appr-item-type').value = type;
             document.getElementById('appr-item-name').innerText = `${item.nama} [Mat ID: ${item.matId || '-'}]`;
             document.getElementById('appr-item-qty').innerText = `${item.qty} ${item.satuan || ''}`;
@@ -1499,6 +1542,7 @@
             if (f) f.reset();
         }
 
+        // PERBAIKAN UTAMA: FUNGSI SIMPAN VERIFIKASI DAMAGED & EXPIRED TERJAMIN 100% RESPONSIF
         function simpanApprovalSupervisor(e) {
             e.preventDefault();
             const id = document.getElementById('appr-item-id').value;
@@ -1507,7 +1551,7 @@
             const catatan = document.getElementById('appr-catatan').value;
 
             let targetList = type === 'damaged' ? dataDamaged : dataExpired;
-            const itemIndex = targetList.findIndex(i => i.id == id);
+            const itemIndex = targetList.findIndex(i => String(i.id) === String(id));
 
             if (itemIndex !== -1) {
                 const item = targetList[itemIndex];
@@ -1516,12 +1560,7 @@
                 item.verifiedBy = currentAuthUser ? currentAuthUser.name : 'Supervisor Gudang';
                 item.verifiedAt = new Date().toISOString().slice(0,10);
 
-                // DIRECT UPDATE NODE SPESIFIK KE FIREBASE
-                if (db) {
-                    const nodePath = type === 'damaged' ? 'wpc_cloud_data/damaged/' : 'wpc_cloud_data/expired/';
-                    db.ref(nodePath + itemIndex).set(item);
-                }
-
+                // SIMPAN LANGSUNG KE FIREBASE SINKRON
                 simpanKeStorage();
                 tutupModalApproval();
 
@@ -1531,7 +1570,7 @@
                 renderStatistik();
                 alert(`✅ Laporan ${type.toUpperCase()} berhasil di-update dengan status: ${status}`);
             } else {
-                alert("Gagal menemukan data laporan untuk diverifikasi!");
+                alert("Gagal menemukan data laporan yang dipilih!");
             }
         }
 
@@ -1600,7 +1639,6 @@
                 if (elDate) elDate.innerText = 'Tgl: -';
             }
 
-            // RENDERING CHART LAZY DENGAN TRY-CATCH SAFEGUARD
             try {
                 const pageExp = document.getElementById('page-expired');
                 if (pageExp && !pageExp.classList.contains('hidden')) {
@@ -1674,7 +1712,7 @@
                 }
 
                 const fotoElement = item.foto 
-                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-red-50 text-red-800 px-2 py-1 rounded border border-red-200 font-semibold">📷 Lihat Foto</button>`
+                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-red-50 text-red-800 px-2 py-1 rounded border border-red-200">📷 Lihat Foto</button>`
                     : `<span class="text-xs text-gray-400 italic">Tanpa Foto</span>`;
 
                 const isSup = isSupervisor();
@@ -1908,12 +1946,9 @@
             alertContainer.innerHTML = '';
 
             const pendingItems = dataDamaged.filter(i => (i.status || 'Pending') === 'Pending');
-            
-            // FILTER PEMISAHAN PERINGATAN (ALERT) DAMAGED TINGGI: BOX VS PCS
             const boxDamagedHigh = dataDamaged.filter(i => (i.satuan || '').includes('Box') && (i.qty || 0) >= 10);
             const pcsDamagedHigh = dataDamaged.filter(i => !(i.satuan || '').includes('Box') && (i.qty || 0) >= 10);
 
-            // 1. ALERT UNTUK TINGKAT DAMAGED QTY BOX TINGGI
             if (boxDamagedHigh.length > 0) {
                 const topBox = boxDamagedHigh.sort((a,b) => b.qty - a.qty)[0];
                 const alertDivBox = document.createElement('div');
@@ -1930,7 +1965,6 @@
                 alertContainer.appendChild(alertDivBox);
             }
 
-            // 2. ALERT UNTUK TINGKAT DAMAGED QTY PCS TINGGI
             if (pcsDamagedHigh.length > 0) {
                 const topPcs = pcsDamagedHigh.sort((a,b) => b.qty - a.qty)[0];
                 const alertDivPcs = document.createElement('div');
@@ -1959,7 +1993,6 @@
                 alertContainer.appendChild(alertDiv);
             }
 
-            // BOBOT KATEGORI DAMAGED (BOX DIHITUNG x1000 UNTUK RASIO SKALA NILAI KERUSAKAN BARANG FISIK)
             let foodScore = 0;
             let nonFoodScore = 0;
 
@@ -1973,7 +2006,6 @@
                 else nonFoodScore += weight;
             });
 
-            // RENDERING CHART LAZY DENGAN SAFEGUARD
             try {
                 const pageDam = document.getElementById('page-damaged');
                 if (pageDam && !pageDam.classList.contains('hidden')) {
@@ -1988,7 +2020,6 @@
                         });
                     }
 
-                    // PERHITUNGAN RANKING DENGAN HIRARKI SKALA (BOX JAUH LEBIH TINGGI DIBANDING PCS)
                     const productAggrMap = {};
                     dataDamaged.forEach(item => {
                         const s = item.satuan || 'Pcs';
@@ -2091,7 +2122,6 @@
             }
         }
 
-        // HAPUS BARIS LAPORAN DAMAGED
         function hapusDamagedBaris(id) {
             if (!isSupervisor()) {
                 alert('Akses ditolak! Hanya Supervisor / Manajemen yang dapat menghapus laporan damaged.');
@@ -2099,14 +2129,13 @@
             }
 
             if (confirm('Apakah Anda yakin ingin menghapus data pendataan barang damaged ini?')) {
-                dataDamaged = dataDamaged.filter(item => item.id != id);
+                dataDamaged = dataDamaged.filter(item => String(item.id) !== String(id));
                 simpanKeStorage();
                 renderDamaged();
                 renderStatistik();
             }
         }
 
-        // RENDER TABEL BARANG DAMAGED DENGAN PEMBATAS BERDASARKAN STATUS APPROVAL
         function renderDamaged() {
             const tbody = document.getElementById('tabel-damaged');
             if (!tbody) return;
@@ -2118,7 +2147,6 @@
                 return;
             }
 
-            // Memisahkan data berdasarkan status
             const listPending = dataDamaged.filter(i => (i.status || 'Pending') === 'Pending');
             const listDisetujui = dataDamaged.filter(i => i.status === 'Disetujui');
             const listDitolak = dataDamaged.filter(i => i.status === 'Ditolak');
@@ -2142,12 +2170,12 @@
                     : `<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">Non Food 📦</span>`;
 
                 const fotoElement = item.foto 
-                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200">📷 Lihat Foto</button>`
+                    ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200 font-semibold">📷 Lihat Foto</button>`
                     : `<span class="text-xs text-gray-400 italic">Tanpa Foto</span>`;
 
                 const isSup = isSupervisor();
                 let aksi = isSup
-                    ? `<button onclick="bukaModalApproval(${item.id}, 'damaged')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition shadow-sm">👑 Verifikasi</button> <button onclick="hapusDamagedBaris(${item.id})" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Laporan Ini">🗑️</button>`
+                    ? `<button onclick="bukaModalApproval('${item.id}', 'damaged')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition shadow-sm">👑 Verifikasi</button> <button onclick="hapusDamagedBaris('${item.id}')" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Laporan Ini">🗑️</button>`
                     : `<span class="text-xs text-gray-400 italic">Khusus Supervisor</span>`;
 
                 tr.innerHTML = `
@@ -2165,7 +2193,6 @@
                 return tr;
             };
 
-            // 1. KELOMPOK PENDING VERIFIKASI
             const headerPending = document.createElement('tr');
             headerPending.className = 'bg-amber-100/80 border-y border-amber-300';
             headerPending.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-amber-900 tracking-wide">⏳ LAPORAN PENDING VERIFIKASI SUPERVISOR (${listPending.length})</td>`;
@@ -2179,7 +2206,6 @@
                 listPending.forEach(item => tbody.appendChild(buatBarisDamaged(item)));
             }
 
-            // 2. KELOMPOK DISETUJUI
             const headerDisetujui = document.createElement('tr');
             headerDisetujui.className = 'bg-green-100/80 border-y border-green-300';
             headerDisetujui.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-green-900 tracking-wide">✅ LAPORAN DISETUJUI / VERIFIED (${listDisetujui.length})</td>`;
@@ -2193,7 +2219,6 @@
                 listDisetujui.forEach(item => tbody.appendChild(buatBarisDamaged(item)));
             }
 
-            // 3. KELOMPOK DITOLAK
             const headerDitolak = document.createElement('tr');
             headerDitolak.className = 'bg-red-100/80 border-y border-red-300';
             headerDitolak.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-red-900 tracking-wide">❌ LAPORAN DITOLAK / REJECTED (${listDitolak.length})</td>`;
@@ -2236,7 +2261,6 @@
             }
         }
 
-        // SIMPAN LAPORAN DAMAGED SECARA HANDAL & BEBAS QUOTA ERROR
         function simpanDamagedBaru(event) {
             event.preventDefault();
             
@@ -2451,7 +2475,7 @@
         function hapusOpname(id) {
             if (!isSupervisor()) return;
             if (confirm('Apakah Anda yakin ingin menghapus berkas opname ini?')) {
-                dataOpname = dataOpname.filter(i => i.id != id);
+                dataOpname = dataOpname.filter(i => String(i.id) !== String(id));
                 simpanKeStorage();
                 renderOpname();
             }
@@ -2477,7 +2501,7 @@
             document.body.removeChild(link);
         }
 
-        // RENDER TABEL JADWAL KEBERSIHAN DENGAN PEMBATAS UTAMA (BELUM vs SELESAI) + TANGGAL OTOMATIS
+        // RENDER TABEL JADWAL KEBERSIHAN
         function renderTabel() {
             const tbody = document.getElementById('tabel-jadwal');
             if (!tbody) return;
@@ -2518,19 +2542,19 @@
 
                 if (isSup) {
                     if (item.status === 'Menunggu Pengecekan Checker') {
-                        aksi = `<button onclick="bukaModalCheckerInspeksi(${item.id})" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">📷 Cek & Foto (Checker)</button>`;
+                        aksi = `<button onclick="bukaModalCheckerInspeksi('${item.id}')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">📷 Cek & Foto (Checker)</button>`;
                     } else if (item.status === 'Menunggu Verifikasi Supervisor') {
-                        aksi = `<button onclick="bukaModalApprovalKebersihan(${item.id})" class="bg-green-700 hover:bg-green-800 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi Supervisor</button>`;
+                        aksi = `<button onclick="bukaModalApprovalKebersihan('${item.id}')" class="bg-green-700 hover:bg-green-800 text-white text-xs px-2.5 py-1 rounded font-bold shadow-sm transition">👑 Verifikasi Supervisor</button>`;
                     } else if (item.status === 'Selesai') {
                         aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
                     } else {
-                        aksi = `<button onclick="bukaModalCheckerInspeksi(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition">Inspeksi Langsung</button>`;
+                        aksi = `<button onclick="bukaModalCheckerInspeksi('${item.id}')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold transition">Inspeksi Langsung</button>`;
                     }
 
-                    aksi += ` <button onclick="hapusJadwalBaris(${item.id})" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Jadwal Ini">🗑️</button>`;
+                    aksi += ` <button onclick="hapusJadwalBaris('${item.id}')" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1" title="Hapus Jadwal Ini">🗑️</button>`;
                 } else {
                     if (isMyTask && item.status === 'Belum') {
-                        aksi = `<button onclick="stafSelesaiPengerjaan(${item.id})" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold shadow-sm transition">🧹 Selesai Dibersihkan</button>`;
+                        aksi = `<button onclick="stafSelesaiPengerjaan('${item.id}')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-2.5 py-1 rounded font-semibold shadow-sm transition">🧹 Selesai Dibersihkan</button>`;
                     } else if (item.status === 'Selesai') {
                         aksi = `<span class="text-xs text-green-700 font-bold">Tuntas ✅</span>`;
                     } else if (item.status === 'Menunggu Pengecekan Checker' || item.status === 'Menunggu Verifikasi Supervisor') {
@@ -2688,7 +2712,6 @@
         function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
         function tutupModalLihat() { const m = document.getElementById('modal-lihat'); if (m) m.classList.add('hidden'); }
 
-        // FUNGSI RESET SPESIFIK TIAP MENU
         function resetDataJadwal() {
             if (!isSupervisor()) return;
             if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Jadwal Kebersihan?')) {
