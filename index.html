@@ -39,7 +39,7 @@
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; }
-            .shadow-sm, .shadow-md, .shadow-xl { box-shadow: none !important; }
+            .shadow-sm, .shadow-md, .shadow-xl { shadow: none !important; }
         }
     </style>
 </head>
@@ -614,14 +614,14 @@
                 <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-300">📊 DC Stock Intelligence</span>
             </div>
 
-            <!-- CARD KPI SUMMARY OVERSTOCK & DEADSTOCK -->
+            <!-- CARD KPI SUMMARY OVERSTOCK & DEADSTOCK (DIPERBARUI SECARA PRESISI) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-amber-50 p-4 rounded-xl border-l-4 border-amber-500 flex justify-between items-center">
                     <div>
-                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total Volume Overstock</span>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total %Overstock >50D</span>
                         <div class="mt-1 flex items-baseline gap-1">
-                            <span id="stat-ovs-qty" class="text-2xl font-black text-amber-900">0</span>
-                            <span class="text-xs font-semibold text-gray-500">Box</span>
+                            <span id="stat-ovs-pct" class="text-2xl font-black text-amber-900">0%</span>
+                            <span id="stat-ovs-sub" class="text-[10px] font-bold text-amber-700">(0 Box)</span>
                         </div>
                     </div>
                     <div class="bg-amber-100 p-2.5 rounded-full text-amber-700 text-lg">🟡</div>
@@ -747,7 +747,7 @@
                             <th class="py-3 px-4">Nama Deskripsi Produk</th>
                             <th class="py-3 px-4">Status Risiko</th>
                             <th class="py-3 px-4">On-Hand (Box)</th>
-                            <th class="py-3 px-4">Qty Bermasalah (Box)</th>
+                            <th class="py-3 px-4">%Overstock >50D / %Deadstock</th>
                             <th class="py-3 px-4">X-Days 90D</th>
                             <th class="py-3 px-4">Rekomendasi Disposisi / Action Plan</th>
                         </tr>
@@ -1182,7 +1182,7 @@
         let dataDamaged = JSON.parse(localStorage.getItem('wpc_damaged')) || [];
         let dataExpired = JSON.parse(localStorage.getItem('wpc_expired')) || [];
         let dataOpname = JSON.parse(localStorage.getItem('wpc_opname')) || [];
-        let dataStockOverview = JSON.parse(localStorage.getItem('wpc_stock_overview')) || { items: [], onHandTotal: 0, date: '' };
+        let dataStockOverview = JSON.parse(localStorage.getItem('wpc_stock_overview')) || { items: [], onHandTotal: 0, pctOverstockTotal: 0, date: '' };
         let currentAuthUser = JSON.parse(localStorage.getItem('wpc_auth')) || null;
         let userAktif = localStorage.getItem('wpc_user') || 'Supervisor';
 
@@ -1310,7 +1310,7 @@
                         dataDamaged = val.damaged || [];
                         dataExpired = val.expired || [];
                         dataOpname = val.opname || [];
-                        dataStockOverview = val.stockOverview || { items: [], onHandTotal: 0, date: '' };
+                        dataStockOverview = val.stockOverview || { items: [], onHandTotal: 0, pctOverstockTotal: 0, date: '' };
 
                         try {
                             localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
@@ -2934,7 +2934,7 @@
             }
         }
 
-        // LOGIKA BARU FITUR: ITEM OVERSTOCK & DEADSTOCK
+        // LOGIKA PENYESUAIAN PRESISI: ITEM OVERSTOCK (%OVERSTOCK >50D) & DEADSTOCK
         function prosesEkstraksiStockOverviewExcel(file, tanggal) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -2945,6 +2945,7 @@
 
                         let extractedItems = [];
                         let globalOnHandTotal = 0;
+                        let globalPctOverstockTotal = 0;
 
                         workbook.SheetNames.forEach(sheetName => {
                             const worksheet = workbook.Sheets[sheetName];
@@ -2959,6 +2960,7 @@
                                 let colRiskQty = -1;
                                 let colXDays = -1;
                                 let colOnHand = -1;
+                                let colPctRisk = -1;
 
                                 jsonSheet.forEach((row, rIdx) => {
                                     if (rIdx < 5) {
@@ -2967,9 +2969,11 @@
                                                 const strVal = String(cellVal).trim().toLowerCase();
                                                 if (strVal === 'product' || strVal === 'mat id' || strVal === 'material') colMatId = cIdx;
                                                 if (strVal.includes('description') || strVal.includes('nama')) colDesc = cIdx;
-                                                if (strVal.includes('overstock >50d') || strVal.includes('qty deadstock')) colRiskQty = cIdx;
+                                                if (strVal.includes('overstock >50d') && !strVal.includes('%')) colRiskQty = cIdx;
+                                                if (strVal.includes('qty deadstock')) colRiskQty = cIdx;
                                                 if (strVal.includes('xdays')) colXDays = cIdx;
                                                 if (strVal.includes('on hand')) colOnHand = cIdx;
+                                                if (strVal.includes('%overstock') || strVal.includes('%deadstock')) colPctRisk = cIdx;
                                             }
                                         });
                                     }
@@ -2980,9 +2984,15 @@
                                         const rawMatId = row[colMatId];
                                         const rawDesc = row[colDesc];
 
-                                        if (rawMatId && String(rawMatId).toLowerCase() === 'total' && colOnHand !== -1) {
-                                            const totalVal = parseFloat(row[colOnHand]);
-                                            if (!isNaN(totalVal)) globalOnHandTotal = Math.round(totalVal);
+                                        if (rawMatId && String(rawMatId).toLowerCase() === 'total') {
+                                            if (colOnHand !== -1 && row[colOnHand] !== undefined) {
+                                                const totalVal = parseFloat(row[colOnHand]);
+                                                if (!isNaN(totalVal)) globalOnHandTotal = Math.round(totalVal);
+                                            }
+                                            if (colPctRisk !== -1 && row[colPctRisk] !== undefined) {
+                                                const pctVal = parseFloat(row[colPctRisk]);
+                                                if (!isNaN(pctVal)) globalPctOverstockTotal = Math.round(pctVal * 10000) / 100;
+                                            }
                                         }
 
                                         if (rawMatId && String(rawMatId).toLowerCase() !== 'product' && String(rawMatId).toLowerCase() !== 'total') {
@@ -2993,6 +3003,12 @@
                                             if (colRiskQty !== -1 && row[colRiskQty] !== undefined) {
                                                 const parsedQty = parseFloat(row[colRiskQty]);
                                                 if (!isNaN(parsedQty)) riskQty = Math.round(parsedQty);
+                                            }
+
+                                            let pctRiskVal = 0;
+                                            if (colPctRisk !== -1 && row[colPctRisk] !== undefined) {
+                                                const parsedPct = parseFloat(row[colPctRisk]);
+                                                if (!isNaN(parsedPct)) pctRiskVal = Math.round(parsedPct * 10000) / 100;
                                             }
 
                                             let xdays = 0;
@@ -3007,7 +3023,7 @@
                                                 if (!isNaN(parsedOH)) onHand = Math.round(parsedOH);
                                             }
 
-                                            if (riskQty > 0) {
+                                            if (riskQty > 0 || pctRiskVal > 0) {
                                                 const riskCategory = isDeadstockSheet ? 'DEADSTOCK' : (isOverstockSheet ? 'OVERSTOCK' : (xdays >= 90 ? 'DEADSTOCK' : 'OVERSTOCK'));
 
                                                 extractedItems.push({
@@ -3016,6 +3032,7 @@
                                                     nama,
                                                     kategori: riskCategory,
                                                     riskQty,
+                                                    pctRiskVal,
                                                     onHand,
                                                     xdays,
                                                     actionPlan: 'Pending Disposisi',
@@ -3031,11 +3048,12 @@
                         resolve({
                             items: extractedItems,
                             onHandTotal: globalOnHandTotal,
+                            pctOverstockTotal: globalPctOverstockTotal,
                             date: tanggal
                         });
                     } catch (err) {
                         console.warn("Parsing Stock Overview Error:", err);
-                        resolve({ items: [], onHandTotal: 0, date: tanggal });
+                        resolve({ items: [], onHandTotal: 0, pctOverstockTotal: 0, date: tanggal });
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -3073,7 +3091,6 @@
             if (ekstraksi.items.length === 0) {
                 alert("⚠️ Tidak ditemukan data ber-risiko (Overstock / Deadstock > 0) pada file yang diunggah!");
             } else {
-                // Penggabungan data jika sudah ada item terdaftar sebelumnya
                 let currentItemsMap = {};
                 if (dataStockOverview && dataStockOverview.items) {
                     dataStockOverview.items.forEach(i => { currentItemsMap[i.id] = i; });
@@ -3082,6 +3099,7 @@
                 ekstraksi.items.forEach(newItem => {
                     if (currentItemsMap[newItem.id]) {
                         currentItemsMap[newItem.id].riskQty = newItem.riskQty;
+                        currentItemsMap[newItem.id].pctRiskVal = newItem.pctRiskVal;
                         currentItemsMap[newItem.id].onHand = newItem.onHand;
                         currentItemsMap[newItem.id].xdays = newItem.xdays;
                         currentItemsMap[newItem.id].tanggal = newItem.tanggal;
@@ -3093,13 +3111,14 @@
                 dataStockOverview = {
                     items: Object.values(currentItemsMap),
                     onHandTotal: ekstraksi.onHandTotal || dataStockOverview.onHandTotal || 0,
+                    pctOverstockTotal: ekstraksi.pctOverstockTotal || dataStockOverview.pctOverstockTotal || 0,
                     date: tanggal
                 };
 
                 simpanKeStorage();
                 renderDashboardOverstockDeadstock();
 
-                alert(`✅ Analitika Stok Berhasil Di-update!\n• Terdeteksi ${ekstraksi.items.length} Item Ber-Risiko Baru\n• Total On-Hand Box DC: ${dataStockOverview.onHandTotal.toLocaleString('id-ID')} Box`);
+                alert(`✅ Analitika Stok Berhasil Di-update!\n• Terdeteksi ${ekstraksi.items.length} Item Ber-Risiko Baru\n• Total %Overstock >50D: ${dataStockOverview.pctOverstockTotal}%\n• Total On-Hand Box DC: ${dataStockOverview.onHandTotal.toLocaleString('id-ID')} Box`);
             }
 
             if (btnSubmit) {
@@ -3129,12 +3148,16 @@
                 else if (item.kategori === 'DEADSTOCK') totalDdsQty += (item.riskQty || 0);
             });
 
-            const elOvs = document.getElementById('stat-ovs-qty');
+            const elPctOvs = document.getElementById('stat-ovs-pct');
+            const elSubOvs = document.getElementById('stat-ovs-sub');
             const elDds = document.getElementById('stat-dds-qty');
             const elOnHand = document.getElementById('stat-onhand-qty');
             const elRiskCount = document.getElementById('stat-risk-products-count');
 
-            if (elOvs) elOvs.innerText = totalOvsQty.toLocaleString('id-ID');
+            const pctValDisplay = dataStockOverview.pctOverstockTotal ? `${dataStockOverview.pctOverstockTotal}%` : (dataStockOverview.onHandTotal > 0 ? `${(Math.round((totalOvsQty / dataStockOverview.onHandTotal) * 10000) / 100)}%` : '0%');
+
+            if (elPctOvs) elPctOvs.innerText = pctValDisplay;
+            if (elSubOvs) elSubOvs.innerText = `(${totalOvsQty.toLocaleString('id-ID')} Box)`;
             if (elDds) elDds.innerText = totalDdsQty.toLocaleString('id-ID');
             if (elOnHand) elOnHand.innerText = (dataStockOverview.onHandTotal || 0).toLocaleString('id-ID');
             if (elRiskCount) elRiskCount.innerText = items.length;
@@ -3173,15 +3196,15 @@
                         const ctxTopRisk = canvasTopRisk.getContext('2d');
                         if (chartTopStockRisksInstance) chartTopStockRisksInstance.destroy();
 
-                        const sortedRisks = [...items].sort((a, b) => b.riskQty - a.riskQty).slice(0, 5);
+                        const sortedRisks = [...items].sort((a, b) => (b.pctRiskVal || b.riskQty) - (a.pctRiskVal || a.riskQty)).slice(0, 5);
 
                         chartTopStockRisksInstance = new Chart(ctxTopRisk, {
                             type: 'bar',
                             data: {
                                 labels: sortedRisks.map(p => p.nama.length > 20 ? p.nama.slice(0,20) + '...' : p.nama),
                                 datasets: [{
-                                    label: 'Qty Bermasalah (Box)',
-                                    data: sortedRisks.map(p => p.riskQty),
+                                    label: '% Overstock / Qty Box',
+                                    data: sortedRisks.map(p => p.pctRiskVal || p.riskQty),
                                     backgroundColor: sortedRisks.map(p => p.kategori === 'DEADSTOCK' ? '#DC2626' : '#D97706'),
                                     borderRadius: 5
                                 }]
@@ -3250,12 +3273,17 @@
                     selectActionPlan = `<span class="text-xs font-bold text-themeblue-800">${item.actionPlan || 'Pending Disposisi'}</span>`;
                 }
 
+                // TAMPILAN PRESISI %OVERSTOCK / %DEADSTOCK
+                let pctDisplayStr = item.pctRiskVal !== undefined && item.pctRiskVal !== null 
+                    ? `<span class="font-bold text-red-600">${item.pctRiskVal}%</span> <span class="text-[10px] text-gray-500">(${item.riskQty} Box)</span>` 
+                    : `<span class="font-bold text-red-600">${item.riskQty} Box</span>`;
+
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-mono font-bold text-xs text-themeblue-800">${item.matId}</td>
                     <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
                     <td class="py-3 px-4">${badgeKategori}</td>
                     <td class="py-3 px-4 text-xs font-semibold">${(item.onHand || 0).toLocaleString('id-ID')} Box</td>
-                    <td class="py-3 px-4 text-xs font-bold text-red-600">${(item.riskQty || 0).toLocaleString('id-ID')} Box</td>
+                    <td class="py-3 px-4 text-xs">${pctDisplayStr}</td>
                     <td class="py-3 px-4 text-xs">${item.xdays ? item.xdays + ' Hari' : '-'}</td>
                     <td class="py-3 px-4">${selectActionPlan}</td>
                 `;
@@ -3266,7 +3294,7 @@
         function resetDataStockOverview() {
             if (!isSupervisor()) return;
             if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Analitika Overstock & Deadstock?')) {
-                dataStockOverview = { items: [], onHandTotal: 0, date: '' };
+                dataStockOverview = { items: [], onHandTotal: 0, pctOverstockTotal: 0, date: '' };
                 simpanKeStorage();
                 renderDashboardOverstockDeadstock();
             }
