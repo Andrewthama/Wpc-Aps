@@ -197,7 +197,7 @@
                     <button onclick="resetDataJadwal()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
                         🗑️ Reset Jadwal
                     </button>
-                    <button onclick="bukaModalTambah()" class="role-supervisor bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-xs shadow-sm">+ Tambah Jadwal</button>
+                    <button onclick="bukaModalTambah()" class="role-supervisor bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-xs shadow-sm">+ Tambah Jadwal Hari Ini</button>
                 </div>
             </div>
 
@@ -1037,7 +1037,8 @@
         let chartTopExpiredInstance = null;
         let chartOpnameDiffTrendInstance = null;
 
-        function kompresFoto(file, maxWidth = 400, maxHeight = 400, quality = 0.4) {
+        // FUNGSI KOMPRESI ULTRA LIGHTWEIGHT (Maks 220px, Quality 0.3) AGAR SANGAT HEMAT QUOTA FIREBASE (~15KB)
+        function kompresFoto(file, maxWidth = 220, maxHeight = 220, quality = 0.3) {
             return new Promise((resolve) => {
                 if (!file) {
                     resolve('');
@@ -2460,7 +2461,7 @@
             document.body.removeChild(link);
         }
 
-        // LOGIKA BARU DENGAN SANGAT PRESISI UNTUK FILE EXCEL OPNAME SIANG/NIGHT (DETEKSI KOLOM Diff. Case & Diff. Pack)
+        // LOGIKA DENGAN PRESISI UNTUK FILE EXCEL OPNAME SIANG/NIGHT (DETEKSI KOLOM Diff. Case & Diff. Pack)
         function prosesEkstraksiSelisihExcel(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -2603,14 +2604,12 @@
             reader.readAsDataURL(file);
         }
 
-        // PENGEMBANGAN LOGIKA VISUAL DASHBOARD DENGAN FILTER TANGGAL REALTIME
         function updateOpsiFilterTanggalOpname() {
             const selectFilter = document.getElementById('filter-opname-date');
             if (!selectFilter) return;
 
             const selectedVal = selectFilter.value;
             
-            // Ambil seluruh daftar tanggal unik dari dataOpname
             const setTanggal = new Set();
             dataOpname.forEach(item => {
                 if (item.tanggal) setTanggal.add(item.tanggal);
@@ -2653,7 +2652,6 @@
                 totalPackQty += (item.diffPackQty || 0);
             });
 
-            // Ambil 7 data terbaru sesuai filter untuk grafik
             const recentOpname = filteredData.slice(0, 7).reverse();
             recentOpname.forEach(item => {
                 labelsTrend.push(formatTanggalIndo(item.tanggal));
@@ -2963,6 +2961,7 @@
             const pic = document.getElementById('add-pic').value;
             const waktu = document.getElementById('add-waktu').value;
             const shift = document.getElementById('add-shift').value;
+            const todayStr = new Date().toISOString().slice(0,10);
 
             dataJadwal.push({
                 id: Date.now(),
@@ -2972,6 +2971,7 @@
                 pic: pic,
                 foto: null, 
                 status: 'Belum',
+                tanggalDibuat: todayStr,
                 tanggalPengerjaan: null,
                 checkerName: null
             });
