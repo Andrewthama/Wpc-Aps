@@ -107,8 +107,8 @@
     </nav>
 
     <!-- Navigasi Menu Tab Utama -->
-    <div class="bg-themeblue-900 text-white px-4 md:px-6 shadow-inner no-print border-t border-themeblue-800">
-        <div class="max-w-6xl mx-auto flex flex-wrap space-x-2 text-xs md:text-sm font-semibold">
+    <div class="bg-themeblue-900 text-white px-4 md:px-6 shadow-inner no-print border-t border-themeblue-800 overflow-x-auto">
+        <div class="max-w-6xl mx-auto flex space-x-2 text-xs md:text-sm font-semibold whitespace-nowrap">
             <button onclick="pindahMenu('kebersihan')" id="nav-kebersihan" class="menu-nav-btn px-4 py-3 border-b-4 border-amber-400 text-white flex items-center gap-2">
                 <span>🧹</span>
                 <span>Jadwal Kebersihan</span>
@@ -124,6 +124,10 @@
             <button onclick="pindahMenu('opname')" id="nav-opname" class="role-supervisor menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
                 <span>📊</span>
                 <span>Report Hasil Opname Daily</span>
+            </button>
+            <button onclick="pindahMenu('overstock')" id="nav-overstock" class="role-supervisor menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
+                <span>📦</span>
+                <span>Item Overstock & Deadstock</span>
             </button>
         </div>
     </div>
@@ -595,6 +599,165 @@
         </div>
     </div>
 
+    <!-- HALAMAN 5: ITEM OVERSTOCK & DEADSTOCK -->
+    <div id="page-overstock" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        
+        <!-- DASHBOARD OVERSTOCK & DEADSTOCK ANALYTICS -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-themeblue-100 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
+                <div>
+                    <h2 class="text-base font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>📦</span><span>Analitika Item Overstock (>50D) & Deadstock (>90D)</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Unggah berkas `WRH - DC Stock Overview` untuk mendeteksi stok berlebih dan barang mati yang tidak bergerak.</p>
+                </div>
+                <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-300">📊 DC Stock Intelligence</span>
+            </div>
+
+            <!-- CARD KPI SUMMARY OVERSTOCK & DEADSTOCK -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-amber-50 p-4 rounded-xl border-l-4 border-amber-500 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total Volume Overstock</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-ovs-qty" class="text-2xl font-black text-amber-900">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Box</span>
+                        </div>
+                    </div>
+                    <div class="bg-amber-100 p-2.5 rounded-full text-amber-700 text-lg">🟡</div>
+                </div>
+
+                <div class="bg-red-50 p-4 rounded-xl border-l-4 border-red-600 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total Volume Deadstock</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-dds-qty" class="text-2xl font-black text-red-700">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Box</span>
+                        </div>
+                    </div>
+                    <div class="bg-red-100 p-2.5 rounded-full text-red-700 text-lg">🔴</div>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-600 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total On-Hand Stock</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-onhand-qty" class="text-2xl font-black text-blue-800">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Box</span>
+                        </div>
+                    </div>
+                    <div class="bg-blue-100 p-2.5 rounded-full text-blue-700 text-lg">📦</div>
+                </div>
+
+                <div class="bg-purple-50 p-4 rounded-xl border-l-4 border-purple-600 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Produk Bermasalah</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-risk-products-count" class="text-2xl font-black text-purple-900">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Item</span>
+                        </div>
+                    </div>
+                    <div class="bg-purple-100 p-2.5 rounded-full text-purple-700 text-lg">⚠️</div>
+                </div>
+            </div>
+
+            <!-- VISUALISASI GRAFIK OVERSTOCK & DEADSTOCK -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-themeblue-900 uppercase mb-1">Rasio Kesehatan Stok DC</h3>
+                        <p class="text-[11px] text-gray-400 mb-3">Proporsi Stok Sehat vs Overstock vs Deadstock</p>
+                    </div>
+                    <div class="relative max-h-52 flex justify-center items-center py-2">
+                        <canvas id="chartStockRatio"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-themeblue-900 uppercase mb-1">Top 5 Produk Risiko Kuantitas Tertinggi</h3>
+                        <p class="text-[11px] text-gray-400 mb-3">Item Overstock (>50D) & Deadstock (>90D) terbanyak yang memerlukan disposisi</p>
+                    </div>
+                    <div class="relative max-h-52">
+                        <canvas id="chartTopStockRisks"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FORM UPLOAD FILE EXCEL OVERSTOCK & DEADSTOCK -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-themeblue-100 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 border-themeblue-100">
+                <div>
+                    <h2 class="text-lg font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>📥</span><span>Upload Berkas WRH - DC Stock Overview (.xlsx)</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Proses otomatis akan mengekstrak data dari sheet `%Overstock by Product` atau `%Deadstock by Product`.</p>
+                </div>
+            </div>
+
+            <form id="form-upload-stock-overview" onsubmit="simpanStockOverview(event)" class="space-y-4 bg-themeblue-50/60 p-4 rounded-xl border border-themeblue-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-themeblue-900 mb-1">Tanggal Data Overview *</label>
+                        <input type="date" id="stock-tanggal" required class="w-full border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-themeblue-900 mb-1">Pilih File Excel WRH - DC Stock Overview *</label>
+                        <input type="file" id="stock-file" accept=".xlsx, .xls" required class="w-full text-xs text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-themeblue-700 file:text-white hover:file:bg-themeblue-800 cursor-pointer">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" id="btn-submit-stock" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5">
+                        <span>⚡</span><span>Proses & Analisis Data Stok</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABEL RINCIAN PRODUK OVERSTOCK & DEADSTOCK -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100 space-y-3 p-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-themeblue-900">Rincian Daftar Produk Ber-Risiko</h3>
+                    <span id="stat-risk-item-badge" class="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-200">0 Item Filtered</span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="filter-stock-category" onchange="renderTabelOverstockDeadstock()" class="bg-white border border-themeblue-300 rounded-lg text-xs font-bold p-2 focus:ring-2 focus:ring-themeblue-600 outline-none">
+                        <option value="ALL">Semua Kategori (Overstock & Deadstock)</option>
+                        <option value="OVERSTOCK">🟡 Khusus Overstock (>50D)</option>
+                        <option value="DEADSTOCK">🔴 Khusus Deadstock (>90D)</option>
+                    </select>
+
+                    <input type="text" id="search-stock-keyword" onkeyup="renderTabelOverstockDeadstock()" placeholder="🔍 Cari Mat ID / Nama Produk..." class="border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none w-48 md:w-64">
+
+                    <button onclick="resetDataStockOverview()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                        🗑️ Clean Analytics
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
+                            <th class="py-3 px-4">Mat ID</th>
+                            <th class="py-3 px-4">Nama Deskripsi Produk</th>
+                            <th class="py-3 px-4">Status Risiko</th>
+                            <th class="py-3 px-4">On-Hand (Box)</th>
+                            <th class="py-3 px-4">Qty Bermasalah (Box)</th>
+                            <th class="py-3 px-4">X-Days 90D</th>
+                            <th class="py-3 px-4">Rekomendasi Disposisi / Action Plan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-overstock" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL POPUP: CHECKER INSPEKSI & FOTO KEBERSIHAN -->
     <div id="modal-checker-inspeksi" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600 my-8">
@@ -1019,6 +1182,7 @@
         let dataDamaged = JSON.parse(localStorage.getItem('wpc_damaged')) || [];
         let dataExpired = JSON.parse(localStorage.getItem('wpc_expired')) || [];
         let dataOpname = JSON.parse(localStorage.getItem('wpc_opname')) || [];
+        let dataStockOverview = JSON.parse(localStorage.getItem('wpc_stock_overview')) || { items: [], onHandTotal: 0, date: '' };
         let currentAuthUser = JSON.parse(localStorage.getItem('wpc_auth')) || null;
         let userAktif = localStorage.getItem('wpc_user') || 'Supervisor';
 
@@ -1036,8 +1200,9 @@
         let chartExpiredStatusInstance = null;
         let chartTopExpiredInstance = null;
         let chartOpnameDiffTrendInstance = null;
+        let chartStockRatioInstance = null;
+        let chartTopStockRisksInstance = null;
 
-        // KOMPRESI ULTRA LIGHTWEIGHT (Maks 220px, Quality 0.3) UNTUK MENGHEMAT QUOTA FIREBASE (~15KB)
         function kompresFoto(file, maxWidth = 220, maxHeight = 220, quality = 0.3) {
             return new Promise((resolve) => {
                 if (!file) {
@@ -1086,6 +1251,7 @@
                 localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
                 localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
                 localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+                localStorage.setItem('wpc_stock_overview', JSON.stringify(dataStockOverview));
             } catch (err) {
                 console.warn("Storage Quota Exceeded! Cleaning old photo cache...", err);
                 dataDamaged.forEach((item, idx) => { if (idx > 20) item.foto = null; });
@@ -1097,6 +1263,7 @@
                     localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
                     localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
                     localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+                    localStorage.setItem('wpc_stock_overview', JSON.stringify(dataStockOverview));
                 } catch (e) {
                     console.error("Critical storage error:", e);
                 }
@@ -1108,6 +1275,7 @@
                     damaged: dataDamaged,
                     expired: dataExpired,
                     opname: dataOpname,
+                    stockOverview: dataStockOverview,
                     updatedAt: Date.now()
                 }).then(() => {
                     setIndikatorStatus('green', 'Terhubung Realtime ke Cloud Server');
@@ -1142,12 +1310,14 @@
                         dataDamaged = val.damaged || [];
                         dataExpired = val.expired || [];
                         dataOpname = val.opname || [];
+                        dataStockOverview = val.stockOverview || { items: [], onHandTotal: 0, date: '' };
 
                         try {
                             localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
                             localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
                             localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
                             localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+                            localStorage.setItem('wpc_stock_overview', JSON.stringify(dataStockOverview));
                         } catch (e) { console.warn("Cache sync warn:", e); }
 
                         renderSemuaTabel();
@@ -1182,6 +1352,7 @@
             renderDamaged();
             renderExpired();
             renderOpname();
+            renderDashboardOverstockDeadstock();
             renderStatistik();
         }
 
@@ -1191,6 +1362,9 @@
 
             const inputTgl = document.getElementById('opname-tanggal');
             if (inputTgl) inputTgl.value = new Date().toISOString().slice(0,10);
+
+            const inputTglStock = document.getElementById('stock-tanggal');
+            if (inputTglStock) inputTglStock.value = new Date().toISOString().slice(0,10);
 
             updateTampilanPengguna();
             renderSemuaTabel();
@@ -1277,7 +1451,7 @@
                 btn.classList.add('border-transparent', 'text-themeblue-100');
             });
 
-            ['page-kebersihan', 'page-damaged', 'page-expired', 'page-opname'].forEach(id => {
+            ['page-kebersihan', 'page-damaged', 'page-expired', 'page-opname', 'page-overstock'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
             });
@@ -1305,6 +1479,12 @@
                 if (nav) nav.classList.add('border-amber-400', 'text-white');
                 if (page) page.classList.remove('hidden');
                 setTimeout(renderDashboardOpnameVisual, 100);
+            } else if (menu === 'overstock') {
+                const nav = document.getElementById('nav-overstock');
+                const page = document.getElementById('page-overstock');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+                setTimeout(renderDashboardOverstockDeadstock, 100);
             }
         }
 
@@ -1552,7 +1732,6 @@
             if (f) f.reset();
         }
 
-        // PERBAIKAN KHUSUS MENU JADWAL KEBERSIHAN: FOTO OTOMATIS DIHAPUS SAAT STATUS BEBERAPA "SELESAI"
         function simpanApprovalKebersihan(e) {
             e.preventDefault();
             const id = document.getElementById('appr-keb-id').value;
@@ -1564,7 +1743,6 @@
                 const item = dataJadwal[itemIndex];
                 if (status === 'Selesai') {
                     item.status = 'Selesai';
-                    // LOGIKA BARU: HAPUS BUKTI FOTO SETELAH SELESAI DIVERIFIKASI UNTUK MENGHEMAT STORAGE & MEMAKSIMALKAN PERFORMA
                     item.foto = null; 
                 } else {
                     item.status = 'Belum';
@@ -2753,6 +2931,344 @@
                 dataOpname = dataOpname.filter(i => String(i.id) !== String(id));
                 simpanKeStorage();
                 renderOpname();
+            }
+        }
+
+        // LOGIKA BARU FITUR: ITEM OVERSTOCK & DEADSTOCK
+        function prosesEkstraksiStockOverviewExcel(file, tanggal) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+
+                        let extractedItems = [];
+                        let globalOnHandTotal = 0;
+
+                        workbook.SheetNames.forEach(sheetName => {
+                            const worksheet = workbook.Sheets[sheetName];
+                            const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                            if (jsonSheet.length > 0) {
+                                let isOverstockSheet = sheetName.toLowerCase().includes('overstock');
+                                let isDeadstockSheet = sheetName.toLowerCase().includes('deadstock');
+
+                                let colMatId = 0;
+                                let colDesc = 1;
+                                let colRiskQty = -1;
+                                let colXDays = -1;
+                                let colOnHand = -1;
+
+                                jsonSheet.forEach((row, rIdx) => {
+                                    if (rIdx < 5) {
+                                        row.forEach((cellVal, cIdx) => {
+                                            if (cellVal) {
+                                                const strVal = String(cellVal).trim().toLowerCase();
+                                                if (strVal === 'product' || strVal === 'mat id' || strVal === 'material') colMatId = cIdx;
+                                                if (strVal.includes('description') || strVal.includes('nama')) colDesc = cIdx;
+                                                if (strVal.includes('overstock >50d') || strVal.includes('qty deadstock')) colRiskQty = cIdx;
+                                                if (strVal.includes('xdays')) colXDays = cIdx;
+                                                if (strVal.includes('on hand')) colOnHand = cIdx;
+                                            }
+                                        });
+                                    }
+                                });
+
+                                jsonSheet.forEach((row, rIdx) => {
+                                    if (rIdx > 0 && row.length > 0) {
+                                        const rawMatId = row[colMatId];
+                                        const rawDesc = row[colDesc];
+
+                                        if (rawMatId && String(rawMatId).toLowerCase() === 'total' && colOnHand !== -1) {
+                                            const totalVal = parseFloat(row[colOnHand]);
+                                            if (!isNaN(totalVal)) globalOnHandTotal = Math.round(totalVal);
+                                        }
+
+                                        if (rawMatId && String(rawMatId).toLowerCase() !== 'product' && String(rawMatId).toLowerCase() !== 'total') {
+                                            const matId = String(rawMatId).replace("'", "").trim();
+                                            const nama = rawDesc ? String(rawDesc).trim() : 'Produk ' + matId;
+
+                                            let riskQty = 0;
+                                            if (colRiskQty !== -1 && row[colRiskQty] !== undefined) {
+                                                const parsedQty = parseFloat(row[colRiskQty]);
+                                                if (!isNaN(parsedQty)) riskQty = Math.round(parsedQty);
+                                            }
+
+                                            let xdays = 0;
+                                            if (colXDays !== -1 && row[colXDays] !== undefined) {
+                                                const parsedX = parseFloat(row[colXDays]);
+                                                if (!isNaN(parsedX)) xdays = Math.round(parsedX * 10) / 10;
+                                            }
+
+                                            let onHand = 0;
+                                            if (colOnHand !== -1 && row[colOnHand] !== undefined) {
+                                                const parsedOH = parseFloat(row[colOnHand]);
+                                                if (!isNaN(parsedOH)) onHand = Math.round(parsedOH);
+                                            }
+
+                                            if (riskQty > 0) {
+                                                const riskCategory = isDeadstockSheet ? 'DEADSTOCK' : (isOverstockSheet ? 'OVERSTOCK' : (xdays >= 90 ? 'DEADSTOCK' : 'OVERSTOCK'));
+
+                                                extractedItems.push({
+                                                    id: `${matId}_${riskCategory}`,
+                                                    matId,
+                                                    nama,
+                                                    kategori: riskCategory,
+                                                    riskQty,
+                                                    onHand,
+                                                    xdays,
+                                                    actionPlan: 'Pending Disposisi',
+                                                    tanggal
+                                                });
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        });
+
+                        resolve({
+                            items: extractedItems,
+                            onHandTotal: globalOnHandTotal,
+                            date: tanggal
+                        });
+                    } catch (err) {
+                        console.warn("Parsing Stock Overview Error:", err);
+                        resolve({ items: [], onHandTotal: 0, date: tanggal });
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function simpanStockOverview(event) {
+            event.preventDefault();
+            if (!isSupervisor()) {
+                alert('Akses ditolak! Hanya Supervisor / DC Manager yang diperbolehkan mengunggah data Overview.');
+                return;
+            }
+
+            const btnSubmit = document.getElementById('btn-submit-stock');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerText = 'Menganalisis Berkas Stock Overview...';
+            }
+
+            const tanggal = document.getElementById('stock-tanggal').value;
+            const fileInput = document.getElementById('stock-file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Silakan pilih berkas Excel Stock Overview terlebih dahulu!');
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerText = '⚡ Proses & Analisis Data Stok';
+                }
+                return;
+            }
+
+            const ekstraksi = await prosesEkstraksiStockOverviewExcel(file, tanggal);
+
+            if (ekstraksi.items.length === 0) {
+                alert("⚠️ Tidak ditemukan data ber-risiko (Overstock / Deadstock > 0) pada file yang diunggah!");
+            } else {
+                // Penggabungan data jika sudah ada item terdaftar sebelumnya
+                let currentItemsMap = {};
+                if (dataStockOverview && dataStockOverview.items) {
+                    dataStockOverview.items.forEach(i => { currentItemsMap[i.id] = i; });
+                }
+
+                ekstraksi.items.forEach(newItem => {
+                    if (currentItemsMap[newItem.id]) {
+                        currentItemsMap[newItem.id].riskQty = newItem.riskQty;
+                        currentItemsMap[newItem.id].onHand = newItem.onHand;
+                        currentItemsMap[newItem.id].xdays = newItem.xdays;
+                        currentItemsMap[newItem.id].tanggal = newItem.tanggal;
+                    } else {
+                        currentItemsMap[newItem.id] = newItem;
+                    }
+                });
+
+                dataStockOverview = {
+                    items: Object.values(currentItemsMap),
+                    onHandTotal: ekstraksi.onHandTotal || dataStockOverview.onHandTotal || 0,
+                    date: tanggal
+                };
+
+                simpanKeStorage();
+                renderDashboardOverstockDeadstock();
+
+                alert(`✅ Analitika Stok Berhasil Di-update!\n• Terdeteksi ${ekstraksi.items.length} Item Ber-Risiko Baru\n• Total On-Hand Box DC: ${dataStockOverview.onHandTotal.toLocaleString('id-ID')} Box`);
+            }
+
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = '⚡ Proses & Analisis Data Stok';
+            }
+        }
+
+        function updateActionPlanDisposisi(itemId, newPlan) {
+            if (!dataStockOverview || !dataStockOverview.items) return;
+            const targetIndex = dataStockOverview.items.findIndex(i => String(i.id) === String(itemId));
+            
+            if (targetIndex !== -1) {
+                dataStockOverview.items[targetIndex].actionPlan = newPlan;
+                simpanKeStorage();
+                renderTabelOverstockDeadstock();
+            }
+        }
+
+        function renderDashboardOverstockDeadstock() {
+            const items = (dataStockOverview && dataStockOverview.items) ? dataStockOverview.items : [];
+            let totalOvsQty = 0;
+            let totalDdsQty = 0;
+
+            items.forEach(item => {
+                if (item.kategori === 'OVERSTOCK') totalOvsQty += (item.riskQty || 0);
+                else if (item.kategori === 'DEADSTOCK') totalDdsQty += (item.riskQty || 0);
+            });
+
+            const elOvs = document.getElementById('stat-ovs-qty');
+            const elDds = document.getElementById('stat-dds-qty');
+            const elOnHand = document.getElementById('stat-onhand-qty');
+            const elRiskCount = document.getElementById('stat-risk-products-count');
+
+            if (elOvs) elOvs.innerText = totalOvsQty.toLocaleString('id-ID');
+            if (elDds) elDds.innerText = totalDdsQty.toLocaleString('id-ID');
+            if (elOnHand) elOnHand.innerText = (dataStockOverview.onHandTotal || 0).toLocaleString('id-ID');
+            if (elRiskCount) elRiskCount.innerText = items.length;
+
+            try {
+                const pageOvs = document.getElementById('page-overstock');
+                if (pageOvs && !pageOvs.classList.contains('hidden')) {
+                    const canvasRatio = document.getElementById('chartStockRatio');
+                    if (canvasRatio && typeof Chart !== 'undefined') {
+                        const ctxRatio = canvasRatio.getContext('2d');
+                        if (chartStockRatioInstance) chartStockRatioInstance.destroy();
+
+                        const totalOH = dataStockOverview.onHandTotal || (totalOvsQty + totalDdsQty + 10000);
+                        const healthyQty = Math.max(0, totalOH - totalOvsQty - totalDdsQty);
+
+                        chartStockRatioInstance = new Chart(ctxRatio, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Stok Sehat ✅', 'Overstock (>50D) 🟡', 'Deadstock (>90D) 🔴'],
+                                datasets: [{
+                                    data: [healthyQty, totalOvsQty, totalDdsQty],
+                                    backgroundColor: ['#059669', '#D97706', '#DC2626'],
+                                    borderWidth: 2
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+                            }
+                        });
+                    }
+
+                    const canvasTopRisk = document.getElementById('chartTopStockRisks');
+                    if (canvasTopRisk && typeof Chart !== 'undefined') {
+                        const ctxTopRisk = canvasTopRisk.getContext('2d');
+                        if (chartTopStockRisksInstance) chartTopStockRisksInstance.destroy();
+
+                        const sortedRisks = [...items].sort((a, b) => b.riskQty - a.riskQty).slice(0, 5);
+
+                        chartTopStockRisksInstance = new Chart(ctxTopRisk, {
+                            type: 'bar',
+                            data: {
+                                labels: sortedRisks.map(p => p.nama.length > 20 ? p.nama.slice(0,20) + '...' : p.nama),
+                                datasets: [{
+                                    label: 'Qty Bermasalah (Box)',
+                                    data: sortedRisks.map(p => p.riskQty),
+                                    backgroundColor: sortedRisks.map(p => p.kategori === 'DEADSTOCK' ? '#DC2626' : '#D97706'),
+                                    borderRadius: 5
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } }
+                            }
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn("Stock Overview Chart safe-skip:", err);
+            }
+
+            renderTabelOverstockDeadstock();
+        }
+
+        function renderTabelOverstockDeadstock() {
+            const tbody = document.getElementById('tabel-overstock');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const items = (dataStockOverview && dataStockOverview.items) ? dataStockOverview.items : [];
+            const filterKat = document.getElementById('filter-stock-category')?.value || 'ALL';
+            const keyword = document.getElementById('search-stock-keyword')?.value.trim().toLowerCase() || '';
+
+            const filteredItems = items.filter(item => {
+                const matchKat = (filterKat === 'ALL') || (item.kategori === filterKat);
+                const matchKeyword = (item.matId.toLowerCase().includes(keyword)) || (item.nama.toLowerCase().includes(keyword));
+                return matchKat && matchKeyword;
+            });
+
+            const badgeCount = document.getElementById('stat-risk-item-badge');
+            if (badgeCount) badgeCount.innerText = `${filteredItems.length} Item Filtered`;
+
+            if (filteredItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-400 text-xs">Belum ada data Overstock / Deadstock terdaftar. Silakan unggah berkas Excel Overview.</td></tr>`;
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
+
+                let badgeKategori = item.kategori === 'DEADSTOCK'
+                    ? `<span class="bg-red-100 text-red-800 border border-red-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🔴 DEADSTOCK (>90D)</span>`
+                    : `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🟡 OVERSTOCK (>50D)</span>`;
+
+                const isSup = isSupervisor();
+                let selectActionPlan = '';
+                
+                if (isSup) {
+                    selectActionPlan = `
+                        <select onchange="updateActionPlanDisposisi('${item.id}', this.value)" class="bg-white border border-gray-300 rounded p-1 text-xs font-bold text-themeblue-900 focus:ring-1 focus:ring-themeblue-600 outline-none">
+                            <option value="Pending Disposisi" ${item.actionPlan === 'Pending Disposisi' ? 'selected' : ''}>⏳ Pending Disposisi</option>
+                            <option value="🏷️ Promo / Bundling" ${item.actionPlan === '🏷️ Promo / Bundling' ? 'selected' : ''}>🏷️ Promo / Bundling</option>
+                            <option value="🔁 Relokasi DC" ${item.actionPlan === '🔁 Relokasi DC' ? 'selected' : ''}>🔁 Relokasi DC</option>
+                            <option value="⚠️ Clearance Sale" ${item.actionPlan === '⚠️ Clearance Sale' ? 'selected' : ''}>⚠️ Clearance Sale</option>
+                            <option value="📦 Retur Supplier" ${item.actionPlan === '📦 Retur Supplier' ? 'selected' : ''}>📦 Retur Supplier</option>
+                        </select>
+                    `;
+                } else {
+                    selectActionPlan = `<span class="text-xs font-bold text-themeblue-800">${item.actionPlan || 'Pending Disposisi'}</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-xs text-themeblue-800">${item.matId}</td>
+                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
+                    <td class="py-3 px-4">${badgeKategori}</td>
+                    <td class="py-3 px-4 text-xs font-semibold">${(item.onHand || 0).toLocaleString('id-ID')} Box</td>
+                    <td class="py-3 px-4 text-xs font-bold text-red-600">${(item.riskQty || 0).toLocaleString('id-ID')} Box</td>
+                    <td class="py-3 px-4 text-xs">${item.xdays ? item.xdays + ' Hari' : '-'}</td>
+                    <td class="py-3 px-4">${selectActionPlan}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function resetDataStockOverview() {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Analitika Overstock & Deadstock?')) {
+                dataStockOverview = { items: [], onHandTotal: 0, date: '' };
+                simpanKeStorage();
+                renderDashboardOverstockDeadstock();
             }
         }
 
