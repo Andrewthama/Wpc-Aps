@@ -614,7 +614,7 @@
                 <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-300">📊 DC Stock Intelligence</span>
             </div>
 
-            <!-- CARD KPI SUMMARY OVERSTOCK & DEADSTOCK (DIPERBARUI SECARA PRESISI) -->
+            <!-- CARD KPI SUMMARY OVERSTOCK & DEADSTOCK -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-amber-50 p-4 rounded-xl border-l-4 border-amber-500 flex justify-between items-center">
                     <div>
@@ -795,7 +795,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: VERIFIKASI SUPERVISOR KEBERSIHAN -->
+    <!-- MODAL POPUP: VERIFIKASI SUPERVISOR KEBERSIHAN (DIPERBAIKI SECARA INSTAN & FAIL-SAFE) -->
     <div id="modal-approval-kebersihan" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-green-600 my-8">
             <div class="flex justify-between items-center border-b pb-2">
@@ -803,7 +803,7 @@
                     <h3 class="text-base font-bold text-gray-800">Verifikasi Kebersihan Tuntas</h3>
                     <p class="text-[11px] text-gray-500">Supervisor meninjau foto bukti kebersihan dari Checker</p>
                 </div>
-                <button onclick="tutupModalApprovalKebersihan()" class="text-gray-400 font-bold">✕</button>
+                <button type="button" onclick="tutupModalApprovalKebersihan()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
             </div>
 
             <div class="bg-green-50 p-3.5 rounded-lg border border-green-200 text-xs space-y-1">
@@ -1299,8 +1299,6 @@
                 db.ref('wpc_cloud_data').on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val) {
-                        // PERBAIKAN BUG 2: MEMATIKAN LOGIKA RESTORE FOTO OTOMATIS
-                        // Foto yang sudah dihapus supervisor saat status 'Selesai' tidak akan dikembalikan lagi.
                         dataJadwal = val.jadwal || [];
                         dataDamaged = val.damaged || [];
                         dataExpired = val.expired || [];
@@ -1712,11 +1710,22 @@
             if (m) m.classList.remove('hidden');
         }
 
-        // PERBAIKAN KHUSUS MENU JADWAL KEBERSIHAN: FOTO OTOMATIS DIHAPUS SAAT STATUS BEBERAPA "SELESAI"
+        function tutupModalApprovalKebersihan() {
+            const m = document.getElementById('modal-approval-kebersihan');
+            if (m) m.classList.add('hidden');
+            const f = document.getElementById('form-approval-kebersihan');
+            if (f) f.reset();
+        }
+
+        // PERBAIKAN BUG POPUP MACET PADA VERIFIKASI KEBERSIHAN
         function simpanApprovalKebersihan(e) {
-            e.preventDefault();
+            if (e && e.preventDefault) e.preventDefault();
+            
             const id = document.getElementById('appr-keb-id').value;
             const status = document.getElementById('appr-keb-status').value;
+
+            // LANGSUNG TUTUP MODAL TERLEBIH DAHULU AGAR UI TIDAK MACET/HANG
+            tutupModalApprovalKebersihan();
 
             const itemIndex = dataJadwal.findIndex(i => String(i.id) === String(id));
 
@@ -1724,19 +1733,22 @@
                 const item = dataJadwal[itemIndex];
                 if (status === 'Selesai') {
                     item.status = 'Selesai';
-                    // LOGIKA BARU: HAPUS BUKTI FOTO SETELAH SELESAI DIVERIFIKASI UNTUK MENGHEMAT STORAGE & MEMAKSIMALKAN PERFORMA
-                    item.foto = null; 
+                    item.foto = null; // Foto dibersihkan otomatis demi menghemat kuota
                 } else {
                     item.status = 'Belum';
                     item.foto = null;
-                    alert('Pengecekan ditolak oleh Supervisor. Status dikembalikan ke "Belum".');
                 }
 
+                // SIMPAN KE STORAGE & FIREBASE DENGAN FAIL-SAFE
                 simpanKeStorage();
-                tutupModalApprovalKebersihan();
                 renderTabel();
                 renderStatistik();
-                alert("✅ Kebersihan berhasil diverifikasi TUNTAS! Foto bukti dibersihkan otomatis dari sistem untuk menghemat ruang penyimpanan.");
+
+                if (status === 'Selesai') {
+                    alert("✅ Kebersihan berhasil diverifikasi TUNTAS!");
+                } else {
+                    alert("❌ Pengecekan ditolak. Status dikembalikan ke 'Belum'.");
+                }
             }
         }
 
@@ -3305,7 +3317,6 @@
 
             const todayStr = new Date().toISOString().slice(0,10);
 
-            // PERBAIKAN BUG 3: Menyaring jadwal HARI INI agar jadwal menggantung hari sebelumnya tidak mengotori tabel hari ini
             const jadwalHariIni = dataJadwal.filter(i => {
                 if (!i.tanggalDibuat) return true;
                 return i.tanggalDibuat === todayStr;
@@ -3338,7 +3349,6 @@
                     badgeStatus = `<span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-[10px] font-bold">Belum</span>`;
                 }
 
-                // PERBAIKAN BUG 3: Tombol foto hanya muncul jika status bukan Belum DAN foto benar-benar ada
                 let fotoElement = (item.status !== 'Belum' && item.foto) 
                     ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border border-themeblue-200 font-semibold">📷 Lihat Foto</button>`
                     : `<span class="text-xs text-gray-400 italic">${item.status === 'Selesai' ? 'Dibersihkan Otomatis ✅' : 'Belum Ada Foto'}</span>`;
