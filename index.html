@@ -456,7 +456,7 @@
         </div>
     </div>
 
-    <!-- HALAMAN 4: REPORT OPNAME DAILY (DENGAN DASHBOARD & FILTER TANGGAL REALTIME) -->
+    <!-- HALAMAN 4: REPORT OPNAME DAILY (DENGAN DASHBOARD, RINCIAN BARANG SELISIH & FILTER REALTIME) -->
     <div id="page-opname" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         
         <!-- DASHBOARD ANALITIKA SELISIH OPNAME DAILY DENGAN FILTER TANGGAL -->
@@ -531,6 +531,44 @@
                 <div class="relative max-h-56">
                     <canvas id="chartOpnameDiffTrend"></canvas>
                 </div>
+            </div>
+        </div>
+
+        <!-- FITUR BARU: RINCIAN DAFTAR PRODUK SELISIH OPNAME DAILY -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100 space-y-3 p-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-themeblue-900">Rincian Daftar Produk Selisih Opname</h3>
+                    <span id="stat-opname-diff-item-badge" class="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-200">0 Item Selisih</span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- FILTER KHUSUS CASE / PACK -->
+                    <select id="filter-opname-diff-type" onchange="renderTabelRincianSelisihOpname()" class="bg-white border border-themeblue-300 rounded-lg text-xs font-bold p-2 focus:ring-2 focus:ring-themeblue-600 outline-none">
+                        <option value="ALL">Semua Jenis Selisih (Case & Pack)</option>
+                        <option value="CASE">🟡 Khusus Selisih Case (Karton)</option>
+                        <option value="PACK">🟣 Khusus Selisih Pack (Pcs/Eceran)</option>
+                    </select>
+
+                    <input type="text" id="search-opname-diff-keyword" onkeyup="renderTabelRincianSelisihOpname()" placeholder="🔍 Cari MID / Nama Produk..." class="border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none w-48 md:w-64">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
+                            <th class="py-3 px-4">Tanggal</th>
+                            <th class="py-3 px-4">MID / Mat ID</th>
+                            <th class="py-3 px-4">Nama Deskripsi Produk</th>
+                            <th class="py-3 px-4">Jenis Selisih</th>
+                            <th class="py-3 px-4">Qty System vs Actual</th>
+                            <th class="py-3 px-4">Jumlah Selisih (Variance)</th>
+                            <th class="py-3 px-4">Bin / Lokasi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-rincian-selisih-opname" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
             </div>
         </div>
 
@@ -795,7 +833,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: VERIFIKASI SUPERVISOR KEBERSIHAN (DIPERBAIKI SECARA INSTAN & FAIL-SAFE) -->
+    <!-- MODAL POPUP: VERIFIKASI SUPERVISOR KEBERSIHAN -->
     <div id="modal-approval-kebersihan" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-green-600 my-8">
             <div class="flex justify-between items-center border-b pb-2">
@@ -1717,14 +1755,12 @@
             if (f) f.reset();
         }
 
-        // PERBAIKAN BUG POPUP MACET PADA VERIFIKASI KEBERSIHAN
         function simpanApprovalKebersihan(e) {
             if (e && e.preventDefault) e.preventDefault();
             
             const id = document.getElementById('appr-keb-id').value;
             const status = document.getElementById('appr-keb-status').value;
 
-            // LANGSUNG TUTUP MODAL TERLEBIH DAHULU AGAR UI TIDAK MACET/HANG
             tutupModalApprovalKebersihan();
 
             const itemIndex = dataJadwal.findIndex(i => String(i.id) === String(id));
@@ -1733,13 +1769,12 @@
                 const item = dataJadwal[itemIndex];
                 if (status === 'Selesai') {
                     item.status = 'Selesai';
-                    item.foto = null; // Foto dibersihkan otomatis demi menghemat kuota
+                    item.foto = null; 
                 } else {
                     item.status = 'Belum';
                     item.foto = null;
                 }
 
-                // SIMPAN KE STORAGE & FIREBASE DENGAN FAIL-SAFE
                 simpanKeStorage();
                 renderTabel();
                 renderStatistik();
@@ -2633,7 +2668,8 @@
             document.body.removeChild(link);
         }
 
-        function prosesEkstraksiSelisihExcel(file) {
+        // LOGIKA BARU: EKSTRAKSI LENGKAP DETAIL BARIS PRODUK SELISIH OPNAME DAILY
+        function prosesEkstraksiSelisihExcel(file, tanggal) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -2643,26 +2679,33 @@
 
                         let diffCaseItems = 0, diffCaseQty = 0;
                         let diffPackItems = 0, diffPackQty = 0;
+                        let detailProductsList = [];
 
                         workbook.SheetNames.forEach(sheetName => {
                             const worksheet = workbook.Sheets[sheetName];
                             const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                             if (jsonSheet.length > 0) {
-                                let colDiffCaseIdx = -1;
-                                let colDiffPackIdx = -1;
+                                let colMid = -1;
+                                let colDesc = -1;
+                                let colQtyCaseSys = -1, colQtyCaseAct = -1, colDiffCase = -1;
+                                let colQtyPackSys = -1, colQtyPackAct = -1, colDiffPack = -1;
+                                let colBin = -1;
 
                                 jsonSheet.forEach((row, rIdx) => {
                                     if (rIdx < 5) {
                                         row.forEach((cellVal, cIdx) => {
                                             if (cellVal) {
                                                 const strVal = String(cellVal).trim().toLowerCase();
-                                                if (strVal === 'diff. case' || strVal === 'diff case' || strVal === 'diff_case') {
-                                                    colDiffCaseIdx = cIdx;
-                                                }
-                                                if (strVal === 'diff. pack' || strVal === 'diff pack' || strVal === 'diff_pack') {
-                                                    colDiffPackIdx = cIdx;
-                                                }
+                                                if (strVal === 'mid system' || strVal === 'mat id' || strVal === 'mid') colMid = cIdx;
+                                                if (strVal.includes('description') || strVal.includes('nama')) colDesc = cIdx;
+                                                if (strVal === 'qty case system') colQtyCaseSys = cIdx;
+                                                if (strVal === 'qty case actual') colQtyCaseAct = cIdx;
+                                                if (strVal === 'diff. case' || strVal === 'diff case') colDiffCase = cIdx;
+                                                if (strVal === 'qty pack system') colQtyPackSys = cIdx;
+                                                if (strVal === 'qty pack actual') colQtyPackAct = cIdx;
+                                                if (strVal === 'diff. pack' || strVal === 'diff pack') colDiffPack = cIdx;
+                                                if (strVal.includes('bin') || strVal.includes('rak')) colBin = cIdx;
                                             }
                                         });
                                     }
@@ -2670,19 +2713,60 @@
 
                                 jsonSheet.forEach((row, rIdx) => {
                                     if (rIdx > 0 && row.length > 0) {
-                                        if (colDiffCaseIdx !== -1 && row[colDiffCaseIdx] !== undefined) {
-                                            const valCase = parseFloat(row[colDiffCaseIdx]);
-                                            if (!isNaN(valCase) && valCase !== 0) {
-                                                diffCaseItems++;
-                                                diffCaseQty += Math.abs(valCase);
-                                            }
-                                        }
+                                        const rawMid = colMid !== -1 ? row[colMid] : null;
+                                        const rawDesc = colDesc !== -1 ? row[colDesc] : null;
 
-                                        if (colDiffPackIdx !== -1 && row[colDiffPackIdx] !== undefined) {
-                                            const valPack = parseFloat(row[colDiffPackIdx]);
-                                            if (!isNaN(valPack) && valPack !== 0) {
-                                                diffPackItems++;
-                                                diffPackQty += Math.abs(valPack);
+                                        if (rawMid && String(rawMid).toLowerCase() !== 'mid system' && String(rawMid).toLowerCase() !== 'total') {
+                                            const mid = String(rawMid).replace("'", "").trim();
+                                            const nama = rawDesc ? String(rawDesc).trim() : 'Produk MID ' + mid;
+                                            const binText = (colBin !== -1 && row[colBin]) ? String(row[colBin]).trim() : '-';
+
+                                            // 1. CEK SELISIH CASE
+                                            if (colDiffCase !== -1 && row[colDiffCase] !== undefined) {
+                                                const valCase = parseFloat(row[colDiffCase]);
+                                                if (!isNaN(valCase) && valCase !== 0) {
+                                                    diffCaseItems++;
+                                                    diffCaseQty += Math.abs(valCase);
+
+                                                    const sysVal = colQtyCaseSys !== -1 ? (parseFloat(row[colQtyCaseSys]) || 0) : '-';
+                                                    const actVal = colQtyCaseAct !== -1 ? (parseFloat(row[colQtyCaseAct]) || 0) : '-';
+
+                                                    detailProductsList.push({
+                                                        id: `${mid}_CASE_${Date.now()}_${rIdx}`,
+                                                        tanggal,
+                                                        mid,
+                                                        nama,
+                                                        type: 'CASE',
+                                                        qtySys: sysVal,
+                                                        qtyAct: actVal,
+                                                        variance: valCase,
+                                                        bin: binText
+                                                    });
+                                                }
+                                            }
+
+                                            // 2. CEK SELISIH PACK
+                                            if (colDiffPack !== -1 && row[colDiffPack] !== undefined) {
+                                                const valPack = parseFloat(row[colDiffPack]);
+                                                if (!isNaN(valPack) && valPack !== 0) {
+                                                    diffPackItems++;
+                                                    diffPackQty += Math.abs(valPack);
+
+                                                    const sysVal = colQtyPackSys !== -1 ? (parseFloat(row[colQtyPackSys]) || 0) : '-';
+                                                    const actVal = colQtyPackAct !== -1 ? (parseFloat(row[colQtyPackAct]) || 0) : '-';
+
+                                                    detailProductsList.push({
+                                                        id: `${mid}_PACK_${Date.now()}_${rIdx}`,
+                                                        tanggal,
+                                                        mid,
+                                                        nama,
+                                                        type: 'PACK',
+                                                        qtySys: sysVal,
+                                                        qtyAct: actVal,
+                                                        variance: valPack,
+                                                        bin: binText
+                                                    });
+                                                }
                                             }
                                         }
                                     }
@@ -2691,14 +2775,15 @@
                         });
 
                         resolve({
-                            diffCaseItems: diffCaseItems,
+                            diffCaseItems,
                             diffCaseQty: Math.round(diffCaseQty),
-                            diffPackItems: diffPackItems,
-                            diffPackQty: Math.round(diffPackQty)
+                            diffPackItems,
+                            diffPackQty: Math.round(diffPackQty),
+                            detailProducts: detailProductsList
                         });
                     } catch (err) {
                         console.warn("Parsing Excel Error:", err);
-                        resolve({ diffCaseItems: 0, diffCaseQty: 0, diffPackItems: 0, diffPackQty: 0 });
+                        resolve({ diffCaseItems: 0, diffCaseQty: 0, diffPackItems: 0, diffPackQty: 0, detailProducts: [] });
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -2732,7 +2817,7 @@
                 return;
             }
 
-            const ekstraksi = await prosesEkstraksiSelisihExcel(file);
+            const ekstraksi = await prosesEkstraksiSelisihExcel(file, tanggal);
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -2753,7 +2838,8 @@
                     diffCaseItems: ekstraksi.diffCaseItems,
                     diffCaseQty: ekstraksi.diffCaseQty,
                     diffPackItems: ekstraksi.diffPackItems,
-                    diffPackQty: ekstraksi.diffPackQty
+                    diffPackQty: ekstraksi.diffPackQty,
+                    detailProducts: ekstraksi.detailProducts || []
                 };
 
                 dataOpname.unshift(itemBaru);
@@ -2769,7 +2855,7 @@
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = 'Unggah & Proses Laporan Opname';
                 }
-                alert(`✅ Berkas Opname Berhasil Dipproses!\n• Diff Case: ${ekstraksi.diffCaseItems} Item (${ekstraksi.diffCaseQty} Qty)\n• Diff Pack: ${ekstraksi.diffPackItems} Item (${ekstraksi.diffPackQty} Qty)`);
+                alert(`✅ Berkas Opname Berhasil Dipproses!\n• Diff Case: ${ekstraksi.diffCaseItems} Item (${ekstraksi.diffCaseQty} Qty)\n• Diff Pack: ${ekstraksi.diffPackItems} Item (${ekstraksi.diffPackQty} Qty)\n• Total ${ekstraksi.detailProducts.length} Rincian Baris Produk Selisih Diekstrak!`);
             };
 
             reader.readAsDataURL(file);
@@ -2869,6 +2955,67 @@
             } catch (err) {
                 console.warn("Opname Chart safe-skip:", err);
             }
+
+            renderTabelRincianSelisihOpname();
+        }
+
+        // LOGIKA FITUR BARU: RENDER TABEL RINCIAN DAFTAR PRODUK SELISIH OPNAME DAILY
+        function renderTabelRincianSelisihOpname() {
+            const tbody = document.getElementById('tabel-rincian-selisih-opname');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const selectedDate = document.getElementById('filter-opname-date')?.value || 'ALL';
+            const filterType = document.getElementById('filter-opname-diff-type')?.value || 'ALL';
+            const keyword = document.getElementById('search-opname-diff-keyword')?.value.trim().toLowerCase() || '';
+
+            // Mengumpulkan seluruh rincian barang selisih dari berkas opname sesuai tanggal
+            let allDetails = [];
+            dataOpname.forEach(fileOp => {
+                if (selectedDate === 'ALL' || fileOp.tanggal === selectedDate) {
+                    if (fileOp.detailProducts && Array.isArray(fileOp.detailProducts)) {
+                        allDetails.push(...fileOp.detailProducts);
+                    }
+                }
+            });
+
+            // Filter jenis selisih & keyword
+            const filteredDetails = allDetails.filter(item => {
+                const matchType = (filterType === 'ALL') || (item.type === filterType);
+                const matchKeyword = (String(item.mid).toLowerCase().includes(keyword)) || (item.nama.toLowerCase().includes(keyword));
+                return matchType && matchKeyword;
+            });
+
+            const badgeCount = document.getElementById('stat-opname-diff-item-badge');
+            if (badgeCount) badgeCount.innerText = `${filteredDetails.length} Item Selisih`;
+
+            if (filteredDetails.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-400 text-xs">Belum ada rincian produk selisih opname untuk filter yang dipilih. Silakan unggah berkas Excel Opname.</td></tr>`;
+                return;
+            }
+
+            filteredDetails.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
+
+                let badgeType = item.type === 'CASE'
+                    ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🟡 DIFF CASE (BOX)</span>`
+                    : `<span class="bg-purple-100 text-purple-800 border border-purple-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🟣 DIFF PACK (PCS)</span>`;
+
+                const varianceSign = item.variance > 0 ? `+${item.variance}` : item.variance;
+                const unitName = item.type === 'CASE' ? 'Box' : 'Pack/Pcs';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs font-semibold">${formatTanggalIndo(item.tanggal)}</td>
+                    <td class="py-3 px-4 font-mono font-bold text-xs text-themeblue-800">${item.mid}</td>
+                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
+                    <td class="py-3 px-4">${badgeType}</td>
+                    <td class="py-3 px-4 text-xs text-gray-600">Sys: <strong>${item.qtySys}</strong> | Act: <strong>${item.qtyAct}</strong></td>
+                    <td class="py-3 px-4 text-xs font-bold ${item.variance < 0 ? 'text-red-600' : 'text-green-600'}">${varianceSign} ${unitName}</td>
+                    <td class="py-3 px-4 text-xs font-mono text-gray-500">${item.bin || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         function renderOpname() {
