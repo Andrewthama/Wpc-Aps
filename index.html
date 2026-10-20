@@ -534,16 +534,16 @@
             </div>
         </div>
 
-        <!-- PERINGKAT USER JUMLAH DIFF QTY TERBANYAK s/d TERSEDIKIT -->
+        <!-- PERINGKAT USER AKURASI TERBAIK S/D TERBANYAK -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-themeblue-100 space-y-3">
             <div class="flex justify-between items-center border-b pb-2 border-themeblue-100">
                 <div>
                     <h3 class="text-sm font-bold text-themeblue-900 flex items-center gap-2">
-                        <span>🏆</span><span>Peringkat User Jumlah Diff Qty Terbanyak s/d Tersedikit</span>
+                        <span>🏆</span><span>Peringkat Akurasi User (Performa Selisih Terbaik s/d Terbanyak)</span>
                     </h3>
-                    <p class="text-xs text-gray-500">Peringkat petugas berdasarkan total akumulasi kuantitas selisih (|Diff Case| + |Diff Pack|)</p>
+                    <p class="text-xs text-gray-500">Peringkat petugas berdasarkan akumulasi selisih terendah (|Diff Case| + |Diff Pack|)</p>
                 </div>
-                <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full border border-amber-300">User Performance</span>
+                <span class="text-[10px] bg-green-100 text-green-800 font-bold px-2.5 py-0.5 rounded-full border border-green-300">User Performance</span>
             </div>
             <div id="container-user-diff-rank" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
         </div>
@@ -1727,7 +1727,6 @@
             const now = new Date();
             const uploadTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-            // PEMBERSIHAN OVERFLOW: Tidak menyimpan Base64 utuh ke storage lokal untuk menghemat kuota
             const itemBaru = {
                 id: Date.now(),
                 tanggal: tanggal,
@@ -1755,7 +1754,7 @@
                 btnSubmit.disabled = false;
                 btnSubmit.innerText = 'Unggah & Proses Laporan Opname';
             }
-            alert(`✅ Berkas Opname Berhasil Diproses!\n• Diff Case: ${ekstraksi.diffCaseItems} Item (${ekstraksi.diffCaseQty} Qty)\n• Diff Pack: ${ekstraksi.diffPackItems} Item (${ekstraksi.diffPackQty} Qty)\n• Total ${ekstraksi.detailProducts.length} Rincian Baris Produk Selisih Diekstrak!`);
+            alert(`✅ Berkas Opname Berhasil Dipproses!\n• Diff Case: ${ekstraksi.diffCaseItems} Item (${ekstraksi.diffCaseQty} Qty)\n• Diff Pack: ${ekstraksi.diffPackItems} Item (${ekstraksi.diffPackQty} Qty)\n• Total ${ekstraksi.detailProducts.length} Rincian Baris Produk Selisih Diekstrak!`);
         }
 
         function updateOpsiFilterTanggalOpname() {
@@ -1779,6 +1778,9 @@
             });
         }
 
+        // =========================================================================
+        // LEADERBOARD AKURASI USER TERBAIK (TERSEDIKIT DIFF = PERINGKAT ATAS)
+        // =========================================================================
         function renderLeaderboardUserDiff() {
             const container = document.getElementById('container-user-diff-rank');
             if (!container) return;
@@ -1805,7 +1807,13 @@
                 }
             });
 
-            const sortedUsers = Object.values(userAggr).sort((a, b) => b.totalDiffQty - a.totalDiffQty);
+            // LOGIKA PENGURUTAN BARU: ASCENDING (Semakin Kecil Diff = Peringkat Lebih Atas)
+            const sortedUsers = Object.values(userAggr).sort((a, b) => {
+                if (a.totalDiffQty !== b.totalDiffQty) {
+                    return a.totalDiffQty - b.totalDiffQty; // Urut dari Qty terkecil
+                }
+                return a.itemsCount - b.itemsCount; // Jika Qty sama, urut dari item bermasalah terkecil
+            });
 
             if (sortedUsers.length === 0) {
                 container.innerHTML = `<p class="text-xs text-gray-400 col-span-3 py-2">Belum ada data selisih user pada filter tanggal ini.</p>`;
@@ -1816,11 +1824,16 @@
             sortedUsers.forEach((user, index) => {
                 const badge = rankBadges[index] || `#${index + 1}`;
                 const card = document.createElement('div');
-                card.className = `p-3.5 rounded-xl border border-themeblue-200 bg-themeblue-50/50 relative space-y-1.5 shadow-sm`;
+                
+                const isTop3 = index < 3;
+                const bgClass = isTop3 ? 'bg-green-50/70 border-green-300' : 'bg-themeblue-50/50 border-themeblue-200';
+                const badgeClass = isTop3 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700';
+
+                card.className = `p-3.5 rounded-xl border ${bgClass} relative space-y-1.5 shadow-sm`;
                 card.innerHTML = `
-                    <div class="flex justify-between items-center border-b pb-1">
+                    <div class="flex justify-between items-center border-b pb-1 border-gray-200">
                         <span class="font-black text-themeblue-900 text-xs truncate max-w-[180px]">${badge} ${user.name}</span>
-                        <span class="text-[10px] bg-red-100 text-red-700 font-extrabold px-2 py-0.5 rounded-full">${user.totalDiffQty} Total Qty Diff</span>
+                        <span class="text-[10px] ${badgeClass} font-extrabold px-2 py-0.5 rounded-full">${user.totalDiffQty} Total Qty Diff</span>
                     </div>
                     <div class="text-[11px] space-y-0.5 text-gray-600 font-medium">
                         <div>• Case Diff: <strong class="text-amber-700">${user.diffCaseQty} Box</strong></div>
@@ -2014,9 +2027,7 @@
             }
         }
 
-        // =========================================================================
-        // JADWAL KEBERSIHAN, DAMAGED, EXPIRED, DAN STOCK OVERVIEW HANDLERS
-        // =========================================================================
+        // MODUL LAINNYA: KEBERSIHAN, DAMAGED, EXPIRED, STOCK OVERVIEW
         function renderLeaderboardPIC() {
             const container = document.getElementById('container-pic');
             if (!container) return;
