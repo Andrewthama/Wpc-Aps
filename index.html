@@ -77,7 +77,7 @@
             <div class="bg-themeblue-50 p-3 rounded-xl border border-themeblue-200 text-[11px] text-themeblue-900 space-y-1">
                 <p class="font-bold">🔑 Bantuan Akun Login Default:</p>
                 <p>• <strong>Manajemen & Checker:</strong> `supervisor`, `dcmanager`, `harry`, `ilham`, `robby`, `jimmy`, `agusbangun` | Pass: `admin123`</p>
-                <p>• <strong>Staf Gudang:</strong> Username `[nama_depan]` (contoh: `agus`, `aldy`, `bobby`) | Pass: `123456`</p>
+                <p>• <strong>Staf Gudang:</strong> Username `[nama_depan]` (contoh: `agus`, `aldy`, `bobby`, `miko`, `yogi`) | Pass: `123456`</p>
             </div>
         </div>
     </div>
@@ -138,6 +138,12 @@
             <span id="text-user-active">Mode: <strong>Supervisor</strong> (Melihat seluruh data & verifikasi laporan)</span>
             <span id="badge-role-type" class="bg-themeblue-700 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">Akses Penuh</span>
         </div>
+    </div>
+
+    <!-- Header Cetak -->
+    <div class="hidden print:block p-6 border-b text-center">
+        <h1 class="text-2xl font-bold">Laporan Ringkasan - Wpc-Aps (Warehouse Performance & Coordination)</h1>
+        <p class="text-sm text-gray-600">Tanggal Cetak: <span id="print-date"></span></p>
     </div>
 
     <!-- HALAMAN 1: JADWAL KEBERSIHAN -->
@@ -425,6 +431,20 @@
                         <option value="Aldy Surya Pratama">Aldy Surya Pratama</option>
                         <option value="Andri Sembiring">Andri Sembiring</option>
                         <option value="Bobby Disani">Bobby Disani</option>
+                        <option value="Brema Purba">Brema Purba</option>
+                        <option value="Dermawan">Dermawan</option>
+                        <option value="Frans Joy Temanta">Frans Joy Temanta</option>
+                        <option value="Irfansyah">Irfansyah</option>
+                        <option value="Jaka Nugraha">Jaka Nugraha</option>
+                        <option value="Miko Hermansyag">Miko Hermansyag</option>
+                        <option value="Muhammad Edo">Muhammad Edo</option>
+                        <option value="Nanda Al Hafids">Nanda Al Hafids</option>
+                        <option value="Nico Atmaja">Nico Atmaja</option>
+                        <option value="Riski Dermawan">Riski Dermawan</option>
+                        <option value="Satrya Karyanta">Satrya Karyanta</option>
+                        <option value="Sudybyo Widodo">Sudybyo Widodo</option>
+                        <option value="Wahyu Agustian">Wahyu Agustian</option>
+                        <option value="Yogi Karnisa">Yogi Karnisa</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -482,11 +502,41 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIKA UTAMA -->
+    <!-- SCRIPT LOGIKA UTAMA LENGKAP -->
     <script>
+        // DAFTAR LENGKAP PENGGUNA UNTUK LOGIN STAF & SUPERVISOR
         const userDatabase = {
             'supervisor': { password: 'admin123', name: 'Supervisor Gudang', role: 'Supervisor' },
-            'agus': { password: '123456', name: 'Agus Suwandani', role: 'Staf Kebersihan / Gudang' }
+            'dcmanager': { password: 'admin123', name: 'DC Manager', role: 'Supervisor' },
+            'logistics': { password: 'admin123', name: 'Logistic Manager', role: 'Supervisor' },
+            'headwh': { password: 'admin123', name: 'Head Warehouse', role: 'Supervisor' },
+            
+            // CHECKER
+            'harry': { password: 'admin123', name: 'Checker M.Harry', role: 'Supervisor' },
+            'ilham': { password: 'admin123', name: 'Checker Ilham Syahputra', role: 'Supervisor' },
+            'robby': { password: 'admin123', name: 'Checker M.Robby', role: 'Supervisor' },
+            'jimmy': { password: 'admin123', name: 'Checker Jimmy Ginting', role: 'Supervisor' },
+            'agusbangun': { password: 'admin123', name: 'Checker Agus Bangun', role: 'Supervisor' },
+
+            // STAF GUDANG
+            'agus': { password: '123456', name: 'Agus Suwandani', role: 'Staf Kebersihan / Gudang' },
+            'aldy': { password: '123456', name: 'Aldy Surya Pratama', role: 'Staf Kebersihan / Gudang' },
+            'andri': { password: '123456', name: 'Andri Sembiring', role: 'Staf Kebersihan / Gudang' },
+            'bobby': { password: '123456', name: 'Bobby Disani', role: 'Staf Kebersihan / Gudang' },
+            'brema': { password: '123456', name: 'Brema Purba', role: 'Staf Kebersihan / Gudang' },
+            'dermawan': { password: '123456', name: 'Dermawan', role: 'Staf Kebersihan / Gudang' },
+            'frans': { password: '123456', name: 'Frans Joy Temanta', role: 'Staf Kebersihan / Gudang' },
+            'irfansyah': { password: '123456', name: 'Irfansyah', role: 'Staf Kebersihan / Gudang' },
+            'jaka': { password: '123456', name: 'Jaka Nugraha', role: 'Staf Kebersihan / Gudang' },
+            'miko': { password: '123456', name: 'Miko Hermansyag', role: 'Staf Kebersihan / Gudang' },
+            'edo': { password: '123456', name: 'Muhammad Edo', role: 'Staf Kebersihan / Gudang' },
+            'nanda': { password: '123456', name: 'Nanda Al Hafids', role: 'Staf Kebersihan / Gudang' },
+            'nico': { password: '123456', name: 'Nico Atmaja', role: 'Staf Kebersihan / Gudang' },
+            'riski': { password: '123456', name: 'Riski Dermawan', role: 'Staf Kebersihan / Gudang' },
+            'satrya': { password: '123456', name: 'Satrya Karyanta', role: 'Staf Kebersihan / Gudang' },
+            'sudybyo': { password: '123456', name: 'Sudybyo Widodo', role: 'Staf Kebersihan / Gudang' },
+            'wahyu': { password: '123456', name: 'Wahyu Agustian', role: 'Staf Kebersihan / Gudang' },
+            'yogi': { password: '123456', name: 'Yogi Karnisa', role: 'Staf Kebersihan / Gudang' }
         };
 
         let dataJadwal = JSON.parse(localStorage.getItem('wpc_data')) || [];
@@ -498,9 +548,13 @@
         function isSupervisor() { return currentAuthUser && currentAuthUser.role === 'Supervisor'; }
 
         function simpanKeStorage() {
-            localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
-            localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
-            localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+            try {
+                localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+            } catch (err) {
+                console.warn("Storage warning:", err);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -514,6 +568,8 @@
                 if (screen) screen.classList.remove('hidden');
             } else {
                 if (screen) screen.classList.add('hidden');
+                document.getElementById('user-display-name').innerText = currentAuthUser.name;
+                document.getElementById('user-display-role').innerText = isSupervisor() ? `👑 ${currentAuthUser.name}` : '👤 Staf Gudang';
                 userAktif = isSupervisor() ? 'Supervisor' : currentAuthUser.name;
             }
         }
@@ -527,6 +583,10 @@
                 currentAuthUser = userDatabase[u];
                 localStorage.setItem('wpc_auth', JSON.stringify(currentAuthUser));
                 document.getElementById('modal-login-screen').classList.add('hidden');
+                document.getElementById('user-display-name').innerText = currentAuthUser.name;
+                document.getElementById('user-display-role').innerText = isSupervisor() ? `👑 ${currentAuthUser.name}` : '👤 Staf Gudang';
+                userAktif = isSupervisor() ? 'Supervisor' : currentAuthUser.name;
+                localStorage.setItem('wpc_user', userAktif);
                 renderSemuaTabel();
             } else {
                 document.getElementById('login-error-msg').classList.remove('hidden');
@@ -534,9 +594,11 @@
         }
 
         function prosesLogout() {
-            localStorage.removeItem('wpc_auth');
-            currentAuthUser = null;
-            document.getElementById('modal-login-screen').classList.remove('hidden');
+            if (confirm("Apakah Anda yakin ingin logout?")) {
+                localStorage.removeItem('wpc_auth');
+                currentAuthUser = null;
+                document.getElementById('modal-login-screen').classList.remove('hidden');
+            }
         }
 
         function pindahMenu(menu) {
@@ -554,7 +616,7 @@
         }
 
         // ==========================================
-        // DIBENAHI: FUNGSI TAMBAH JADWAL KEBERSIHAN
+        // FUNGSI JADWAL KEBERSIHAN
         // ==========================================
         function bukaModalTambah() { document.getElementById('modal-tambah')?.classList.remove('hidden'); }
         function tutupModalTambah() { document.getElementById('modal-tambah')?.classList.add('hidden'); }
@@ -589,33 +651,35 @@
             const jadwalHariIni = dataJadwal.filter(i => (!i.tanggalDibuat || i.tanggalDibuat === todayStr));
 
             if (jadwalHariIni.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan hari ini.</td></tr>`;
                 return;
             }
 
             jadwalHariIni.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-themeblue-100 text-xs';
+                tr.className = 'border-b border-themeblue-100 text-xs hover:bg-themeblue-50/50';
                 tr.innerHTML = `
                     <td class="py-3 px-4">${item.waktu} (${item.shift})</td>
-                    <td class="py-3 px-4 font-bold">${item.zona}</td>
-                    <td class="py-3 px-4">${item.pic}</td>
+                    <td class="py-3 px-4 font-bold text-gray-800">${item.zona}</td>
+                    <td class="py-3 px-4 font-semibold">${item.pic}</td>
                     <td class="py-3 px-4">-</td>
-                    <td class="py-3 px-4"><span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">${item.status}</span></td>
-                    <td class="py-3 px-4"><button onclick="hapusJadwalBaris('${item.id}')" class="text-red-600 font-bold">🗑️</button></td>
+                    <td class="py-3 px-4"><span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold text-[10px]">${item.status}</span></td>
+                    <td class="py-3 px-4"><button onclick="hapusJadwalBaris('${item.id}')" class="text-red-600 font-bold">🗑️ Hapus</button></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
         function hapusJadwalBaris(id) {
-            dataJadwal = dataJadwal.filter(i => String(i.id) !== String(id));
-            simpanKeStorage();
-            renderTabel();
+            if (confirm("Hapus jadwal kebersihan ini?")) {
+                dataJadwal = dataJadwal.filter(i => String(i.id) !== String(id));
+                simpanKeStorage();
+                renderTabel();
+            }
         }
 
         // ==========================================
-        // DIBENAHI: FUNGSI VERIFIKASI BARANG DAMAGED
+        // FUNGSI VERIFIKASI BARANG DAMAGED
         // ==========================================
         function bukaModalApproval(id, type) {
             const item = dataDamaged.find(i => String(i.id) === String(id));
@@ -650,26 +714,38 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            if (dataDamaged.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan barang damaged.</td></tr>`;
+                return;
+            }
+
             dataDamaged.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.className = 'border-b text-xs';
+                tr.className = 'border-b text-xs hover:bg-themeblue-50/50';
                 tr.innerHTML = `
                     <td class="py-3 px-4">${item.tanggal || '-'}</td>
-                    <td class="py-3 px-4">📷</td>
+                    <td class="py-3 px-4">📷 Bukti</td>
                     <td class="py-3 px-4">${item.kategori}</td>
-                    <td class="py-3 px-4">${item.matId}</td>
-                    <td class="py-3 px-4 font-bold">${item.nama}</td>
+                    <td class="py-3 px-4 font-mono font-bold">${item.matId}</td>
+                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
                     <td class="py-3 px-4 text-red-600 font-bold">${item.qty} ${item.satuan}</td>
                     <td class="py-3 px-4">${item.lokasi}</td>
                     <td class="py-3 px-4">${item.pelapor}</td>
-                    <td class="py-3 px-4"><span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">${item.status || 'Pending'}</span></td>
-                    <td class="py-3 px-4"><button onclick="bukaModalApproval('${item.id}', 'damaged')" class="bg-themeblue-700 text-white px-2 py-1 rounded font-bold">👑 Verifikasi</button></td>
+                    <td class="py-3 px-4"><span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold text-[10px]">${item.status || 'Pending'}</span></td>
+                    <td class="py-3 px-4"><button onclick="bukaModalApproval('${item.id}', 'damaged')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white px-2 py-1 rounded font-bold shadow-sm">👑 Verifikasi</button></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        // ==========================================
         // OPNAME FUNCTIONS & LEADERBOARD ACCURACY
+        // ==========================================
+        function simpanOpnameDaily(e) {
+            e.preventDefault();
+            alert("File Opname Daily diproses!");
+        }
+
         function renderOpname() {
             renderDashboardOpnameVisual();
         }
@@ -698,6 +774,7 @@
                 }
             });
 
+            // LOGIKA PENGURUTAN BARU: ASCENDING (Semakin Kecil Diff = Peringkat Lebih Atas)
             const sortedUsers = Object.values(userAggr).sort((a, b) => {
                 if (a.totalDiffQty !== b.totalDiffQty) return a.totalDiffQty - b.totalDiffQty;
                 return a.itemsCount - b.itemsCount;
@@ -729,8 +806,8 @@
             });
         }
 
-        function resetDataJadwal() { dataJadwal = []; simpanKeStorage(); renderTabel(); }
-        function resetDataDamaged() { dataDamaged = []; simpanKeStorage(); renderDamaged(); }
+        function resetDataJadwal() { if (confirm("Reset seluruh jadwal?")) { dataJadwal = []; simpanKeStorage(); renderTabel(); } }
+        function resetDataDamaged() { if (confirm("Reset seluruh data damaged?")) { dataDamaged = []; simpanKeStorage(); renderDamaged(); } }
     </script>
 </body>
 </html>
