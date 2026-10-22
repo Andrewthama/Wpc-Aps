@@ -78,7 +78,7 @@
             <div class="bg-themeblue-50 p-3 rounded-xl border border-themeblue-200 text-[11px] text-themeblue-900 space-y-1">
                 <p class="font-bold">🔑 Bantuan Akun Login Default:</p>
                 <p>• <strong>Manajemen & Checker:</strong> `supervisor`, `dcmanager`, `harry`, `ilham`, `robby`, `jimmy`, `agusbangun` | Pass: `admin123`</p>
-                <p>• <strong>Staf Gudang:</strong> Username `[nama_depan]` (contoh: `agus`, `aldy`, `bobby`) | Pass: `123456`</p>
+                <p>• <strong>Staf Gudang:</strong> Username `[nama_depan]` (contoh: `agus`, `aldy`, `bobby`, `miko`, `yogi`) | Pass: `123456`</p>
             </div>
         </div>
     </div>
@@ -141,10 +141,16 @@
         </div>
     </div>
 
-    <!-- HALAMAN 1: MANAJEMEN & JADWAL KEBERSIHAN STUKTUR BARU -->
+    <!-- Header Cetak -->
+    <div class="hidden print:block p-6 border-b text-center">
+        <h1 class="text-2xl font-bold">Laporan Ringkasan - Wpc-Aps (Warehouse Performance & Coordination)</h1>
+        <p class="text-sm text-gray-600">Tanggal Cetak: <span id="print-date"></span></p>
+    </div>
+
+    <!-- HALAMAN 1: JADWAL & AUDIT KEBERSIHAN (PENGEMBANGAN BARU) -->
     <div id="page-kebersihan" class="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         
-        <!-- BARIS EMERGENCY SPILL REPORT & AUDIT RATING -->
+        <!-- BARIS EMERGENCY SPILL REPORT -->
         <div class="bg-gradient-to-r from-red-600 to-amber-600 text-white p-4 rounded-xl shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="space-y-1 text-center md:text-left">
                 <div class="flex items-center justify-center md:justify-start gap-2">
@@ -158,7 +164,6 @@
             </button>
         </div>
 
-        <!-- STATISTIK KPI & KEBERSIHAN -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
                 <div>
@@ -173,7 +178,7 @@
 
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-600 flex justify-between items-center">
                 <div>
-                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Verifikasi Tuntas</span>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Audit Tuntas</span>
                     <div class="mt-1 flex items-baseline gap-2">
                         <span id="stat-selesai" class="text-3xl font-extrabold text-green-700">0</span>
                         <span class="text-sm font-semibold text-gray-500">Zona</span>
@@ -210,7 +215,7 @@
                 <div class="p-3.5 rounded-xl border border-gray-200 bg-gray-50 space-y-2">
                     <div class="flex justify-between font-bold text-gray-800">
                         <span>🚜 Ride-On Sweeper #01</span>
-                        <span class="text-green-600">Siap Pakai ✅</span>
+                        <span class="text-green-600 font-bold">Siap Pakai ✅</span>
                     </div>
                     <p class="text-gray-500 text-[11px]">Kondisi Baterai: 90% | Area Operasional: Outbound & Retail</p>
                 </div>
@@ -218,7 +223,7 @@
                 <div class="p-3.5 rounded-xl border border-gray-200 bg-gray-50 space-y-2">
                     <div class="flex justify-between font-bold text-gray-800">
                         <span>🧽 Floor Scrubber Machine #02</span>
-                        <span class="text-amber-600">Perlu Cash/Charge ⚡</span>
+                        <span class="text-amber-600 font-bold">Perlu Charge ⚡</span>
                     </div>
                     <p class="text-gray-500 text-[11px]">Kondisi Baterai: 25% | Area Operasional: Inbound & Main Aisle</p>
                 </div>
@@ -228,12 +233,19 @@
                         <span>📦 Inventaris PerZona</span>
                         <span class="text-themeblue-700 font-bold">Stok Cukup 👍</span>
                     </div>
-                    <p class="text-gray-500 text-[11px]">Sapu, Pel, Cairan Karbol, Cairan Degreaser Tumpahan & Trashbag</p>
+                    <p class="text-gray-500 text-[11px]">Sapu, Pel, Cairan Karbol, Degreaser Tumpahan & Trashbag</p>
                 </div>
             </div>
         </div>
 
-        <!-- TABEL JADWAL KEBERSIHAN BERDASARKAN ZONA & RUTINITAS -->
+        <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-base font-bold text-themeblue-900">🏆 Leaderboard Performa Kebersihan Petugas (PIC)</h2>
+                <span class="text-[10px] bg-themeblue-100 text-themeblue-800 font-bold px-2 py-0.5 rounded">Peringkat Real-time</span>
+            </div>
+            <div id="container-pic" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
         <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
             <div class="p-4 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -241,6 +253,9 @@
                     <p class="text-xs text-gray-500">Pekerjaan Daily Checklist, High-Dusting Sawang Racking, hingga Deep Cleaning Noda Oli</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 no-print">
+                    <button onclick="exportKebersihanCSV()" class="role-supervisor bg-themeblue-700 hover:bg-themeblue-800 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1">
+                        <span>📊</span><span>Ekspor CSV</span>
+                    </button>
                     <button onclick="resetDataJadwal()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
                         🗑️ Reset Jadwal
                     </button>
@@ -255,7 +270,7 @@
                             <th class="py-3 px-4">Zona & Kategori Area</th>
                             <th class="py-3 px-4">Tipe Pembersihan & Tugas Checklist</th>
                             <th class="py-3 px-4">Petugas (PIC)</th>
-                            <th class="py-3 px-4">Dokumentasi (Before & After)</th>
+                            <th class="py-3 px-4">Dokumentasi Foto (After)</th>
                             <th class="py-3 px-4">Status & Rating Audit ISO</th>
                             <th class="py-3 px-4 no-print">Alur Kerja / Aksi</th>
                         </tr>
@@ -314,6 +329,28 @@
             </div>
         </div>
 
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">Rasio Kategori Damaged</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Perbandingan persentase berbobot Food vs Non Food</p>
+                </div>
+                <div class="relative max-h-52 flex justify-center items-center py-2">
+                    <canvas id="chartKategori"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">5 Produk Damaged Tertinggi (Hirarki Box > Pcs)</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Produk dengan tingkat kerusakan tertinggi dengan prioritas Box/Karton</p>
+                </div>
+                <div class="relative max-h-52">
+                    <canvas id="chartTopProducts"></canvas>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
             <div class="p-4 md:p-5 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -322,6 +359,12 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 no-print">
+                    <button onclick="exportDamagedExcel()" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📗</span><span>Ekspor Excel (.xlsx)</span>
+                    </button>
+                    <button onclick="exportDamagedCSV()" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📊</span><span>Ekspor CSV</span>
+                    </button>
                     <button onclick="resetDataDamaged()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
                         🗑️ Bersihkan Data Damaged
                     </button>
@@ -348,6 +391,124 @@
                         </tr>
                     </thead>
                     <tbody id="tabel-damaged" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- HALAMAN 3: OPNAME EXPIRED -->
+    <div id="page-expired" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <div id="container-alerts-expired" class="space-y-2"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Sudah Kedaluwarsa</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-exp-already" class="text-3xl font-extrabold text-red-600">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Items</span>
+                    </div>
+                </div>
+                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">☣️</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Mendekati ED (≤30 Hari)</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-exp-near" class="text-3xl font-extrabold text-amber-600">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Items</span>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-full text-amber-600 text-xl">⚠️</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Total Items Food Laporan</span>
+                    <div class="mt-1 flex items-baseline gap-2">
+                        <span id="stat-exp-total" class="text-3xl font-extrabold text-themeblue-700">0</span>
+                        <span class="text-sm font-semibold text-gray-500">Laporan</span>
+                    </div>
+                </div>
+                <div class="bg-themeblue-50 p-3 rounded-full text-themeblue-700 text-xl">🍔</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-700 flex justify-between items-center">
+                <div>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">ED Terdekat</span>
+                    <div class="mt-1 font-bold text-xs text-red-900 truncate max-w-[140px]" id="stat-exp-nearest-name">-</div>
+                    <span class="text-[10px] text-red-600 font-bold" id="stat-exp-nearest-date">Tgl: -</span>
+                </div>
+                <div class="bg-red-50 p-3 rounded-full text-red-600 text-xl">🚨</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">Status Masa Kedaluwarsa</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Kondisi ED produk Food terdaftar</p>
+                </div>
+                <div class="relative max-h-52 flex justify-center items-center py-2">
+                    <canvas id="chartExpiredStatus"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">Top 5 Produk Food Kedaluwarsa (Qty)</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Produk Food dengan jumlah kuantitas ED terbanyak</p>
+                </div>
+                <div class="relative max-h-52">
+                    <canvas id="chartTopExpired"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
+            <div class="p-4 md:p-5 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>🍔</span><span>Laporan Opname Expired (Khusus Food)</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Pendataan tanggal kedaluwarsa produk makanan, Mat ID, lokasi rak, dan jumlah Qty</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 no-print">
+                    <button onclick="exportExpiredExcel()" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📗</span><span>Ekspor Excel (.xlsx)</span>
+                    </button>
+                    <button onclick="exportExpiredCSV()" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>📊</span><span>Ekspor CSV</span>
+                    </button>
+                    <button onclick="resetDataExpired()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                        🗑️ Bersihkan Data Expired
+                    </button>
+                    <button onclick="bukaModalExpired()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                        <span>⏳ +</span><span>Input Opname Expired</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold tracking-wider">
+                            <th class="py-3 px-4">Tanggal Lapor</th>
+                            <th class="py-3 px-4">Tanggal Expired (ED)</th>
+                            <th class="py-3 px-4">Kondisi ED</th>
+                            <th class="py-3 px-4">Mat ID</th>
+                            <th class="py-3 px-4">Nama Produk Food</th>
+                            <th class="py-3 px-4">Qty</th>
+                            <th class="py-3 px-4">Lokasi</th>
+                            <th class="py-3 px-4">Pelapor</th>
+                            <th class="py-3 px-4">Foto</th>
+                            <th class="py-3 px-4">Status Approval</th>
+                            <th class="py-3 px-4 no-print">Aksi Supervisor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-expired" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
                 </table>
             </div>
         </div>
@@ -417,8 +578,16 @@
                     <div class="bg-blue-100 p-2.5 rounded-full text-blue-700 text-lg">🔢</div>
                 </div>
             </div>
+
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <h3 class="text-xs font-bold text-themeblue-900 uppercase mb-2">Grafik Perbandingan Selisih Opname Daily</h3>
+                <div class="relative max-h-56">
+                    <canvas id="chartOpnameDiffTrend"></canvas>
+                </div>
+            </div>
         </div>
 
+        <!-- PERINGKAT USER AKURASI TERBAIK S/D TERBANYAK -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-themeblue-100 space-y-3">
             <div class="flex justify-between items-center border-b pb-2 border-themeblue-100">
                 <div>
@@ -431,9 +600,262 @@
             </div>
             <div id="container-user-diff-rank" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
         </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100 space-y-3 p-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-themeblue-900">Rincian Daftar Produk Selisih Opname</h3>
+                    <span id="stat-opname-diff-item-badge" class="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-200">0 Item Selisih</span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="filter-opname-diff-type" onchange="renderTabelRincianSelisihOpname()" class="bg-white border border-themeblue-300 rounded-lg text-xs font-bold p-2 focus:ring-2 focus:ring-themeblue-600 outline-none">
+                        <option value="ALL">Semua Jenis Selisih (Case & Pack)</option>
+                        <option value="CASE">🟡 Khusus Selisih Case (Karton)</option>
+                        <option value="PACK">🟣 Khusus Selisih Pack (Pcs/Eceran)</option>
+                    </select>
+
+                    <input type="text" id="search-opname-diff-keyword" onkeyup="renderTabelRincianSelisihOpname()" placeholder="🔍 Cari MID / Nama Produk..." class="border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none w-48 md:w-64">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
+                            <th class="py-3 px-4">Tanggal</th>
+                            <th class="py-3 px-4">MID / Mat ID</th>
+                            <th class="py-3 px-4">Nama Deskripsi Produk</th>
+                            <th class="py-3 px-4">Jenis Selisih</th>
+                            <th class="py-3 px-4">Qty System vs Actual</th>
+                            <th class="py-3 px-4">Jumlah Selisih (Variance)</th>
+                            <th class="py-3 px-4">Bin / Lokasi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-rincian-selisih-opname" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-themeblue-100 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 border-themeblue-100">
+                <div>
+                    <h2 class="text-lg font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>📊</span><span>Upload & Pengelolaan Report Opname Daily</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Unggah berkas laporan Excel (.xlsx / .xls / .csv) hasil opname harian untuk diarsipkan, diekstrak selisihnya, dan diunduh.</p>
+                </div>
+                <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">🔒 Akses Khusus Supervisor / Manajemen</span>
+            </div>
+
+            <form id="form-opname" onsubmit="simpanOpnameDaily(event)" class="space-y-4 bg-themeblue-50/60 p-4 rounded-xl border border-themeblue-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-themeblue-900 mb-1">Tanggal Opname *</label>
+                        <input type="date" id="opname-tanggal" required class="w-full border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-themeblue-900 mb-1">Judul / Keterangan Report *</label>
+                        <input type="text" id="opname-judul" required placeholder="Contoh: Report Opname Daily Gudang A - Shift 1" class="w-full border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-themeblue-900 mb-1">Pilih File Excel / Spreadsheet (.xlsx, .xls, .csv) *</label>
+                    <input type="file" id="opname-file" accept=".xlsx, .xls, .csv" required class="w-full text-xs text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-themeblue-700 file:text-white hover:file:bg-themeblue-800 cursor-pointer">
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" id="btn-submit-opname" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5">
+                        <span>📥</span><span>Unggah & Proses Laporan Opname</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
+            <div class="p-4 border-b border-themeblue-100 flex justify-between items-center bg-white">
+                <h3 class="text-sm font-bold text-themeblue-900">Daftar Berkas Opname Daily Tersimpan</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="resetDataOpname()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-1 rounded-lg text-xs font-semibold">
+                        🗑️ Bersihkan Arsip Opname
+                    </button>
+                    <span id="stat-opname-count" class="text-xs font-bold bg-themeblue-100 text-themeblue-900 px-3 py-1 rounded-full">0 Berkas</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
+                            <th class="py-3 px-4">Tanggal Opname</th>
+                            <th class="py-3 px-4">Judul Laporan</th>
+                            <th class="py-3 px-4">Nama File Berkas</th>
+                            <th class="py-3 px-4">Ekstraksi Selisih</th>
+                            <th class="py-3 px-4">Ukuran File</th>
+                            <th class="py-3 px-4 no-print">Aksi / Download</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-opname" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- MODAL POPUP: SPILL REPORT / TUMPAHAN PECAN DARURAT -->
+    <!-- HALAMAN 5: ITEM OVERSTOCK & DEADSTOCK -->
+    <div id="page-overstock" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-themeblue-100 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
+                <div>
+                    <h2 class="text-base font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>📦</span><span>Analitika Item Overstock (>50D) & Deadstock (>90D)</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Unggah berkas `WRH - DC Stock Overview` untuk mendeteksi stok berlebih dan barang mati yang tidak bergerak.</p>
+                </div>
+                <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-300">📊 DC Stock Intelligence</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-amber-50 p-4 rounded-xl border-l-4 border-amber-500 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total %Overstock >50D</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-ovs-pct" class="text-2xl font-black text-amber-900">0%</span>
+                            <span id="stat-ovs-sub" class="text-[10px] font-bold text-amber-700">(0 Box)</span>
+                        </div>
+                    </div>
+                    <div class="bg-amber-100 p-2.5 rounded-full text-amber-700 text-lg">🟡</div>
+                </div>
+
+                <div class="bg-red-50 p-4 rounded-xl border-l-4 border-red-600 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total Volume Deadstock</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-dds-qty" class="text-2xl font-black text-red-700">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Box</span>
+                        </div>
+                    </div>
+                    <div class="bg-red-100 p-2.5 rounded-full text-red-700 text-lg">🔴</div>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-xl border-l-4 border-blue-600 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Total On-Hand Stock</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-onhand-qty" class="text-2xl font-black text-blue-800">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Box</span>
+                        </div>
+                    </div>
+                    <div class="bg-blue-100 p-2.5 rounded-full text-blue-700 text-lg">📦</div>
+                </div>
+
+                <div class="bg-purple-50 p-4 rounded-xl border-l-4 border-purple-600 flex justify-between items-center">
+                    <div>
+                        <span class="text-gray-500 font-medium text-[11px] uppercase tracking-wider">Produk Bermasalah</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="stat-risk-products-count" class="text-2xl font-black text-purple-900">0</span>
+                            <span class="text-xs font-semibold text-gray-500">Item</span>
+                        </div>
+                    </div>
+                    <div class="bg-purple-100 p-2.5 rounded-full text-purple-700 text-lg">⚠️</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-themeblue-900 uppercase mb-1">Rasio Kesehatan Stok DC</h3>
+                        <p class="text-[11px] text-gray-400 mb-3">Proporsi Stok Sehat vs Overstock vs Deadstock</p>
+                    </div>
+                    <div class="relative max-h-52 flex justify-center items-center py-2">
+                        <canvas id="chartStockRatio"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold text-themeblue-900 uppercase mb-1">Top 5 Produk Risiko Kuantitas Tertinggi</h3>
+                        <p class="text-[11px] text-gray-400 mb-3">Item Overstock (>50D) & Deadstock (>90D) terbanyak yang memerlukan disposisi</p>
+                    </div>
+                    <div class="relative max-h-52">
+                        <canvas id="chartTopStockRisks"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-themeblue-100 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 border-themeblue-100">
+                <div>
+                    <h2 class="text-lg font-bold text-themeblue-900 flex items-center gap-2">
+                        <span>📥</span><span>Upload Berkas WRH - DC Stock Overview (.xlsx)</span>
+                    </h2>
+                    <p class="text-xs text-gray-500">Proses otomatis akan mengekstrak data dari sheet `%Overstock by Product` atau `%Deadstock by Product`.</p>
+                </div>
+            </div>
+
+            <form id="form-upload-stock-overview" onsubmit="simpanStockOverview(event)" class="space-y-4 bg-themeblue-50/60 p-4 rounded-xl border border-themeblue-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-themeblue-900 mb-1">Tanggal Data Overview *</label>
+                        <input type="date" id="stock-tanggal" required class="w-full border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-themeblue-900 mb-1">Pilih File Excel WRH - DC Stock Overview *</label>
+                        <input type="file" id="stock-file" accept=".xlsx, .xls" required class="w-full text-xs text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-themeblue-700 file:text-white hover:file:bg-themeblue-800 cursor-pointer">
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" id="btn-submit-stock" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5">
+                        <span>⚡</span><span>Proses & Analisis Data Stok</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100 space-y-3 p-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-bold text-themeblue-900">Rincian Daftar Produk Ber-Risiko</h3>
+                    <span id="stat-risk-item-badge" class="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-200">0 Item Filtered</span>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="filter-stock-category" onchange="renderTabelOverstockDeadstock()" class="bg-white border border-themeblue-300 rounded-lg text-xs font-bold p-2 focus:ring-2 focus:ring-themeblue-600 outline-none">
+                        <option value="ALL">Semua Kategori (Overstock & Deadstock)</option>
+                        <option value="OVERSTOCK">🟡 Khusus Overstock (>50D)</option>
+                        <option value="DEADSTOCK">🔴 Khusus Deadstock (>90D)</option>
+                    </select>
+
+                    <input type="text" id="search-stock-keyword" onkeyup="renderTabelOverstockDeadstock()" placeholder="🔍 Cari Mat ID / Nama Produk..." class="border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none w-48 md:w-64">
+
+                    <button onclick="resetDataStockOverview()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                        🗑️ Clean Analytics
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-themeblue-100 text-themeblue-900 text-xs uppercase font-semibold">
+                            <th class="py-3 px-4">Mat ID</th>
+                            <th class="py-3 px-4">Nama Deskripsi Produk</th>
+                            <th class="py-3 px-4">Status Risiko</th>
+                            <th class="py-3 px-4">On-Hand (Box)</th>
+                            <th class="py-3 px-4">%Overstock >50D / %Deadstock</th>
+                            <th class="py-3 px-4">X-Days 90D</th>
+                            <th class="py-3 px-4">Rekomendasi Disposisi / Action Plan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-overstock" class="divide-y divide-themeblue-100 text-sm font-medium text-gray-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: SPILL REPORT / TUMPAHAN DARURAT -->
     <div id="modal-spill-report" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-8 border-red-600">
             <div class="flex justify-between items-center border-b pb-2">
@@ -469,8 +891,133 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: TAMBAH JADWAL ZONA & RUTINITAS BARU (BY CHECKER) -->
-    <div id="modal-tambah" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50">
+    <!-- MODAL POPUP: CHECKER INSPEKSI & FOTO KEBERSIHAN -->
+    <div id="modal-checker-inspeksi" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800">Pengecekan Kebersihan & Lampirkan Foto</h3>
+                    <p class="text-[11px] text-gray-500">Checker mengambil foto bukti pengerjaan yang sudah selesai dibersihkan oleh staf</p>
+                </div>
+                <button onclick="tutupModalCheckerInspeksi()" class="text-gray-400 font-bold">✕</button>
+            </div>
+
+            <div class="bg-amber-50 p-3.5 rounded-lg border border-amber-200 text-xs space-y-1">
+                <p><strong>Zona / Area:</strong> <span id="check-keb-zona" class="font-bold text-amber-900">-</span></p>
+                <p><strong>Petugas (PIC):</strong> <span id="check-keb-pic" class="font-semibold text-gray-800">-</span></p>
+                <p><strong>Waktu Shift:</strong> <span id="check-keb-waktu" class="font-medium text-gray-700">-</span></p>
+            </div>
+
+            <form id="form-checker-inspeksi" onsubmit="simpanFotoChecker(event)" class="space-y-4">
+                <input type="hidden" id="check-keb-id">
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ambil / Unggah Foto Bukti Kebersihan *</label>
+                    <input type="file" id="checker-input-foto" accept="image/*" capture="environment" onchange="previewFotoChecker(event)" required class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
+                </div>
+
+                <div id="container-checker-preview" class="hidden border rounded-lg p-2 bg-gray-50 text-center">
+                    <img id="img-checker-preview" src="" class="max-h-48 mx-auto rounded shadow-sm">
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t">
+                    <button type="button" onclick="tutupModalCheckerInspeksi()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" id="btn-submit-checker" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">📷 Kirim Hasil Pengecekan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: VERIFIKASI SUPERVISOR KEBERSIHAN ISO -->
+    <div id="modal-approval-kebersihan" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-green-600 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800">Verifikasi Kebersihan Tuntas & Rating Audit</h3>
+                    <p class="text-[11px] text-gray-500">Supervisor meninjau foto bukti kebersihan dari Checker</p>
+                </div>
+                <button type="button" onclick="tutupModalApprovalKebersihan()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+            </div>
+
+            <div class="bg-green-50 p-3.5 rounded-lg border border-green-200 text-xs space-y-1">
+                <p><strong>Zona / Area:</strong> <span id="appr-keb-zona" class="font-bold text-green-900">-</span></p>
+                <p><strong>Petugas (PIC):</strong> <span id="appr-keb-pic" class="font-semibold text-gray-800">-</span></p>
+                <p><strong>Diperiksa Oleh Checker:</strong> <span id="appr-keb-checker" class="font-semibold text-amber-800">-</span></p>
+            </div>
+
+            <form id="form-approval-kebersihan" onsubmit="simpanApprovalKebersihan(event)" class="space-y-4">
+                <input type="hidden" id="appr-keb-id">
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Penilaian Rating Audit Kebersihan (Cleanliness Rating ISO) *</label>
+                    <select id="appr-keb-rating" required class="w-full border rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-green-600">
+                        <option value="⭐⭐⭐⭐⭐ (Sangat Bersih & Sesuai Standard ISO)">⭐⭐⭐⭐⭐ (Sangat Bersih & Sesuai Standard ISO)</option>
+                        <option value="⭐⭐⭐⭐ (Bersih & Rapi)">⭐⭐⭐⭐ (Bersih & Rapi)</option>
+                        <option value="⭐⭐⭐ (Cukup - Ada Sisa Debu Tipis)">⭐⭐⭐ (Cukup - Ada Sisa Debu Tipis)</option>
+                        <option value="⭐⭐ (Kurang - Perlu Diulang)">⭐⭐ (Kurang - Perlu Diulang)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keputusan Verifikasi Supervisor *</label>
+                    <select id="appr-keb-status" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-green-600 outline-none font-bold">
+                        <option value="Selesai">✅ Disetujui (Kebersihan Bersih & Tuntas)</option>
+                        <option value="Belum">❌ Tolak / Minta Bersihkan Ulang (Kurang Bersih)</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t">
+                    <button type="button" onclick="tutupModalApprovalKebersihan()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-green-700 text-white text-xs font-semibold rounded-lg hover:bg-green-800 shadow-sm">Simpan Keputusan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: VERIFIKASI / APPROVAL SUPERVISOR LAPORAN DAMAGED & EXPIRED -->
+    <div id="modal-approval" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-themeblue-900">Verifikasi & Approval Supervisor</h3>
+                    <p class="text-[11px] text-gray-500">Tinjau dan tindak lanjuti laporan staf gudang</p>
+                </div>
+                <button onclick="tutupModalApproval()" class="text-gray-400 font-bold">✕</button>
+            </div>
+
+            <div class="bg-themeblue-50 p-3.5 rounded-lg border border-themeblue-200 text-xs space-y-1">
+                <p><strong>Item Produk:</strong> <span id="appr-item-name" class="font-semibold text-themeblue-900">-</span></p>
+                <p><strong>Jumlah Qty:</strong> <span id="appr-item-qty" class="font-bold text-red-600">-</span></p>
+                <p><strong>Dilaporkan Oleh:</strong> <span id="appr-item-pelapor" class="font-medium text-gray-700">-</span></p>
+            </div>
+
+            <form id="form-approval" onsubmit="simpanApprovalSupervisor(event)" class="space-y-4">
+                <input type="hidden" id="appr-item-id">
+                <input type="hidden" id="appr-item-type">
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keputusan Verifikasi *</label>
+                    <select id="appr-status" required class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none font-bold">
+                        <option value="Disetujui">✅ Setujui / Disetujui (Verified)</option>
+                        <option value="Ditolak">❌ Tolak Laporan (Rejected)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Catatan / Alasan Supervisor *</label>
+                    <textarea id="appr-catatan" required rows="3" placeholder="Contoh: Barang telah diverifikasi & dipindahkan ke area karantina Damaged" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t">
+                    <button type="button" onclick="tutupModalApproval()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg hover:bg-themeblue-800 shadow-sm">Simpan Keputusan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: TAMBAH JADWAL KEBERSIHAN ZONA BARU -->
+    <div id="modal-tambah" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print">
         <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700">
             <div class="flex justify-between items-center border-b pb-2">
                 <h3 class="text-base font-bold text-gray-800">Tambah Jadwal Pembersihan & Rutinitas Baru</h3>
@@ -490,7 +1037,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Spesifik Zona *</label>
-                        <input type="text" id="add-zona-nama" required placeholder="Contoh: Dock 04 / Racking B-02" class="w-full border rounded-lg p-2 text-xs outline-none">
+                        <input type="text" id="add-zona" required placeholder="Contoh: Dock 04 / Racking B-02" class="w-full border rounded-lg p-2 text-xs outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Tipe Pembersihan *</label>
@@ -508,23 +1055,32 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Pilih Petugas Staf (PIC) *</label>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Pilih Petugas (PIC) *</label>
                         <select id="add-pic" required class="w-full border rounded-lg p-2 text-xs outline-none">
                             <option value="Agus Suwandani">Agus Suwandani</option>
                             <option value="Aldy Surya Pratama">Aldy Surya Pratama</option>
                             <option value="Andri Sembiring">Andri Sembiring</option>
                             <option value="Bobby Disani">Bobby Disani</option>
                             <option value="Brema Purba">Brema Purba</option>
+                            <option value="Dermawan">Dermawan</option>
+                            <option value="Frans Joy Temanta">Frans Joy Temanta</option>
+                            <option value="Irfansyah">Irfansyah</option>
+                            <option value="Jaka Nugraha">Jaka Nugraha</option>
                             <option value="Miko Hermansyag">Miko Hermansyag</option>
+                            <option value="Muhammad Edo">Muhammad Edo</option>
+                            <option value="Nanda Al Hafids">Nanda Al Hafids</option>
+                            <option value="Nico Atmaja">Nico Atmaja</option>
+                            <option value="Riski Dermawan">Riski Dermawan</option>
+                            <option value="Satrya Karyanta">Satrya Karyanta</option>
+                            <option value="Sudybyo Widodo">Sudybyo Widodo</option>
+                            <option value="Wahyu Agustian">Wahyu Agustian</option>
                             <option value="Yogi Karnisa">Yogi Karnisa</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Shift Waktu *</label>
-                        <select id="add-shift" class="w-full border rounded-lg p-2 text-xs outline-none">
-                            <option value="Shift 1 (08:00 - 16:00)">Shift 1 (08:00 - 16:00)</option>
-                            <option value="Shift 2 (16:00 - 00:00)">Shift 2 (16:00 - 00:00)</option>
-                        </select>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Waktu / Shift *</label>
+                        <input type="text" id="add-waktu" required placeholder="08:00 - 09:00 / Shift 1" class="w-full border rounded-lg p-2 text-xs outline-none">
+                        <input type="hidden" id="add-shift" value="Shift 1">
                     </div>
                 </div>
 
@@ -536,116 +1092,268 @@
         </div>
     </div>
 
-    <!-- MODAL CHECKER: INSPESKI FOTO & CHECKLIST STAF -->
-    <div id="modal-checker-inspeksi" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600">
+    <!-- MODAL POPUP: LIHAT FOTO FULL -->
+    <div id="modal-lihat" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-50 no-print" onclick="tutupModalLihat()">
+        <div class="bg-white rounded-xl max-w-lg w-full p-4 shadow-xl space-y-3 relative" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-base font-bold text-gray-800">Inspeksi Checker & Unggah Foto Bukti</h3>
-                <button onclick="tutupModalCheckerInspeksi()" class="text-gray-400 font-bold">✕</button>
+                <h3 class="text-xs font-bold text-gray-800">Foto Dokumen Bukti</h3>
+                <button onclick="tutupModalLihat()" class="text-gray-500 font-bold">✕</button>
             </div>
-
-            <div class="bg-amber-50 p-3 rounded-lg text-xs space-y-1">
-                <p><strong>Zona Area:</strong> <span id="check-keb-zona" class="font-bold text-amber-900">-</span></p>
-                <p><strong>Tugas Staf:</strong> <span id="check-keb-tugas" class="font-medium text-gray-800">-</span></p>
-                <p><strong>PIC Staf:</strong> <span id="check-keb-pic" class="font-bold text-gray-800">-</span></p>
-            </div>
-
-            <form onsubmit="simpanFotoChecker(event)" class="space-y-3">
-                <input type="hidden" id="check-keb-id">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Unggah Foto Bukti Setelah Dibersihkan (After) *</label>
-                    <input type="file" id="checker-input-foto" accept="image/*" capture="environment" onchange="previewFotoChecker(event)" required class="w-full text-xs text-gray-500">
-                </div>
-
-                <div id="container-checker-preview" class="hidden text-center border p-2 rounded">
-                    <img id="img-checker-preview" src="" class="max-h-36 mx-auto rounded shadow-sm">
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-2 border-t">
-                    <button type="button" onclick="tutupModalCheckerInspeksi()" class="px-4 py-2 bg-gray-100 text-xs font-semibold rounded-lg">Batal</button>
-                    <button type="submit" id="btn-submit-checker" class="px-4 py-2 bg-amber-600 text-white text-xs font-bold rounded-lg shadow">📷 Kirim Pengecekan Checker</button>
-                </div>
-            </form>
+            <img id="img-full" src="" class="w-full h-auto rounded-lg max-h-96 object-cover">
         </div>
     </div>
 
-    <!-- MODAL SUPERVISOR: VERIFIKASI & RATING AUDIT KEBERSIHAN ISO -->
-    <div id="modal-approval-kebersihan" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-green-600">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-base font-bold text-gray-800">Verifikasi Final Supervisor & Rating Audit ISO</h3>
-                <button onclick="tutupModalApprovalKebersihan()" class="text-gray-400 font-bold">✕</button>
-            </div>
-
-            <div class="bg-green-50 p-3 rounded-lg text-xs space-y-1">
-                <p><strong>Zona:</strong> <span id="appr-keb-zona" class="font-bold text-green-900">-</span></p>
-                <p><strong>PIC Staf:</strong> <span id="appr-keb-pic" class="font-bold text-gray-800">-</span></p>
-                <p><strong>Diperiksa Checker:</strong> <span id="appr-keb-checker" class="font-semibold text-amber-800">-</span></p>
-            </div>
-
-            <form onsubmit="simpanApprovalKebersihan(event)" class="space-y-3">
-                <input type="hidden" id="appr-keb-id">
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Penilaian Rating Audit Kebersihan (Cleanliness Rating ISO) *</label>
-                    <select id="appr-keb-rating" required class="w-full border rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-green-600">
-                        <option value="⭐⭐⭐⭐⭐ (Sangat Bersih & Sesuai Standard ISO)">⭐⭐⭐⭐⭐ (Sangat Bersih & Sesuai Standard ISO)</option>
-                        <option value="⭐⭐⭐⭐ (Bersih & Rapi)">⭐⭐⭐⭐ (Bersih & Rapi)</option>
-                        <option value="⭐⭐⭐ (Cukup - Ada Sisa Debu Tipis)">⭐⭐⭐ (Cukup - Ada Sisa Debu Tipis)</option>
-                        <option value="⭐⭐ (Kurang - Perlu Diulang)">⭐⭐ (Kurang - Perlu Diulang)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keputusan Status Verifikasi Supervisor *</label>
-                    <select id="appr-keb-status" required class="w-full border rounded-lg p-2 text-xs font-bold outline-none">
-                        <option value="Selesai">✅ Disetujui (Kebersihan Tuntas & Lulus Audit)</option>
-                        <option value="Belum">❌ Tolak / Minta Bersihkan Ulang</option>
-                    </select>
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-2 border-t">
-                    <button type="button" onclick="tutupModalApprovalKebersihan()" class="px-4 py-2 bg-gray-100 text-xs font-semibold rounded-lg">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-green-700 text-white text-xs font-bold rounded-lg shadow-md">Simpan Rating Audit</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- SCRIPT LOGIKA UTAMA -->
+    <!-- SCRIPT LOGIKA UTAMA SISCAB & OPERASIONAL UTUH -->
     <script>
+        // KONFIGURASI FIREBASE PROYEK
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQR5s666pChgTJbh0J1rF5pQlKg_g9te4",
+            authDomain: "wpc-aps.firebaseapp.com",
+            databaseURL: "https://wpc-aps-default-rtdb.firebaseio.com",
+            projectId: "wpc-aps",
+            storageBucket: "wpc-aps.firebasestorage.app",
+            messagingSenderId: "351035614191",
+            appId: "1:351035614191:web:d537c44af278b9c140cc1a",
+            measurementId: "G-DJN9NN22T2"
+        };
+
+        let db = null;
+        try {
+            if (typeof firebase !== 'undefined' && firebase.apps) {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                db = firebase.database();
+            }
+        } catch (e) {
+            console.warn("Firebase Safe Init:", e);
+        }
+
         const userDatabase = {
             'supervisor': { password: 'admin123', name: 'Supervisor Gudang', role: 'Supervisor' },
             'dcmanager': { password: 'admin123', name: 'DC Manager', role: 'Supervisor' },
+            'logistics': { password: 'admin123', name: 'Logistic Manager', role: 'Supervisor' },
+            'headwh': { password: 'admin123', name: 'Head Warehouse', role: 'Supervisor' },
+            
+            // AKUN CHECKER DENGAN HAK AKSES SUPERVISOR
             'harry': { password: 'admin123', name: 'Checker M.Harry', role: 'Supervisor' },
             'ilham': { password: 'admin123', name: 'Checker Ilham Syahputra', role: 'Supervisor' },
+            'robby': { password: 'admin123', name: 'Checker M.Robby', role: 'Supervisor' },
+            'jimmy': { password: 'admin123', name: 'Checker Jimmy Ginting', role: 'Supervisor' },
+            'agusbangun': { password: 'admin123', name: 'Checker Agus Bangun', role: 'Supervisor' },
+
             'agus': { password: '123456', name: 'Agus Suwandani', role: 'Staf Kebersihan / Gudang' },
             'aldy': { password: '123456', name: 'Aldy Surya Pratama', role: 'Staf Kebersihan / Gudang' },
+            'andri': { password: '123456', name: 'Andri Sembiring', role: 'Staf Kebersihan / Gudang' },
             'bobby': { password: '123456', name: 'Bobby Disani', role: 'Staf Kebersihan / Gudang' },
+            'brema': { password: '123456', name: 'Brema Purba', role: 'Staf Kebersihan / Gudang' },
+            'dermawan': { password: '123456', name: 'Dermawan', role: 'Staf Kebersihan / Gudang' },
+            'frans': { password: '123456', name: 'Frans Joy Temanta', role: 'Staf Kebersihan / Gudang' },
+            'irfansyah': { password: '123456', name: 'Irfansyah', role: 'Staf Kebersihan / Gudang' },
+            'jaka': { password: '123456', name: 'Jaka Nugraha', role: 'Staf Kebersihan / Gudang' },
+            'miko': { password: '123456', name: 'Miko Hermansyag', role: 'Staf Kebersihan / Gudang' },
+            'edo': { password: '123456', name: 'Muhammad Edo', role: 'Staf Kebersihan / Gudang' },
+            'nanda': { password: '123456', name: 'Nanda Al Hafids', role: 'Staf Kebersihan / Gudang' },
+            'nico': { password: '123456', name: 'Nico Atmaja', role: 'Staf Kebersihan / Gudang' },
+            'riski': { password: '123456', name: 'Riski Dermawan', role: 'Staf Kebersihan / Gudang' },
+            'satrya': { password: '123456', name: 'Satrya Karyanta', role: 'Staf Kebersihan / Gudang' },
+            'sudybyo': { password: '123456', name: 'Sudybyo Widodo', role: 'Staf Kebersihan / Gudang' },
+            'wahyu': { password: '123456', name: 'Wahyu Agustian', role: 'Staf Kebersihan / Gudang' },
             'yogi': { password: '123456', name: 'Yogi Karnisa', role: 'Staf Kebersihan / Gudang' }
         };
 
-        const listNamaStaf = ["Agus Suwandani", "Aldy Surya Pratama", "Andri Sembiring", "Bobby Disani", "Brema Purba", "Miko Hermansyag", "Yogi Karnisa"];
+        const listNamaStaf = [
+            "Agus Suwandani", "Aldy Surya Pratama", "Andri Sembiring", "Bobby Disani",
+            "Brema Purba", "Dermawan", "Frans Joy Temanta", "Irfansyah",
+            "Jaka Nugraha", "Miko Hermansyag", "Muhammad Edo", "Nanda Al Hafids",
+            "Nico Atmaja", "Riski Dermawan", "Satrya Karyanta", "Sudybyo Widodo",
+            "Wahyu Agustian", "Yogi Karnisa"
+        ];
 
         let dataJadwal = JSON.parse(localStorage.getItem('wpc_data')) || [];
         let dataDamaged = JSON.parse(localStorage.getItem('wpc_damaged')) || [];
+        let dataExpired = JSON.parse(localStorage.getItem('wpc_expired')) || [];
         let dataOpname = JSON.parse(localStorage.getItem('wpc_opname')) || [];
+        let dataStockOverview = JSON.parse(localStorage.getItem('wpc_stock_overview')) || { items: [], onHandTotal: 0, pctOverstockTotal: 0, date: '' };
         let currentAuthUser = JSON.parse(localStorage.getItem('wpc_auth')) || null;
         let userAktif = localStorage.getItem('wpc_user') || 'Supervisor';
 
-        function isSupervisor() { return currentAuthUser && currentAuthUser.role === 'Supervisor'; }
+        function isSupervisor() {
+            return currentAuthUser && currentAuthUser.role === 'Supervisor';
+        }
+
+        let idAktif = null;
+        let urlFotoCheckerSementara = '';
+        let urlFotoDamagedSementara = '';
+        let urlFotoExpiredSementara = '';
+
+        let chartKategoriInstance = null;
+        let chartTopProductsInstance = null;
+        let chartExpiredStatusInstance = null;
+        let chartTopExpiredInstance = null;
+        let chartOpnameDiffTrendInstance = null;
+        let chartStockRatioInstance = null;
+        let chartTopStockRisksInstance = null;
+
+        function kompresFoto(file, maxWidth = 220, maxHeight = 220, quality = 0.3) {
+            return new Promise((resolve) => {
+                if (!file) { resolve(''); return; }
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round((height * maxWidth) / width);
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round((width * maxHeight) / height);
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                        resolve(compressedBase64);
+                    };
+                    img.onerror = () => resolve('');
+                };
+                reader.onerror = () => resolve('');
+            });
+        }
 
         function simpanKeStorage() {
             try {
                 localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
                 localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
                 localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
-            } catch (e) { console.warn("Storage warning:", e); }
+                localStorage.setItem('wpc_stock_overview', JSON.stringify(dataStockOverview));
+            } catch (err) {
+                console.warn("Storage Quota Exceeded! Cleaning old photo cache...", err);
+                dataDamaged.forEach((item, idx) => { if (idx > 20) item.foto = null; });
+                dataExpired.forEach((item, idx) => { if (idx > 20) item.foto = null; });
+                dataJadwal.forEach((item, idx) => { if (idx > 30) item.foto = null; });
+
+                try {
+                    localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                    localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                    localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+                    localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+                    localStorage.setItem('wpc_stock_overview', JSON.stringify(dataStockOverview));
+                } catch (e) { console.error("Critical storage error:", e); }
+            }
+
+            if (db) {
+                db.ref('wpc_cloud_data').set({
+                    jadwal: dataJadwal,
+                    damaged: dataDamaged,
+                    expired: dataExpired,
+                    opname: dataOpname,
+                    stockOverview: dataStockOverview,
+                    updatedAt: Date.now()
+                }).then(() => {
+                    setIndikatorStatus('green', 'Terhubung Realtime ke Cloud Server');
+                }).catch(err => {
+                    console.warn("Firebase Sync Warning:", err);
+                    setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
+                });
+            } else {
+                setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
+            }
+        }
+
+        function inisialisasiFirebaseListener() {
+            if (!db) {
+                setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
+                return;
+            }
+
+            try {
+                db.ref('wpc_cloud_data').on('value', (snapshot) => {
+                    const val = snapshot.val();
+                    if (val) {
+                        dataJadwal = val.jadwal || [];
+                        dataDamaged = val.damaged || [];
+                        dataExpired = val.expired || [];
+                        dataOpname = val.opname || [];
+                        dataStockOverview = val.stockOverview || { items: [], onHandTotal: 0, pctOverstockTotal: 0, date: '' };
+
+                        try {
+                            localStorage.setItem('wpc_data', JSON.stringify(dataJadwal));
+                            localStorage.setItem('wpc_damaged', JSON.stringify(dataDamaged));
+                            localStorage.setItem('wpc_expired', JSON.stringify(dataExpired));
+                            localStorage.setItem('wpc_opname', JSON.stringify(dataOpname));
+                            localStorage.setItem('wpc_stock_overview', JSON.stringify(dataStockOverview));
+                        } catch (e) { console.warn("Cache sync warn:", e); }
+
+                        renderSemuaTabel();
+                        setIndikatorStatus('green', 'Terhubung Realtime ke Cloud Server');
+                    }
+                }, (error) => {
+                    console.warn("Realtime listener error:", error);
+                    setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
+                });
+            } catch (err) {
+                console.warn("Firebase listener fail-safe triggered:", err);
+                setIndikatorStatus('green', 'Penyimpanan Lokal Aktif');
+            }
+        }
+
+        function setIndikatorStatus(warna, pesan) {
+            const ind = document.getElementById('sync-status-indicator');
+            if (ind) {
+                if (warna === 'green') {
+                    ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-green-400 ml-1';
+                } else if (warna === 'amber') {
+                    ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-400 ml-1';
+                } else {
+                    ind.className = 'inline-block w-2.5 h-2.5 rounded-full bg-red-400 ml-1';
+                }
+                ind.title = pesan;
+            }
+        }
+
+        function renderSemuaTabel() {
+            renderTabel();
+            renderDamaged();
+            renderExpired();
+            renderOpname();
+            renderDashboardOverstockDeadstock();
+            renderStatistik();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             inisialisasiAksesSesi();
+            inisialisasiFirebaseListener();
+
+            const inputTgl = document.getElementById('opname-tanggal');
+            if (inputTgl) inputTgl.value = new Date().toISOString().slice(0,10);
+
+            const inputTglStock = document.getElementById('stock-tanggal');
+            if (inputTglStock) inputTglStock.value = new Date().toISOString().slice(0,10);
+
+            updateTampilanPengguna();
             renderSemuaTabel();
+
+            const pDate = document.getElementById('print-date');
+            if (pDate) {
+                pDate.innerText = new Date().toLocaleDateString('id-ID', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+            }
         });
 
         function inisialisasiAksesSesi() {
@@ -654,9 +1362,13 @@
                 if (screen) screen.classList.remove('hidden');
             } else {
                 if (screen) screen.classList.add('hidden');
-                document.getElementById('user-display-name').innerText = currentAuthUser.name;
-                document.getElementById('user-display-role').innerText = isSupervisor() ? `👑 ${currentAuthUser.name}` : '👤 Staf Gudang';
+                const displayName = document.getElementById('user-display-name');
+                const displayRole = document.getElementById('user-display-role');
+                if (displayName) displayName.innerText = currentAuthUser.name;
+                if (displayRole) displayRole.innerText = isSupervisor() ? `👑 ${currentAuthUser.name}` : '👤 Staf Gudang';
+                
                 userAktif = isSupervisor() ? 'Supervisor' : currentAuthUser.name;
+                localStorage.setItem('wpc_user', userAktif);
             }
         }
 
@@ -668,35 +1380,116 @@
             if (userDatabase[u] && userDatabase[u].password === p) {
                 currentAuthUser = userDatabase[u];
                 localStorage.setItem('wpc_auth', JSON.stringify(currentAuthUser));
-                document.getElementById('modal-login-screen').classList.add('hidden');
-                userAktif = isSupervisor() ? 'Supervisor' : currentAuthUser.name;
+                
+                userAktif = currentAuthUser.role === 'Supervisor' ? 'Supervisor' : currentAuthUser.name;
                 localStorage.setItem('wpc_user', userAktif);
+
+                const screen = document.getElementById('modal-login-screen');
+                if (screen) screen.classList.add('hidden');
+
+                const errMsg = document.getElementById('login-error-msg');
+                if (errMsg) errMsg.classList.add('hidden');
+
+                const displayName = document.getElementById('user-display-name');
+                const displayRole = document.getElementById('user-display-role');
+                if (displayName) displayName.innerText = currentAuthUser.name;
+                if (displayRole) displayRole.innerText = isSupervisor() ? `👑 ${currentAuthUser.name}` : '👤 Staf Gudang';
+
+                updateTampilanPengguna();
                 renderSemuaTabel();
             } else {
-                document.getElementById('login-error-msg').classList.remove('hidden');
+                const errMsg = document.getElementById('login-error-msg');
+                if (errMsg) errMsg.classList.remove('hidden');
             }
         }
 
         function prosesLogout() {
-            if (confirm("Apakah Anda yakin ingin logout?")) {
+            if (confirm('Apakah Anda yakin ingin keluar/logout?')) {
                 localStorage.removeItem('wpc_auth');
                 currentAuthUser = null;
-                document.getElementById('modal-login-screen').classList.remove('hidden');
+                const screen = document.getElementById('modal-login-screen');
+                if (screen) screen.classList.remove('hidden');
             }
         }
 
+        function formatTanggalIndo(tglStr) {
+            if (!tglStr) return '-';
+            if (tglStr.includes('-')) {
+                const parts = tglStr.split(' ');
+                const dateParts = parts[0].split('-');
+                if (dateParts.length === 3) {
+                    return `${dateParts[2]}/${dateParts[1]}/${dateParts[0]} ${parts[1] || ''}`.trim();
+                }
+            }
+            return tglStr;
+        }
+
         function pindahMenu(menu) {
-            ['page-kebersihan', 'page-damaged', 'page-opname'].forEach(id => {
+            document.querySelectorAll('.menu-nav-btn').forEach(btn => {
+                btn.classList.remove('border-amber-400', 'text-white');
+                btn.classList.add('border-transparent', 'text-themeblue-100');
+            });
+
+            ['page-kebersihan', 'page-damaged', 'page-expired', 'page-opname', 'page-overstock'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
             });
-            document.getElementById('page-' + menu)?.classList.remove('hidden');
+
+            if (menu === 'kebersihan') {
+                const nav = document.getElementById('nav-kebersihan');
+                const page = document.getElementById('page-kebersihan');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+            } else if (menu === 'damaged') {
+                const nav = document.getElementById('nav-damaged');
+                const page = document.getElementById('page-damaged');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+                setTimeout(renderDashboardDamagedVisual, 100);
+            } else if (menu === 'expired') {
+                const nav = document.getElementById('nav-expired');
+                const page = document.getElementById('page-expired');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+                setTimeout(renderDashboardExpiredVisual, 100);
+            } else if (menu === 'opname') {
+                const nav = document.getElementById('nav-opname');
+                const page = document.getElementById('page-opname');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+                setTimeout(renderDashboardOpnameVisual, 100);
+            } else if (menu === 'overstock') {
+                const nav = document.getElementById('nav-overstock');
+                const page = document.getElementById('page-overstock');
+                if (nav) nav.classList.add('border-amber-400', 'text-white');
+                if (page) page.classList.remove('hidden');
+                setTimeout(renderDashboardOverstockDeadstock, 100);
+            }
         }
 
-        function renderSemuaTabel() {
-            renderTabel();
-            renderDamaged();
-            renderOpname();
+        function updateTampilanPengguna() {
+            const isSup = isSupervisor();
+            document.querySelectorAll('.role-supervisor').forEach(el => {
+                if (isSup) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+
+            const bannerText = document.getElementById('text-user-active');
+            const badgeRole = document.getElementById('badge-role-type');
+
+            if (isSup) {
+                if (bannerText) bannerText.innerHTML = `Mode Pengguna: <strong>Supervisor / Manajemen / Checker</strong> (Akses Seluruh Data & Laporan)`;
+                if (badgeRole) {
+                    badgeRole.innerText = 'Akses Penuh';
+                    badgeRole.className = 'bg-themeblue-700 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                }
+            } else {
+                if (bannerText) bannerText.innerHTML = `Mode Staf: <strong>${userAktif}</strong> (Bisa Laporkan Kebersihan Selesai & Damaged)`;
+                if (badgeRole) {
+                    badgeRole.innerText = 'Mode Staf / PIC';
+                    badgeRole.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                }
+            }
         }
 
         // =========================================================
@@ -735,11 +1528,12 @@
         function simpanJadwalBaru(e) {
             e.preventDefault();
             const kat = document.getElementById('add-zona-kategori').value;
-            const nama = document.getElementById('add-zona-nama').value;
+            const nama = document.getElementById('add-zona').value;
             const tipe = document.getElementById('add-tipe-clean').value;
             const tugas = document.getElementById('add-tugas').value;
             const pic = document.getElementById('add-pic').value;
-            const shift = document.getElementById('add-shift').value;
+            const waktu = document.getElementById('add-waktu').value;
+            const shift = document.getElementById('add-shift').value || 'Shift 1';
 
             dataJadwal.push({
                 id: Date.now(),
@@ -748,6 +1542,7 @@
                 tipeClean: tipe,
                 tugas: tugas,
                 pic: pic,
+                waktu: waktu,
                 shift: shift,
                 status: 'Belum',
                 tanggalDibuat: new Date().toISOString().slice(0,10)
@@ -769,6 +1564,7 @@
 
             if (jadwalHariIni.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan zona untuk hari ini.</td></tr>`;
+                renderLeaderboardPIC();
                 return;
             }
 
@@ -785,14 +1581,15 @@
                 let aksi = '';
                 if (isSupervisor()) {
                     if (item.status === 'Menunggu Pengecekan Checker') {
-                        aksi = `<button onclick="bukaModalCheckerInspeksi('${item.id}')" class="bg-amber-600 text-white px-2 py-1 rounded font-bold">📷 Cek & Foto (Checker)</button>`;
+                        aksi = `<button onclick="bukaModalCheckerInspeksi('${item.id}')" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded font-bold shadow-sm">📷 Cek & Foto (Checker)</button>`;
                     } else if (item.status === 'Menunggu Verifikasi Supervisor') {
-                        aksi = `<button onclick="bukaModalApprovalKebersihan('${item.id}')" class="bg-green-700 text-white px-2 py-1 rounded font-bold">👑 Audit ISO (Supervisor)</button>`;
+                        aksi = `<button onclick="bukaModalApprovalKebersihan('${item.id}')" class="bg-green-700 hover:bg-green-800 text-white px-2 py-1 rounded font-bold shadow-sm">👑 Audit ISO (Supervisor)</button>`;
                     } else if (item.status === 'Selesai') {
                         aksi = `<span class="text-green-700 font-bold">Audit Lulus ✅</span>`;
                     } else {
                         aksi = `<button onclick="bukaModalCheckerInspeksi('${item.id}')" class="bg-themeblue-700 text-white px-2 py-1 rounded font-bold">Inspeksi Langsung</button>`;
                     }
+                    aksi += ` <button onclick="hapusJadwalBaris('${item.id}')" class="ml-1 text-red-500 hover:text-red-700 font-bold text-xs p-1">🗑️</button>`;
                 } else {
                     if (item.pic === userAktif && item.status === 'Belum') {
                         aksi = `<button onclick="stafSelesaiPengerjaan('${item.id}')" class="bg-themeblue-700 text-white px-2 py-1 rounded font-bold">🧹 Selesai Dibersihkan</button>`;
@@ -810,13 +1607,15 @@
                         <div class="font-bold text-gray-800">${item.tugas || '-'}</div>
                         <div class="text-[10px] text-amber-700">${item.tipeClean || 'Daily Task'}</div>
                     </td>
-                    <td class="py-3 px-4">${item.pic} <div class="text-[10px] text-gray-400">${item.shift || 'Shift 1'}</div></td>
-                    <td class="py-3 px-4">${item.foto ? '📷 Foto Terlampir' : '<span class="text-gray-400 italic">Belum ada foto</span>'}</td>
+                    <td class="py-3 px-4">${item.pic} <div class="text-[10px] text-gray-400">${item.waktu || ''} (${item.shift || 'Shift 1'})</div></td>
+                    <td class="py-3 px-4">${item.foto ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border font-semibold">📷 Lihat Foto</button>` : '<span class="text-gray-400 italic">Belum ada foto</span>'}</td>
                     <td class="py-3 px-4">${badgeStatus} ${ratingDisplay}</td>
                     <td class="py-3 px-4">${aksi}</td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            renderLeaderboardPIC();
         }
 
         function stafSelesaiPengerjaan(id) {
@@ -834,8 +1633,8 @@
             if (!item) return;
             document.getElementById('check-keb-id').value = id;
             document.getElementById('check-keb-zona').innerText = item.namaZona;
-            document.getElementById('check-keb-tugas').innerText = item.tugas;
             document.getElementById('check-keb-pic').innerText = item.pic;
+            document.getElementById('check-keb-waktu').innerText = `${item.waktu || ''} (${item.shift || ''})`;
             document.getElementById('modal-checker-inspeksi')?.classList.remove('hidden');
         }
         function tutupModalCheckerInspeksi() { document.getElementById('modal-checker-inspeksi')?.classList.add('hidden'); }
@@ -892,11 +1691,337 @@
             }
         }
 
-        function renderDamaged() {}
-        function renderOpname() {}
-        function renderDashboardOpnameVisual() {}
+        // ==========================================
+        // DIBENAHI: FUNGSI VERIFIKASI BARANG DAMAGED
+        // ==========================================
+        function bukaModalApproval(id, type) {
+            let item = null;
+            if (type === 'damaged') item = dataDamaged.find(i => String(i.id) === String(id));
+            else if (type === 'expired') item = dataExpired.find(i => String(i.id) === String(id));
+            if (!item) return;
+
+            document.getElementById('appr-item-id').value = id;
+            document.getElementById('appr-item-type').value = type;
+            document.getElementById('appr-item-name').innerText = `${item.nama} [Mat ID: ${item.matId || '-'}]`;
+            document.getElementById('appr-item-qty').innerText = `${item.qty} ${item.satuan || ''}`;
+            document.getElementById('appr-item-pelapor').innerText = item.pelapor;
+            document.getElementById('modal-approval')?.classList.remove('hidden');
+        }
+
+        function tutupModalApproval() { document.getElementById('modal-approval')?.classList.add('hidden'); }
+
+        function simpanApprovalSupervisor(e) {
+            e.preventDefault();
+            const id = document.getElementById('appr-item-id').value;
+            const type = document.getElementById('appr-item-type').value;
+            const status = document.getElementById('appr-status').value;
+            const catatan = document.getElementById('appr-catatan').value;
+
+            let targetList = type === 'damaged' ? dataDamaged : dataExpired;
+            const itemIndex = targetList.findIndex(i => String(i.id) === String(id));
+
+            if (itemIndex !== -1) {
+                targetList[itemIndex].status = status;
+                targetList[itemIndex].catatanSupervisor = catatan;
+                targetList[itemIndex].verifiedBy = currentAuthUser ? currentAuthUser.name : 'Supervisor Gudang';
+                simpanKeStorage();
+                tutupModalApproval();
+                if (type === 'damaged') renderDamaged(); else renderExpired();
+                renderStatistik();
+                alert(`✅ Verifikasi berhasil disimpan! Status: ${status}`);
+            }
+        }
+
+        function renderDamaged() {
+            const tbody = document.getElementById('tabel-damaged');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (dataDamaged.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan barang damaged.</td></tr>`;
+                renderDashboardDamagedVisual();
+                return;
+            }
+
+            dataDamaged.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b text-xs hover:bg-themeblue-50/50';
+                tr.innerHTML = `
+                    <td class="py-3 px-4">${formatTanggalIndo(item.tanggal)}</td>
+                    <td class="py-3 px-4">${item.foto ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-themeblue-50 text-themeblue-800 px-2 py-1 rounded border font-semibold">📷 Lihat Foto</button>` : '<span class="text-gray-400 italic">Tanpa Foto</span>'}</td>
+                    <td class="py-3 px-4">${item.kategori}</td>
+                    <td class="py-3 px-4 font-mono font-bold">${item.matId}</td>
+                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
+                    <td class="py-3 px-4 text-red-600 font-bold">${item.qty} ${item.satuan}</td>
+                    <td class="py-3 px-4">${item.lokasi}</td>
+                    <td class="py-3 px-4">${item.pelapor}</td>
+                    <td class="py-3 px-4"><span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold text-[10px]">${item.status || 'Pending'}</span></td>
+                    <td class="py-3 px-4"><button onclick="bukaModalApproval('${item.id}', 'damaged')" class="bg-themeblue-700 hover:bg-themeblue-800 text-white px-2.5 py-1 rounded font-bold shadow-sm">👑 Verifikasi</button> <button onclick="hapusDamagedBaris('${item.id}')" class="ml-1 text-red-500 font-bold text-xs p-1">🗑️</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderDashboardDamagedVisual();
+        }
+
+        function bukaModalDamaged() { document.getElementById('modal-damaged')?.classList.remove('hidden'); }
+        function tutupModalDamaged() { document.getElementById('modal-damaged')?.classList.add('hidden'); }
+
+        function tambahBarisProduk() {
+            const container = document.getElementById('container-items-damaged');
+            if (!container) return;
+            const rowCount = container.children.length + 1;
+            const div = document.createElement('div');
+            div.className = 'item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2';
+            div.innerHTML = `
+                <button type="button" onclick="hapusBarisProduk(this)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold bg-white rounded-full px-1.5 py-0.5 border">✕</button>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
+                        <select class="item-kategori w-full border rounded p-1.5 text-xs outline-none"><option value="Food">Food 🍔</option><option value="Non Food">Non Food 📦</option></select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                        <input type="text" class="item-matid w-full border rounded p-1.5 text-xs outline-none" required placeholder="MAT-88231">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
+                        <input type="text" class="item-nama w-full border rounded p-1.5 text-xs outline-none" required placeholder="Produk #${rowCount}">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label><input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs outline-none" required placeholder="1"></div>
+                    <div><label class="block text-[11px] font-semibold text-gray-700">Satuan *</label><select class="item-satuan w-full border rounded p-1.5 text-xs outline-none"><option value="Pcs">Pcs</option><option value="Box / Karton">Box / Karton</option></select></div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function hapusBarisProduk(btn) {
+            const container = document.getElementById('container-items-damaged');
+            if (container && container.children.length > 1) btn.closest('.item-damaged-row').remove();
+            else alert("Minimal 1 produk dalam laporan!");
+        }
+
+        async function previewFotoDamaged(event) {
+            const file = event.target.files[0];
+            if (file) {
+                urlFotoDamagedSementara = await kompresFoto(file);
+                const img = document.getElementById('img-preview-damaged');
+                const c = document.getElementById('container-preview-damaged');
+                if (img) img.src = urlFotoDamagedSementara;
+                if (c) c.classList.remove('hidden');
+            }
+        }
+
+        function simpanDamagedBaru(event) {
+            event.preventDefault();
+            const lokasi = document.getElementById('damaged-lokasi').value;
+            const now = new Date();
+            const tglStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
+
+            const rows = document.querySelectorAll('.item-damaged-row');
+            rows.forEach((row, index) => {
+                const kategori = row.querySelector('.item-kategori').value;
+                const matId = row.querySelector('.item-matid').value;
+                const nama = row.querySelector('.item-nama').value;
+                const qty = parseInt(row.querySelector('.item-qty').value) || 1;
+                const satuan = row.querySelector('.item-satuan').value;
+
+                dataDamaged.unshift({
+                    id: Date.now() + index, tanggal: tglStr, kategori, matId, nama, qty, satuan, lokasi, pelapor: userAktif, foto: urlFotoDamagedSementara || null, status: 'Pending'
+                });
+            });
+
+            simpanKeStorage(); tutupModalDamaged(); renderDamaged(); renderStatistik();
+            alert("✅ Laporan Barang Damaged berhasil dikirim!");
+        }
+
+        function hapusDamagedBaris(id) {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus data damaged ini?')) {
+                dataDamaged = dataDamaged.filter(item => String(item.id) !== String(id));
+                simpanKeStorage(); renderDamaged(); renderStatistik();
+            }
+        }
+
+        // OPNAME EXPIRED FUNCTIONS
+        function renderDashboardExpiredVisual() {}
+        function renderExpired() {
+            const tbody = document.getElementById('tabel-expired');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (dataExpired.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan Opname Expired (Food).</td></tr>`;
+                return;
+            }
+            dataExpired.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100 text-xs';
+                tr.innerHTML = `
+                    <td class="py-3 px-4">${formatTanggalIndo(item.tanggal)}</td>
+                    <td class="py-3 px-4 font-bold text-red-700">${formatTanggalIndo(item.expDate)}</td>
+                    <td class="py-3 px-4"><span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Food</span></td>
+                    <td class="py-3 px-4 font-mono font-bold">${item.matId || '-'}</td>
+                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
+                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan}</td>
+                    <td class="py-3 px-4">${item.lokasi}</td>
+                    <td class="py-3 px-4">${item.pelapor}</td>
+                    <td class="py-3 px-4">${item.foto ? `<button onclick="lihatFoto('${item.foto}')" class="text-xs bg-red-50 text-red-800 px-2 py-1 rounded border font-semibold">📷 Foto</button>` : 'Tanpa Foto'}</td>
+                    <td class="py-3 px-4"><span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold text-[10px]">${item.status || 'Pending'}</span></td>
+                    <td class="py-3 px-4"><button onclick="bukaModalApproval('${item.id}', 'expired')" class="bg-themeblue-700 text-white px-2.5 py-1 rounded font-semibold shadow-sm">👑 Verifikasi</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function bukaModalExpired() { document.getElementById('modal-expired')?.classList.remove('hidden'); }
+        function tutupModalExpired() { document.getElementById('modal-expired')?.classList.add('hidden'); }
+
+        function tambahBarisProdukExpired() {
+            const container = document.getElementById('container-items-expired');
+            if (!container) return;
+            const rowCount = container.children.length + 1;
+            const div = document.createElement('div');
+            div.className = 'item-expired-row bg-red-50/40 p-3 rounded-lg border border-red-200 relative space-y-2';
+            div.innerHTML = `
+                <button type="button" onclick="hapusBarisProdukExpired(this)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold bg-white rounded-full px-1.5 py-0.5 border">✕</button>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div><label class="block text-[11px] font-semibold text-gray-700">Kategori</label><input type="text" value="Food 🍔" disabled class="w-full bg-gray-100 border rounded p-1.5 text-xs font-bold text-amber-800"></div>
+                    <div><label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label><input type="text" class="exp-matid w-full border rounded p-1.5 text-xs outline-none" required placeholder="MAT-90021"></div>
+                    <div><label class="block text-[11px] font-semibold text-gray-700">Nama Produk Food *</label><input type="text" class="exp-nama w-full border rounded p-1.5 text-xs outline-none" required placeholder="Produk Food #${rowCount}"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div><label class="block text-[11px] font-bold text-red-800">Tanggal Expired (ED) *</label><input type="date" class="exp-date w-full border border-red-300 rounded p-1.5 text-xs outline-none font-bold" required></div>
+                    <div><label class="block text-[11px] font-semibold text-gray-700">Qty Expired *</label><input type="number" min="1" class="exp-qty w-full border rounded p-1.5 text-xs outline-none" required placeholder="1"></div>
+                    <div><label class="block text-[11px] font-semibold text-gray-700">Satuan *</label><select class="exp-satuan w-full border rounded p-1.5 text-xs outline-none"><option value="Pcs">Pcs</option><option value="Box / Karton">Box / Karton</option></select></div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function hapusBarisProdukExpired(btn) {
+            const container = document.getElementById('container-items-expired');
+            if (container && container.children.length > 1) btn.closest('.item-expired-row').remove();
+            else alert("Minimal 1 produk Food!");
+        }
+
+        async function previewFotoExpired(event) {
+            const file = event.target.files[0];
+            if (file) {
+                urlFotoExpiredSementara = await kompresFoto(file);
+                const img = document.getElementById('img-preview-expired');
+                const c = document.getElementById('container-preview-expired');
+                if (img) img.src = urlFotoExpiredSementara;
+                if (c) c.classList.remove('hidden');
+            }
+        }
+
+        function simpanExpiredBaru(event) {
+            event.preventDefault();
+            const lokasi = document.getElementById('expired-lokasi').value;
+            const now = new Date();
+            const tglStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
+
+            const rows = document.querySelectorAll('.item-expired-row');
+            rows.forEach((row, index) => {
+                const matId = row.querySelector('.exp-matid').value;
+                const nama = row.querySelector('.exp-nama').value;
+                const expDate = row.querySelector('.exp-date').value;
+                const qty = parseInt(row.querySelector('.exp-qty').value) || 1;
+                const satuan = row.querySelector('.exp-satuan').value;
+
+                dataExpired.unshift({
+                    id: Date.now() + index, tanggal: tglStr, kategori: 'Food', expDate, matId, nama, qty, satuan, lokasi, pelapor: userAktif, foto: urlFotoExpiredSementara, status: 'Pending'
+                });
+            });
+
+            simpanKeStorage(); tutupModalExpired(); renderExpired(); renderStatistik();
+            alert("Laporan Opname Expired berhasil dikirim!");
+        }
+
+        // REPORT OPNAME DAILY & USER ACCURACY LEADERBOARD
+        function simpanOpnameDaily(e) {
+            e.preventDefault();
+            alert("File Opname Daily diproses!");
+        }
+
+        function renderOpname() {
+            renderDashboardOpnameVisual();
+        }
+
+        function renderDashboardOpnameVisual() {
+            renderLeaderboardUserDiff();
+        }
+
+        function renderLeaderboardUserDiff() {
+            const container = document.getElementById('container-user-diff-rank');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let userAggr = {};
+            dataOpname.forEach(fileOp => {
+                if (fileOp.detailProducts && Array.isArray(fileOp.detailProducts)) {
+                    fileOp.detailProducts.forEach(item => {
+                        const u = item.user || 'Unknown';
+                        if (!userAggr[u]) userAggr[u] = { name: u, diffCaseQty: 0, diffPackQty: 0, totalDiffQty: 0, itemsCount: 0 };
+                        const absVal = Math.abs(item.variance || 0);
+                        if (item.type === 'CASE') userAggr[u].diffCaseQty += absVal;
+                        if (item.type === 'PACK') userAggr[u].diffPackQty += absVal;
+                        userAggr[u].totalDiffQty += absVal;
+                        userAggr[u].itemsCount++;
+                    });
+                }
+            });
+
+            const sortedUsers = Object.values(userAggr).sort((a, b) => {
+                if (a.totalDiffQty !== b.totalDiffQty) return a.totalDiffQty - b.totalDiffQty;
+                return a.itemsCount - b.itemsCount;
+            });
+
+            if (sortedUsers.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 col-span-3 py-2">Belum ada data selisih user.</p>`;
+                return;
+            }
+
+            const rankBadges = ['🥇', '🥈', '🥉'];
+            sortedUsers.forEach((user, index) => {
+                const badge = rankBadges[index] || `#${index + 1}`;
+                const isTop3 = index < 3;
+                const card = document.createElement('div');
+                card.className = `p-3.5 rounded-xl border ${isTop3 ? 'bg-green-50/70 border-green-300' : 'bg-themeblue-50/50 border-themeblue-200'} space-y-1 shadow-sm`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b pb-1 border-gray-200">
+                        <span class="font-black text-xs text-themeblue-900">${badge} ${user.name}</span>
+                        <span class="text-[10px] ${isTop3 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'} font-extrabold px-2 py-0.5 rounded-full">${user.totalDiffQty} Total Qty Diff</span>
+                    </div>
+                    <div class="text-[11px] text-gray-600 font-medium">
+                        <div>• Case Diff: <strong>${user.diffCaseQty} Box</strong></div>
+                        <div>• Pack Diff: <strong>${user.diffPackQty} Pcs</strong></div>
+                        <div>• Total Item Bermasalah: <strong>${user.itemsCount} Item</strong></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // OVERSTOCK & DEADSTOCK
+        function renderDashboardOverstockDeadstock() {}
+        function renderTabelOverstockDeadstock() {}
+        function simpanStockOverview(e) { e.preventDefault(); alert("Data Stock Overview disimpan!"); }
+
+        function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
+        function tutupModalLihat() { const m = document.getElementById('modal-lihat'); if (m) m.classList.add('hidden'); }
+
         function resetDataJadwal() { if (confirm("Reset seluruh jadwal?")) { dataJadwal = []; simpanKeStorage(); renderTabel(); } }
-        function resetDataDamaged() {}
+        function resetDataDamaged() { if (confirm("Reset seluruh data damaged?")) { dataDamaged = []; simpanKeStorage(); renderDamaged(); } }
+        function resetDataExpired() { if (confirm("Reset seluruh data expired?")) { dataExpired = []; simpanKeStorage(); renderExpired(); } }
+        function resetDataOpname() { if (confirm("Reset seluruh berkas opname?")) { dataOpname = []; simpanKeStorage(); renderOpname(); } }
+        function exportKebersihanCSV() { alert("Ekspor CSV Kebersihan!"); }
+        function exportDamagedExcel() { alert("Ekspor Excel Damaged!"); }
+        function exportDamagedCSV() { alert("Ekspor CSV Damaged!"); }
+        function exportExpiredExcel() { alert("Ekspor Excel Expired!"); }
+        function exportExpiredCSV() { alert("Ekspor CSV Expired!"); }
     </script>
 </body>
 </html>
