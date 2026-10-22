@@ -186,14 +186,24 @@
         <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-base font-bold text-themeblue-900">🏆 Leaderboard Performa Kebersihan Petugas (PIC)</h2>
-                <span class="text-[10px] bg-themeblue-100 text-themeblue-800 font-bold px-2 py-0.5 rounded">Peringkat Real-time</span>
+                <span class="text-[10px] bg-themeblue-100 text-themeblue-800 font-bold px-2 py-0.5 rounded">Peringkat Sesuai Filter Tanggal</span>
             </div>
             <div id="container-pic" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100">
             <div class="p-4 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h2 class="text-lg font-bold text-themeblue-900">Jadwal Kebersihan Gudang Hari Ini</h2>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-lg font-bold text-themeblue-900">Jadwal Kebersihan Gudang</h2>
+                    <!-- FILTER TANGGAL KEBERSIHAN INTERAKTIF -->
+                    <div class="flex items-center gap-1.5 bg-themeblue-50 p-1 px-2.5 rounded-lg border border-themeblue-200">
+                        <label for="filter-kebersihan-date" class="text-xs font-bold text-themeblue-900 whitespace-nowrap">📅 Tanggal:</label>
+                        <select id="filter-kebersihan-date" onchange="renderTabel()" class="bg-white border border-themeblue-300 rounded text-xs font-bold text-themeblue-900 p-1 focus:ring-2 focus:ring-themeblue-600 outline-none">
+                            <option value="TODAY">Hari Ini (Aktif)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="flex flex-wrap items-center gap-2 no-print">
                     <button onclick="exportKebersihanCSV()" class="role-supervisor bg-themeblue-700 hover:bg-themeblue-800 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1">
                         <span>📊</span><span>Ekspor CSV</span>
@@ -534,7 +544,7 @@
             </div>
         </div>
 
-        <!-- FITUR BARU: RINCIAN DAFTAR PRODUK SELISIH OPNAME DAILY -->
+        <!-- FITUR RINCIAN DAFTAR PRODUK SELISIH OPNAME DAILY -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100 space-y-3 p-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
                 <div class="flex items-center gap-2">
@@ -543,7 +553,6 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <!-- FILTER KHUSUS CASE / PACK -->
                     <select id="filter-opname-diff-type" onchange="renderTabelRincianSelisihOpname()" class="bg-white border border-themeblue-300 rounded-lg text-xs font-bold p-2 focus:ring-2 focus:ring-themeblue-600 outline-none">
                         <option value="ALL">Semua Jenis Selisih (Case & Pack)</option>
                         <option value="CASE">🟡 Khusus Selisih Case (Karton)</option>
@@ -1241,7 +1250,6 @@
         let chartStockRatioInstance = null;
         let chartTopStockRisksInstance = null;
 
-        // KOMPRESI ULTRA LIGHTWEIGHT (Maks 220px, Quality 0.3) UNTUK MENGHEMAT QUOTA FIREBASE (~15KB)
         function kompresFoto(file, maxWidth = 220, maxHeight = 220, quality = 0.3) {
             return new Promise((resolve) => {
                 if (!file) {
@@ -1544,17 +1552,20 @@
             }
         }
 
-        function renderLeaderboardPIC() {
+        // PERBAIKAN TUNTAS LEADERBOARD PIC: SINKRON DENGAN TANGGAL TERPILIH DI FILTER
+        function renderLeaderboardPIC(jadwalTerpilih) {
             const container = document.getElementById('container-pic');
             if (!container) return;
             container.innerHTML = '';
+
+            const listData = jadwalTerpilih || [];
 
             const picStats = {};
             listNamaStaf.forEach(nama => {
                 picStats[nama] = { total: 0, selesai: 0 };
             });
 
-            dataJadwal.forEach(item => {
+            listData.forEach(item => {
                 if (item.pic) {
                     if (!picStats[item.pic]) {
                         picStats[item.pic] = { total: 0, selesai: 0 };
@@ -1577,7 +1588,7 @@
             const topPic = sortedPic.filter(p => p.total > 0).slice(0, 6);
 
             if (topPic.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 col-span-3 py-2">Belum ada pengerjaan jadwal kebersihan hari ini.</p>`;
+                container.innerHTML = `<p class="text-xs text-gray-400 col-span-3 py-2">Belum ada pengerjaan jadwal kebersihan pada tanggal yang dipilih.</p>`;
                 return;
             }
 
@@ -1769,7 +1780,7 @@
                 const item = dataJadwal[itemIndex];
                 if (status === 'Selesai') {
                     item.status = 'Selesai';
-                    item.foto = null; 
+                    item.foto = null; // Foto dibersihkan otomatis demi menghemat kuota
                 } else {
                     item.status = 'Belum';
                     item.foto = null;
@@ -2220,7 +2231,7 @@
             document.body.removeChild(link);
         }
 
-        // LOGIKA BARANG DAMAGED
+        // LOGIKA BARANG DAMAGED (PERBAIKAN MULTI-ITEM BEBAS OVERWRITE)
         function renderDashboardDamagedVisual() {
             const alertContainer = document.getElementById('container-alerts-damaged');
             if (!alertContainer) return;
@@ -2542,6 +2553,7 @@
             }
         }
 
+        // PERBAIKAN BUG 1: SIMPAN MULTI-ITEM DAMAGED BEBAS TABRAKAN/OVERWRITE
         function simpanDamagedBaru(event) {
             event.preventDefault();
             
@@ -2557,6 +2569,7 @@
                 const tglStr = now.toISOString().slice(0,10) + ' ' + now.toTimeString().slice(0,5);
 
                 const rows = document.querySelectorAll('.item-damaged-row');
+                const timestampBase = Date.now();
                 
                 rows.forEach((row, index) => {
                     const kategori = row.querySelector('.item-kategori').value;
@@ -2565,8 +2578,9 @@
                     const qty = parseInt(row.querySelector('.item-qty').value) || 1;
                     const satuan = row.querySelector('.item-satuan').value;
 
+                    // ID DIBUAT DENGAN RANDOM UNIK AGAR TIDAK SALING BENTROK
                     const newItem = {
-                        id: Date.now() + index,
+                        id: `${timestampBase}_${index}_${Math.floor(Math.random() * 1000)}`,
                         tanggal: tglStr,
                         kategori,
                         matId,
@@ -2668,7 +2682,6 @@
             document.body.removeChild(link);
         }
 
-        // LOGIKA BARU: EKSTRAKSI LENGKAP DETAIL BARIS PRODUK SELISIH OPNAME DAILY
         function prosesEkstraksiSelisihExcel(file, tanggal) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -2721,7 +2734,6 @@
                                             const nama = rawDesc ? String(rawDesc).trim() : 'Produk MID ' + mid;
                                             const binText = (colBin !== -1 && row[colBin]) ? String(row[colBin]).trim() : '-';
 
-                                            // 1. CEK SELISIH CASE
                                             if (colDiffCase !== -1 && row[colDiffCase] !== undefined) {
                                                 const valCase = parseFloat(row[colDiffCase]);
                                                 if (!isNaN(valCase) && valCase !== 0) {
@@ -2745,7 +2757,6 @@
                                                 }
                                             }
 
-                                            // 2. CEK SELISIH PACK
                                             if (colDiffPack !== -1 && row[colDiffPack] !== undefined) {
                                                 const valPack = parseFloat(row[colDiffPack]);
                                                 if (!isNaN(valPack) && valPack !== 0) {
@@ -2855,7 +2866,7 @@
                     btnSubmit.disabled = false;
                     btnSubmit.innerText = 'Unggah & Proses Laporan Opname';
                 }
-                alert(`✅ Berkas Opname Berhasil Dipproses!\n• Diff Case: ${ekstraksi.diffCaseItems} Item (${ekstraksi.diffCaseQty} Qty)\n• Diff Pack: ${ekstraksi.diffPackItems} Item (${ekstraksi.diffPackQty} Qty)\n• Total ${ekstraksi.detailProducts.length} Rincian Baris Produk Selisih Diekstrak!`);
+                alert(`✅ Berkas Opname Berhasil Diproses!\n• Diff Case: ${ekstraksi.diffCaseItems} Item (${ekstraksi.diffCaseQty} Qty)\n• Diff Pack: ${ekstraksi.diffPackItems} Item (${ekstraksi.diffPackQty} Qty)\n• Total ${ekstraksi.detailProducts.length} Rincian Baris Produk Selisih Diekstrak!`);
             };
 
             reader.readAsDataURL(file);
@@ -2959,7 +2970,6 @@
             renderTabelRincianSelisihOpname();
         }
 
-        // LOGIKA FITUR BARU: RENDER TABEL RINCIAN DAFTAR PRODUK SELISIH OPNAME DAILY
         function renderTabelRincianSelisihOpname() {
             const tbody = document.getElementById('tabel-rincian-selisih-opname');
             if (!tbody) return;
@@ -2969,7 +2979,6 @@
             const filterType = document.getElementById('filter-opname-diff-type')?.value || 'ALL';
             const keyword = document.getElementById('search-opname-diff-keyword')?.value.trim().toLowerCase() || '';
 
-            // Mengumpulkan seluruh rincian barang selisih dari berkas opname sesuai tanggal
             let allDetails = [];
             dataOpname.forEach(fileOp => {
                 if (selectedDate === 'ALL' || fileOp.tanggal === selectedDate) {
@@ -2979,7 +2988,6 @@
                 }
             });
 
-            // Filter jenis selisih & keyword
             const filteredDetails = allDetails.filter(item => {
                 const matchType = (filterType === 'ALL') || (item.type === filterType);
                 const matchKeyword = (String(item.mid).toLowerCase().includes(keyword)) || (item.nama.toLowerCase().includes(keyword));
@@ -3071,7 +3079,6 @@
             }
         }
 
-        // LOGIKA PENYESUAIAN PRESISI: ITEM OVERSTOCK (%OVERSTOCK >50D) & DEADSTOCK
         function prosesEkstraksiStockOverviewExcel(file, tanggal) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -3456,27 +3463,67 @@
             document.body.removeChild(link);
         }
 
-        // RENDER TABEL JADWAL KEBERSIHAN (PERBAIKAN PERGANTIAN HARI & FILTER)
+        // PERBAIKAN FITUR FILTER TANGGAL & LEADERBOARD KEBERSIHAN
+        function updateOpsiFilterTanggalKebersihan() {
+            const selectFilter = document.getElementById('filter-kebersihan-date');
+            if (!selectFilter) return;
+
+            const selectedVal = selectFilter.value;
+            const todayStr = new Date().toISOString().slice(0,10);
+
+            const setTanggal = new Set();
+            setTanggal.add(todayStr); // Hari ini selalu opsi utama
+
+            dataJadwal.forEach(item => {
+                const tgl = item.tanggalDibuat || (item.tanggalPengerjaan ? item.tanggalPengerjaan.slice(0,10) : null);
+                if (tgl) setTanggal.add(tgl);
+            });
+
+            const arrayTanggal = Array.from(setTanggal).sort().reverse();
+
+            selectFilter.innerHTML = `<option value="TODAY">Hari Ini (${formatTanggalIndo(todayStr)})</option>`;
+            arrayTanggal.forEach(tgl => {
+                if (tgl !== todayStr) {
+                    const opt = document.createElement('option');
+                    opt.value = tgl;
+                    opt.innerText = formatTanggalIndo(tgl);
+                    if (tgl === selectedVal) opt.selected = true;
+                    selectFilter.appendChild(opt);
+                }
+            });
+
+            if (selectedVal === 'TODAY') selectFilter.value = 'TODAY';
+        }
+
+        // RENDER TABEL JADWAL KEBERSIHAN
         function renderTabel() {
             const tbody = document.getElementById('tabel-jadwal');
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            updateOpsiFilterTanggalKebersihan();
+
+            const selectFilter = document.getElementById('filter-kebersihan-date');
+            const selectedDateFilter = selectFilter ? selectFilter.value : 'TODAY';
             const todayStr = new Date().toISOString().slice(0,10);
 
-            const jadwalHariIni = dataJadwal.filter(i => {
-                if (!i.tanggalDibuat) return true;
-                return i.tanggalDibuat === todayStr;
+            const targetDate = selectedDateFilter === 'TODAY' ? todayStr : selectedDateFilter;
+
+            const jadwalTerpilih = dataJadwal.filter(i => {
+                const tglItem = i.tanggalDibuat || (i.tanggalPengerjaan ? i.tanggalPengerjaan.slice(0,10) : null);
+                return tglItem === targetDate;
             });
 
-            if (jadwalHariIni.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan yang ditambahkan untuk hari ini (${formatTanggalIndo(todayStr)}).</td></tr>`;
-                renderLeaderboardPIC();
+            // UPDATE LEADERBOARD SECARA PRESISI MENGIKUTI TANGGAL TERPILIH
+            renderLeaderboardPIC(jadwalTerpilih);
+
+            if (jadwalTerpilih.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan yang ditambahkan untuk tanggal (${formatTanggalIndo(targetDate)}).</td></tr>`;
                 return;
             }
 
-            const dataPending = jadwalHariIni.filter(i => i.status !== 'Selesai');
-            const dataSelesai = jadwalHariIni.filter(i => i.status === 'Selesai');
+            const dataPending = jadwalTerpilih.filter(i => i.status !== 'Selesai');
+            const dataSelesai = jadwalTerpilih.filter(i => i.status === 'Selesai');
 
             const buatBarisHTML = (item) => {
                 const tr = document.createElement('tr');
@@ -3553,7 +3600,7 @@
 
             if (dataPending.length === 0) {
                 const trEmptyPending = document.createElement('tr');
-                trEmptyPending.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Tidak ada jadwal pending hari ini. Semua area telah selesai atau tuntas!</td>`;
+                trEmptyPending.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Tidak ada jadwal pending pada tanggal ini. Semua area telah selesai atau tuntas!</td>`;
                 tbody.appendChild(trEmptyPending);
             } else {
                 dataPending.forEach(item => {
@@ -3565,35 +3612,40 @@
             headerSelesai.className = 'bg-green-100/80 border-y border-green-300';
             headerSelesai.innerHTML = `
                 <td colspan="6" class="py-2.5 px-4 font-bold text-xs text-green-900 tracking-wide">
-                    ✅ JADWAL TELAH SELESAI & DIVERIFIKASI TUNTAS HARI INI (${dataSelesai.length})
+                    ✅ JADWAL TELAH SELESAI & DIVERIFIKASI TUNTAS (${dataSelesai.length})
                 </td>
             `;
             tbody.appendChild(headerSelesai);
 
             if (dataSelesai.length === 0) {
                 const trEmptySelesai = document.createElement('tr');
-                trEmptySelesai.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Belum ada area kebersihan yang diselesaikan hari ini.</td>`;
+                trEmptySelesai.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Belum ada area kebersihan yang diselesaikan pada tanggal ini.</td>`;
                 tbody.appendChild(trEmptySelesai);
             } else {
                 dataSelesai.forEach(item => {
                     tbody.appendChild(buatBarisHTML(item));
                 });
             }
-
-            renderLeaderboardPIC();
         }
 
         function renderStatistik() {
+            const selectFilter = document.getElementById('filter-kebersihan-date');
+            const selectedDateFilter = selectFilter ? selectFilter.value : 'TODAY';
             const todayStr = new Date().toISOString().slice(0,10);
-            const jadwalHariIni = dataJadwal.filter(i => (!i.tanggalDibuat || i.tanggalDibuat === todayStr));
+            const targetDate = selectedDateFilter === 'TODAY' ? todayStr : selectedDateFilter;
+
+            const jadwalTerpilih = dataJadwal.filter(i => {
+                const tglItem = i.tanggalDibuat || (i.tanggalPengerjaan ? i.tanggalPengerjaan.slice(0,10) : null);
+                return tglItem === targetDate;
+            });
 
             const elTot = document.getElementById('stat-total');
             const elSel = document.getElementById('stat-selesai');
             const elPen = document.getElementById('stat-pending');
 
-            if (elTot) elTot.innerText = jadwalHariIni.length;
-            if (elSel) elSel.innerText = jadwalHariIni.filter(i => i.status === 'Selesai').length;
-            if (elPen) elPen.innerText = jadwalHariIni.filter(i => i.status !== 'Selesai').length;
+            if (elTot) elTot.innerText = jadwalTerpilih.length;
+            if (elSel) elSel.innerText = jadwalTerpilih.filter(i => i.status === 'Selesai').length;
+            if (elPen) elPen.innerText = jadwalTerpilih.filter(i => i.status !== 'Selesai').length;
 
             let boxCount = 0, pcsCount = 0, palletCount = 0;
             let foodBox = 0, foodPcs = 0;
