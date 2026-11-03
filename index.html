@@ -69,7 +69,7 @@
                     <input type="password" id="login-password" required placeholder="Masukkan password" class="w-full border border-gray-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none">
                 </div>
 
-                <button type="submit" id="btn-login-submit" class="w-full bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold py-3 rounded-xl text-xs shadow-md transition">
+                <button type="submit" id="btn-login-submit" class="w-full bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold py-3 rounded-xl text-xs shadow-md transition cursor-pointer">
                     MASUK KEPADA SISTEM 🚀
                 </button>
             </form>
@@ -100,7 +100,7 @@
                 <div class="font-bold text-white" id="user-display-name">Supervisor</div>
                 <div class="text-[10px] text-themeblue-100" id="user-display-role">👑 Supervisor</div>
             </div>
-            <button onclick="prosesLogout()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition shadow-sm">
+            <button type="button" onclick="prosesLogout()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition shadow-sm cursor-pointer">
                 🚪 Logout
             </button>
         </div>
@@ -109,23 +109,23 @@
     <!-- Navigasi Menu Tab Utama -->
     <div class="bg-themeblue-900 text-white px-4 md:px-6 shadow-inner no-print border-t border-themeblue-800 overflow-x-auto">
         <div class="max-w-6xl mx-auto flex space-x-2 text-xs md:text-sm font-semibold whitespace-nowrap">
-            <button onclick="pindahMenu('kebersihan')" id="nav-kebersihan" class="menu-nav-btn px-4 py-3 border-b-4 border-amber-400 text-white flex items-center gap-2">
+            <button type="button" onclick="pindahMenu('kebersihan')" id="nav-kebersihan" class="menu-nav-btn px-4 py-3 border-b-4 border-amber-400 text-white flex items-center gap-2">
                 <span>🧹</span>
                 <span>Jadwal Kebersihan</span>
             </button>
-            <button onclick="pindahMenu('damaged')" id="nav-damaged" class="menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
+            <button type="button" onclick="pindahMenu('damaged')" id="nav-damaged" class="menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
                 <span>⚠️</span>
                 <span>Pendataan Barang Damaged</span>
             </button>
-            <button onclick="pindahMenu('expired')" id="nav-expired" class="menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
+            <button type="button" onclick="pindahMenu('expired')" id="nav-expired" class="menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
                 <span>⏳</span>
                 <span>Opname Expired (Food)</span>
             </button>
-            <button onclick="pindahMenu('opname')" id="nav-opname" class="role-supervisor menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
+            <button type="button" onclick="pindahMenu('opname')" id="nav-opname" class="role-supervisor menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
                 <span>📊</span>
                 <span>Report Hasil Opname Daily</span>
             </button>
-            <button onclick="pindahMenu('overstock')" id="nav-overstock" class="role-supervisor menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
+            <button type="button" onclick="pindahMenu('overstock')" id="nav-overstock" class="role-supervisor menu-nav-btn px-4 py-3 border-b-4 border-transparent text-themeblue-100 hover:text-white flex items-center gap-2">
                 <span>📦</span>
                 <span>Item Overstock & Deadstock</span>
             </button>
@@ -205,7 +205,6 @@
                     <button type="button" onclick="resetDataJadwal()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
                         🗑️ Reset Jadwal
                     </button>
-                    <!-- TOMBOL TAMBAH JADWAL DIPERBAIKI SECARA EKSPLISIT -->
                     <button type="button" onclick="bukaModalTambah()" class="role-supervisor bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-xs shadow-sm cursor-pointer">
                         + Tambah Jadwal
                     </button>
@@ -308,13 +307,13 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 no-print">
-                    <button type="button" onclick="exportDamagedExcel()" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                    <button type="button" onclick="exportDamagedExcel()" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1 cursor-pointer">
                         <span>📗</span><span>Ekspor Excel (.xlsx)</span>
                     </button>
-                    <button type="button" onclick="exportDamagedCSV()" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                    <button type="button" onclick="exportDamagedCSV()" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1 cursor-pointer">
                         <span>📊</span><span>Ekspor CSV</span>
                     </button>
-                    <button type="button" onclick="resetDataDamaged()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                    <button type="button" onclick="resetDataDamaged()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer">
                         🗑️ Bersihkan Data Damaged
                     </button>
                     <button type="button" onclick="bukaModalDamaged()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1 cursor-pointer">
@@ -407,8 +406,8 @@
 
             <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100 lg:col-span-2 flex flex-col justify-between">
                 <div>
-                    <h3 class="text-xs font-bold text-themeblue-900 uppercase tracking-wider mb-1">Top 5 Produk Food Kedaluwarsa (Qty)</h3>
-                    <p class="text-[11px] text-gray-400 mb-4">Produk Food dengan jumlah kuantitas ED terbanyak</p>
+                    <h3 class="text-xs font-bold text-themeblue-900 uppercase mb-1">Top 5 Produk Food Kedaluwarsa (Qty)</h3>
+                    <p class="text-[11px] text-gray-400 mb-4">Produk Food dengan kuantitas ED terbanyak</p>
                 </div>
                 <div class="relative max-h-52">
                     <canvas id="chartTopExpired"></canvas>
@@ -426,16 +425,15 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 no-print">
-                    <button type="button" onclick="exportExpiredExcel()" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                    <button type="button" onclick="exportExpiredExcel()" class="bg-green-700 hover:bg-green-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1 cursor-pointer">
                         <span>📗</span><span>Ekspor Excel (.xlsx)</span>
                     </button>
-                    <button type="button" onclick="exportExpiredCSV()" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                    <button type="button" onclick="exportExpiredCSV()" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-semibold px-3 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1 cursor-pointer">
                         <span>📊</span><span>Ekspor CSV</span>
                     </button>
-                    <button type="button" onclick="resetDataExpired()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                    <button type="button" onclick="resetDataExpired()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer">
                         🗑️ Bersihkan Data Expired
                     </button>
-                    <!-- TOMBOL INPUT EXPIRED DIPERBAIKI SECARA EKSPLISIT -->
                     <button type="button" onclick="bukaModalExpired()" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1 cursor-pointer">
                         <span>⏳ +</span><span>Input Opname Expired</span>
                     </button>
@@ -605,7 +603,7 @@
                 </div>
 
                 <div class="flex justify-end pt-2">
-                    <button type="submit" id="btn-submit-opname" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5">
+                    <button type="submit" id="btn-submit-opname" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                         <span>📥</span><span>Unggah & Proses Laporan Opname</span>
                     </button>
                 </div>
@@ -616,7 +614,7 @@
             <div class="p-4 border-b border-themeblue-100 flex justify-between items-center bg-white">
                 <h3 class="text-sm font-bold text-themeblue-900">Daftar Berkas Opname Daily Tersimpan</h3>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="resetDataOpname()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-1 rounded-lg text-xs font-semibold">
+                    <button type="button" onclick="resetDataOpname()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer">
                         🗑️ Bersihkan Arsip Opname
                     </button>
                     <span id="stat-opname-count" class="text-xs font-bold bg-themeblue-100 text-themeblue-900 px-3 py-1 rounded-full">0 Berkas</span>
@@ -746,7 +744,7 @@
                 </div>
 
                 <div class="flex justify-end pt-2">
-                    <button type="submit" id="btn-submit-stock" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5">
+                    <button type="submit" id="btn-submit-stock" class="bg-themeblue-700 hover:bg-themeblue-800 text-white font-bold px-5 py-2.5 rounded-lg text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                         <span>⚡</span><span>Proses & Analisis Data Stok</span>
                     </button>
                 </div>
@@ -769,7 +767,7 @@
 
                     <input type="text" id="search-stock-keyword" onkeyup="renderTabelOverstockDeadstock()" placeholder="🔍 Cari Mat ID / Nama Produk..." class="border border-themeblue-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-themeblue-600 outline-none w-48 md:w-64">
 
-                    <button type="button" onclick="resetDataStockOverview()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
+                    <button type="button" onclick="resetDataStockOverview()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer">
                         🗑️ Clean Analytics
                     </button>
                 </div>
@@ -794,7 +792,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: TAMBAH JADWAL KEBERSIHAN (DIPERBAIKI 100% RESPONSIF) -->
+    <!-- SEMUA MODAL FORM & INSPEKSI -->
     <div id="modal-tambah" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[9999] no-print">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4 border-t-4 border-themeblue-700 my-8">
             <div class="flex justify-between items-center border-b pb-2">
@@ -847,13 +845,94 @@
 
                 <div class="flex justify-end space-x-2 pt-3 border-t">
                     <button type="button" onclick="tutupModalTambah()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg hover:bg-themeblue-800 shadow-sm">Simpan</button>
+                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg hover:bg-themeblue-800 shadow-sm cursor-pointer">Simpan</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL POPUP: DOKUMENTASI OPNAME EXPIRED (DIPERBAIKI 100% RESPONSIF) -->
+    <!-- MODAL POPUP: DOKUMENTASI BARANG DAMAGED -->
+    <div id="modal-damaged" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[9999] no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border-t-4 border-amber-600 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800">Form Laporan Barang Damaged</h3>
+                    <p class="text-[11px] text-gray-500">Gunakan fitur ini untuk melaporkan 1 atau beberapa barang damaged sekaligus</p>
+                </div>
+                <button type="button" onclick="tutupModalDamaged()" class="text-gray-400 hover:text-gray-600 font-bold text-lg px-2">✕</button>
+            </div>
+            
+            <form id="form-damaged" onsubmit="simpanDamagedBaru(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ambil / Unggah Foto Bukti Kerusakan *</label>
+                    <input type="file" id="damaged-foto" accept="image/*" capture="environment" onchange="previewFotoDamaged(event)" required class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
+                </div>
+
+                <div id="container-preview-damaged" class="hidden border rounded-lg p-2 bg-themeblue-50 text-center">
+                    <img id="img-preview-damaged" src="" class="max-h-36 mx-auto rounded shadow-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Lokasi Area / Rak Gudang *</label>
+                    <input type="text" id="damaged-lokasi" required placeholder="Contoh: Rak B-03 / Area Staging Loading Dock" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+
+                <div class="border-t pt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-themeblue-900 uppercase tracking-wider">Daftar Produk Rusak (Multi-Item)</label>
+                        <button type="button" onclick="tambahBarisProduk()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition shadow-sm cursor-pointer">
+                            <span>+</span><span>Tambah Produk Lain</span>
+                        </button>
+                    </div>
+
+                    <div id="container-items-damaged" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                        <div class="item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
+                                    <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                                        <option value="Food">Food 🍔</option>
+                                        <option value="Non Food">Non Food 📦</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                                    <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
+                                    <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Milo 3-in-1 Sachet 1Kg">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
+                                    <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 5">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
+                                    <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                                        <option value="Pcs">Pcs</option>
+                                        <option value="Box / Karton">Box / Karton</option>
+                                        <option value="Master Carton">Master Carton</option>
+                                        <option value="Pallet">Pallet</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t">
+                    <button type="button" onclick="tutupModalDamaged()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" id="btn-submit-damaged" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm cursor-pointer">Kirim Laporan Damaged</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP: DOKUMENTASI OPNAME EXPIRED -->
     <div id="modal-expired" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[9999] no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border-t-4 border-red-600 my-8">
             <div class="flex justify-between items-center border-b pb-2">
@@ -882,7 +961,7 @@
                 <div class="border-t pt-3">
                     <div class="flex justify-between items-center mb-2">
                         <label class="block text-xs font-bold text-red-800 uppercase tracking-wider">Daftar Produk Food Expired (Multi-Item)</label>
-                        <button type="button" onclick="tambahBarisProdukExpired()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition shadow-sm">
+                        <button type="button" onclick="tambahBarisProdukExpired()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition shadow-sm cursor-pointer">
                             <span>+</span><span>Tambah Produk Food Lain</span>
                         </button>
                     </div>
@@ -929,95 +1008,14 @@
 
                 <div class="flex justify-end space-x-2 pt-3 border-t">
                     <button type="button" onclick="tutupModalExpired()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 shadow-sm">Kirim Laporan Expired</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL POPUP: DOKUMENTASI BARANG DAMAGED (DIPERBAIKI 100% RESPONSIF) -->
-    <div id="modal-damaged" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[9999] no-print overflow-y-auto">
-        <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border-t-4 border-amber-600 my-8">
-            <div class="flex justify-between items-center border-b pb-2">
-                <div>
-                    <h3 class="text-base font-bold text-gray-800">Form Laporan Barang Damaged</h3>
-                    <p class="text-[11px] text-gray-500">Gunakan fitur ini untuk melaporkan 1 atau beberapa barang damaged sekaligus</p>
-                </div>
-                <button type="button" onclick="tutupModalDamaged()" class="text-gray-400 hover:text-gray-600 font-bold text-lg px-2">✕</button>
-            </div>
-            
-            <form id="form-damaged" onsubmit="simpanDamagedBaru(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ambil / Unggah Foto Bukti Kerusakan *</label>
-                    <input type="file" id="damaged-foto" accept="image/*" capture="environment" onchange="previewFotoDamaged(event)" required class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
-                </div>
-
-                <div id="container-preview-damaged" class="hidden border rounded-lg p-2 bg-themeblue-50 text-center">
-                    <img id="img-preview-damaged" src="" class="max-h-36 mx-auto rounded shadow-sm">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Lokasi Area / Rak Gudang *</label>
-                    <input type="text" id="damaged-lokasi" required placeholder="Contoh: Rak B-03 / Area Staging Loading Dock" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
-                </div>
-
-                <div class="border-t pt-3">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-bold text-themeblue-900 uppercase tracking-wider">Daftar Produk Rusak (Multi-Item)</label>
-                        <button type="button" onclick="tambahBarisProduk()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition shadow-sm">
-                            <span>+</span><span>Tambah Produk Lain</span>
-                        </button>
-                    </div>
-
-                    <div id="container-items-damaged" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                        <div class="item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
-                                    <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
-                                        <option value="Food">Food 🍔</option>
-                                        <option value="Non Food">Non Food 📦</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
-                                    <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
-                                    <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Milo 3-in-1 Sachet 1Kg">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
-                                    <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 5">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
-                                    <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
-                                        <option value="Pcs">Pcs</option>
-                                        <option value="Box / Karton">Box / Karton</option>
-                                        <option value="Master Carton">Master Carton</option>
-                                        <option value="Pallet">Pallet</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-3 border-t">
-                    <button type="button" onclick="tutupModalDamaged()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" id="btn-submit-damaged" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">Kirim Laporan Damaged</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 shadow-sm cursor-pointer">Kirim Laporan Expired</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL POPUP: CHECKER INSPEKSI & FOTO KEBERSIHAN -->
-    <div id="modal-checker-inspeksi" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+    <div id="modal-checker-inspeksi" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[9999] no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600 my-8">
             <div class="flex justify-between items-center border-b pb-2">
                 <div>
@@ -1047,14 +1045,14 @@
 
                 <div class="flex justify-end space-x-2 pt-2 border-t">
                     <button type="button" onclick="tutupModalCheckerInspeksi()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" id="btn-submit-checker" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">📷 Kirim Hasil Pengecekan</button>
+                    <button type="submit" id="btn-submit-checker" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm cursor-pointer">📷 Kirim Hasil Pengecekan</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL POPUP: VERIFIKASI SUPERVISOR KEBERSIHAN -->
-    <div id="modal-approval-kebersihan" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+    <div id="modal-approval-kebersihan" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[9999] no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-green-600 my-8">
             <div class="flex justify-between items-center border-b pb-2">
                 <div>
@@ -1088,14 +1086,14 @@
 
                 <div class="flex justify-end space-x-2 pt-2 border-t">
                     <button type="button" onclick="tutupModalApprovalKebersihan()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-green-700 text-white text-xs font-semibold rounded-lg hover:bg-green-800 shadow-sm">Simpan Keputusan</button>
+                    <button type="submit" class="px-4 py-2 bg-green-700 text-white text-xs font-semibold rounded-lg hover:bg-green-800 shadow-sm cursor-pointer">Simpan Keputusan</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL POPUP: VERIFIKASI / APPROVAL SUPERVISOR LAPORAN DAMAGED & EXPIRED -->
-    <div id="modal-approval" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
+    <div id="modal-approval" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[9999] no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700 my-8">
             <div class="flex justify-between items-center border-b pb-2">
                 <div>
@@ -1130,14 +1128,14 @@
 
                 <div class="flex justify-end space-x-2 pt-2 border-t">
                     <button type="button" onclick="tutupModalApproval()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg hover:bg-themeblue-800 shadow-sm">Simpan Keputusan</button>
+                    <button type="submit" class="px-4 py-2 bg-themeblue-700 text-white text-xs font-semibold rounded-lg hover:bg-themeblue-800 shadow-sm cursor-pointer">Simpan Keputusan</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL POPUP: LIHAT FOTO FULL -->
-    <div id="modal-lihat" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-50 no-print" onclick="tutupModalLihat()">
+    <div id="modal-lihat" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-[9999] no-print" onclick="tutupModalLihat()">
         <div class="bg-white rounded-xl max-w-lg w-full p-4 shadow-xl space-y-3 relative" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center border-b pb-2">
                 <h3 class="text-xs font-bold text-gray-800">Foto Dokumen Bukti</h3>
@@ -1147,9 +1145,8 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIKA UTAMA LENGKAP -->
+    <!-- FUNGSI BUKA & TUTUP SEMUA MODAL SECARA EKSPLISIT (BEBAS BENTROK TAILWIND) -->
     <script>
-        // PERBAIKAN FUNGSI BUKA & TUTUP SEMUA MODAL SECARA EKSPLISIT (BEBAS BENTROK TAILWIND)
         function bukaModalTambah() {
             const m = document.getElementById('modal-tambah');
             if (m) {
@@ -1217,6 +1214,24 @@
                 const p = document.getElementById('container-preview-damaged');
                 if (p) p.classList.add('hidden');
                 urlFotoDamagedSementara = '';
+            }
+        }
+
+        function lihatFoto(url) {
+            const img = document.getElementById('img-full');
+            const m = document.getElementById('modal-lihat');
+            if (img) img.src = url;
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
+            }
+        }
+
+        function tutupModalLihat() {
+            const m = document.getElementById('modal-lihat');
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
             }
         }
     </script>
