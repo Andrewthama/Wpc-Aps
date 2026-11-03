@@ -1474,7 +1474,6 @@
             return tglStr;
         }
 
-        // PERBAIKAN FUNGSI PINDAH MENU: RE-RENDER OTOMATIS SAAT BERPINDAH TAB
         function pindahMenu(menu) {
             document.querySelectorAll('.menu-nav-btn').forEach(btn => {
                 btn.classList.remove('border-amber-400', 'text-white');
@@ -2218,12 +2217,150 @@
             document.body.removeChild(link);
         }
 
-        // PERBAIKAN DASHBOARD DAMAGED: MENGUPDATE KARTU KPI 1, 2, 3 SECARA LANGSUNG DENGAN DATA VALID
+        // FUNGSI MODAL PENDATAAN BARANG DAMAGED
+        function bukaModalDamaged() {
+            const m = document.getElementById('modal-damaged');
+            if (m) m.classList.remove('hidden');
+
+            const preview = document.getElementById('container-preview-damaged');
+            if (preview) preview.classList.add('hidden');
+            urlFotoDamagedSementara = '';
+
+            const container = document.getElementById('container-items-damaged');
+            if (container) {
+                container.innerHTML = `
+                    <div class="item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
+                                <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                                    <option value="Food">Food 🍔</option>
+                                    <option value="Non Food">Non Food 📦</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                                <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
+                                <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Milo 3-in-1 Sachet 1Kg">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
+                                <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 5">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
+                                <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                                    <option value="Pcs">Pcs</option>
+                                    <option value="Box / Karton">Box / Karton</option>
+                                    <option value="Master Carton">Master Carton</option>
+                                    <option value="Pallet">Pallet</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function tutupModalDamaged() {
+            const m = document.getElementById('modal-damaged');
+            if (m) m.classList.add('hidden');
+            const f = document.getElementById('form-damaged');
+            if (f) f.reset();
+            const p = document.getElementById('container-preview-damaged');
+            if (p) p.classList.add('hidden');
+            urlFotoDamagedSementara = '';
+        }
+
+        function tambahBarisProduk() {
+            const container = document.getElementById('container-items-damaged');
+            if (!container) return;
+            const rowCount = container.children.length + 1;
+
+            const div = document.createElement('div');
+            div.className = 'item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2';
+            div.innerHTML = `
+                <button type="button" onclick="hapusBarisProduk(this)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold bg-white rounded-full px-1.5 py-0.5 border">✕</button>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
+                        <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                            <option value="Food">Food 🍔</option>
+                            <option value="Non Food">Non Food 📦</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                        <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
+                        <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Produk Damaged #${rowCount}">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
+                        <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 5">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
+                        <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                            <option value="Pcs">Pcs</option>
+                            <option value="Box / Karton">Box / Karton</option>
+                            <option value="Master Carton">Master Carton</option>
+                            <option value="Pallet">Pallet</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function hapusBarisProduk(btn) {
+            const container = document.getElementById('container-items-damaged');
+            if (container && container.children.length > 1) {
+                btn.closest('.item-damaged-row').remove();
+            } else {
+                alert("Minimal harus terdapat 1 produk damaged!");
+            }
+        }
+
+        async function previewFotoDamaged(event) {
+            const file = event.target.files[0];
+            if (file) {
+                urlFotoDamagedSementara = await kompresFoto(file);
+                const img = document.getElementById('img-preview-damaged');
+                const c = document.getElementById('container-preview-damaged');
+                if (img) img.src = urlFotoDamagedSementara;
+                if (c) c.classList.remove('hidden');
+            }
+        }
+
+        function hapusDamagedBaris(id) {
+            if (!isSupervisor()) {
+                alert('Akses ditolak! Hanya Supervisor / Checker yang dapat menghapus data damaged.');
+                return;
+            }
+
+            if (confirm('Apakah Anda yakin ingin menghapus laporan barang damaged ini?')) {
+                dataDamaged = dataDamaged.filter(item => String(item.id) !== String(id));
+                simpanKeStorage();
+                renderDamaged();
+            }
+        }
+
         function renderDashboardDamagedVisual() {
             const alertContainer = document.getElementById('container-alerts-damaged');
             if (alertContainer) alertContainer.innerHTML = '';
 
-            const pendingItems = dataDamaged.filter(i => (i.status || 'Pending') === 'Pending');
             const boxDamagedHigh = dataDamaged.filter(i => (i.satuan || '').includes('Box') && (i.qty || 0) >= 10);
             const pcsDamagedHigh = dataDamaged.filter(i => !(i.satuan || '').includes('Box') && (i.qty || 0) >= 10);
 
@@ -2259,7 +2396,6 @@
                 alertContainer.appendChild(alertDivPcs);
             }
 
-            // HITUNG STATISTIK DAMAGED
             let boxCount = 0, pcsCount = 0, palletCount = 0;
             let foodBox = 0, foodPcs = 0;
             let nonBox = 0, nonPcs = 0;
@@ -2285,7 +2421,6 @@
                 }
             });
 
-            // LANGSUNG UPDATE KARTU KPI 1, 2, 3 AGAR TIDAK TAMPIL 0
             const elDamTot = document.getElementById('stat-damaged-total');
             const elDamQty = document.getElementById('stat-damaged-qty');
             const elDamSatuanDetail = document.getElementById('stat-damaged-satuan-detail');
@@ -2590,7 +2725,6 @@
         }
 
         function renderStatistik() {
-            // FUNGSI INI TETAP ADA UNTUK SINKRONISASI GLOBAL
             renderDashboardDamagedVisual();
         }
 
