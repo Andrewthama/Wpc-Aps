@@ -1151,7 +1151,6 @@
 
     <!-- SCRIPT LOGIKA UTAMA LENGKAP -->
     <script>
-        // KONFIGURASI FIREBASE PROYEK
         const firebaseConfig = {
             apiKey: "AIzaSyDQR5s666pChgTJbh0J1rF5pQlKg_g9te4",
             authDomain: "wpc-aps.firebaseapp.com",
@@ -1382,7 +1381,6 @@
             renderExpired();
             renderOpname();
             renderDashboardOverstockDeadstock();
-            renderStatistik();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -2862,6 +2860,7 @@
             }
         }
 
+        // FUNGSI BUKA & TUTUP MODAL DAMAGED YANG DIPERBAIKI (100% BEBAS BENTROK)
         function bukaModalDamaged() {
             const m = document.getElementById('modal-damaged');
             if (m) {
