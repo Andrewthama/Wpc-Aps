@@ -151,7 +151,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-themeblue-600 flex justify-between items-center">
                 <div>
-                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Total Zona Hari Ini</span>
+                    <span class="text-gray-500 font-medium text-xs uppercase tracking-wider">Total Zona</span>
                     <div class="mt-1 flex items-baseline gap-2">
                         <span id="stat-total" class="text-3xl font-extrabold text-gray-800">0</span>
                         <span class="text-sm font-semibold text-gray-500">Area</span>
@@ -186,7 +186,7 @@
         <div class="bg-white rounded-xl shadow-sm p-5 border border-themeblue-100">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-base font-bold text-themeblue-900">🏆 Leaderboard Performa Kebersihan Petugas (PIC)</h2>
-                <span class="text-[10px] bg-themeblue-100 text-themeblue-800 font-bold px-2 py-0.5 rounded">Peringkat Sesuai Filter Tanggal</span>
+                <span class="text-[10px] bg-themeblue-100 text-themeblue-800 font-bold px-2 py-0.5 rounded">Peringkat Real-Time</span>
             </div>
             <div id="container-pic" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
@@ -195,11 +195,11 @@
             <div class="p-4 border-b border-themeblue-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <h2 class="text-lg font-bold text-themeblue-900">Jadwal Kebersihan Gudang</h2>
-                    <!-- FILTER TANGGAL KEBERSIHAN INTERAKTIF -->
                     <div class="flex items-center gap-1.5 bg-themeblue-50 p-1 px-2.5 rounded-lg border border-themeblue-200">
-                        <label for="filter-kebersihan-date" class="text-xs font-bold text-themeblue-900 whitespace-nowrap">📅 Tanggal:</label>
+                        <label for="filter-kebersihan-date" class="text-xs font-bold text-themeblue-900 whitespace-nowrap">📅 Filter:</label>
                         <select id="filter-kebersihan-date" onchange="renderTabel()" class="bg-white border border-themeblue-300 rounded text-xs font-bold text-themeblue-900 p-1 focus:ring-2 focus:ring-themeblue-600 outline-none">
-                            <option value="TODAY">Hari Ini (Aktif)</option>
+                            <option value="ALL">Semua Riwayat Jadwal</option>
+                            <option value="TODAY" selected>Hari Ini (Aktif)</option>
                         </select>
                     </div>
                 </div>
@@ -211,7 +211,7 @@
                     <button onclick="resetDataJadwal()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
                         🗑️ Reset Jadwal
                     </button>
-                    <button onclick="bukaModalTambah()" class="role-supervisor bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-xs shadow-sm">+ Tambah Jadwal Hari Ini</button>
+                    <button onclick="bukaModalTambah()" class="role-supervisor bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2 rounded-lg text-xs shadow-sm">+ Tambah Jadwal</button>
                 </div>
             </div>
 
@@ -320,7 +320,7 @@
                     <button onclick="resetDataDamaged()" class="role-supervisor bg-red-100 hover:bg-red-200 text-red-700 border border-red-300 px-3 py-2 rounded-lg text-xs font-semibold">
                         🗑️ Bersihkan Data Damaged
                     </button>
-                    <button onclick="bukaModalDamaged()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1">
+                    <button type="button" onclick="bukaModalDamaged()" class="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-4 py-2 rounded-lg text-xs shadow-sm transition flex items-center gap-1 cursor-pointer">
                         <span>📷 +</span><span>Laporkan Barang Damaged</span>
                     </button>
                 </div>
@@ -336,6 +336,7 @@
                             <th class="py-3 px-4">Mat ID</th>
                             <th class="py-3 px-4">Nama Produk / Deskripsi</th>
                             <th class="py-3 px-4">Qty Rusak</th>
+                            <th class="py-3 px-4">Satuan</th>
                             <th class="py-3 px-4">Lokasi</th>
                             <th class="py-3 px-4">Pelapor</th>
                             <th class="py-3 px-4">Status Approval</th>
@@ -453,6 +454,7 @@
                             <th class="py-3 px-4">Mat ID</th>
                             <th class="py-3 px-4">Nama Produk Food</th>
                             <th class="py-3 px-4">Qty</th>
+                            <th class="py-3 px-4">Satuan</th>
                             <th class="py-3 px-4">Lokasi</th>
                             <th class="py-3 px-4">Pelapor</th>
                             <th class="py-3 px-4">Foto</th>
@@ -466,10 +468,8 @@
         </div>
     </div>
 
-    <!-- HALAMAN 4: REPORT OPNAME DAILY (DENGAN DASHBOARD, RINCIAN BARANG SELISIH & FILTER REALTIME) -->
+    <!-- HALAMAN 4: REPORT OPNAME DAILY -->
     <div id="page-opname" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-        
-        <!-- DASHBOARD ANALITIKA SELISIH OPNAME DAILY DENGAN FILTER TANGGAL -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-themeblue-100 space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
                 <div>
@@ -479,7 +479,6 @@
                     <p class="text-xs text-gray-500">Sistem otomatis mendeteksi & mengekstrak data selisih dari kolom `Diff. Case` & `Diff. Pack` Excel harian</p>
                 </div>
                 
-                <!-- ELEMEN FILTER TANGGAL DASHBOARD -->
                 <div class="flex items-center gap-2 bg-themeblue-50 p-1.5 px-3 rounded-lg border border-themeblue-200">
                     <label for="filter-opname-date" class="text-xs font-bold text-themeblue-900 whitespace-nowrap">📅 Filter Tanggal:</label>
                     <select id="filter-opname-date" onchange="renderDashboardOpnameVisual()" class="bg-white border border-themeblue-300 rounded-md text-xs font-bold text-themeblue-900 p-1.5 focus:ring-2 focus:ring-themeblue-600 outline-none">
@@ -488,7 +487,6 @@
                 </div>
             </div>
 
-            <!-- CARD RINGKASAN KPI SELISIH -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-amber-50 p-4 rounded-xl border-l-4 border-amber-500 flex justify-between items-center">
                     <div>
@@ -535,7 +533,6 @@
                 </div>
             </div>
 
-            <!-- GRAFIK TREN SELISIH OPNAME DAILY -->
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <h3 class="text-xs font-bold text-themeblue-900 uppercase mb-2">Grafik Perbandingan Selisih Opname Daily</h3>
                 <div class="relative max-h-56">
@@ -648,8 +645,6 @@
 
     <!-- HALAMAN 5: ITEM OVERSTOCK & DEADSTOCK -->
     <div id="page-overstock" class="hidden max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-        
-        <!-- DASHBOARD OVERSTOCK & DEADSTOCK ANALYTICS -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-themeblue-100 space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
                 <div>
@@ -661,7 +656,6 @@
                 <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-300">📊 DC Stock Intelligence</span>
             </div>
 
-            <!-- CARD KPI SUMMARY OVERSTOCK & DEADSTOCK -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-amber-50 p-4 rounded-xl border-l-4 border-amber-500 flex justify-between items-center">
                     <div>
@@ -708,7 +702,6 @@
                 </div>
             </div>
 
-            <!-- VISUALISASI GRAFIK OVERSTOCK & DEADSTOCK -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
                     <div>
@@ -732,7 +725,6 @@
             </div>
         </div>
 
-        <!-- FORM UPLOAD FILE EXCEL OVERSTOCK & DEADSTOCK -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-themeblue-100 space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4 border-themeblue-100">
                 <div>
@@ -763,7 +755,6 @@
             </form>
         </div>
 
-        <!-- TABEL RINCIAN PRODUK OVERSTOCK & DEADSTOCK -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-themeblue-100 space-y-3 p-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b pb-3 border-themeblue-100">
                 <div class="flex items-center gap-2">
@@ -805,6 +796,87 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP: DOKUMENTASI BARANG DAMAGED (DIPERBAIKI 100% RESPONSIF) -->
+    <div id="modal-damaged" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[9999] no-print overflow-y-auto">
+        <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-4 border-t-4 border-amber-600 my-8">
+            <div class="flex justify-between items-center border-b pb-2">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800">Form Laporan Barang Damaged</h3>
+                    <p class="text-[11px] text-gray-500">Gunakan fitur ini untuk melaporkan 1 atau beberapa barang damaged sekaligus</p>
+                </div>
+                <button type="button" onclick="tutupModalDamaged()" class="text-gray-400 hover:text-gray-600 font-bold text-lg px-2">✕</button>
+            </div>
+            
+            <form id="form-damaged" onsubmit="simpanDamagedBaru(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ambil / Unggah Foto Bukti Kerusakan *</label>
+                    <input type="file" id="damaged-foto" accept="image/*" capture="environment" onchange="previewFotoDamaged(event)" required class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
+                </div>
+
+                <div id="container-preview-damaged" class="hidden border rounded-lg p-2 bg-themeblue-50 text-center">
+                    <img id="img-preview-damaged" src="" class="max-h-36 mx-auto rounded shadow-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Lokasi Area / Rak Gudang *</label>
+                    <input type="text" id="damaged-lokasi" required placeholder="Contoh: Rak B-03 / Area Staging Loading Dock" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+
+                <div class="border-t pt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-themeblue-900 uppercase tracking-wider">Daftar Produk Rusak (Multi-Item)</label>
+                        <button type="button" onclick="tambahBarisProduk()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition shadow-sm">
+                            <span>+</span><span>Tambah Produk Lain</span>
+                        </button>
+                    </div>
+
+                    <div id="container-items-damaged" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                        <div class="item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
+                                    <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                                        <option value="Food">Food 🍔</option>
+                                        <option value="Non Food">Non Food 📦</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
+                                    <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
+                                    <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Milo 3-in-1 Sachet 1Kg">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
+                                    <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 5">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
+                                    <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                                        <option value="Pcs">Pcs</option>
+                                        <option value="Box / Karton">Box / Karton</option>
+                                        <option value="Master Carton">Master Carton</option>
+                                        <option value="Pallet">Pallet</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-3 border-t">
+                    <button type="button" onclick="tutupModalDamaged()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
+                    <button type="submit" id="btn-submit-damaged" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">Kirim Laporan Damaged</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL POPUP: CHECKER INSPEKSI & FOTO KEBERSIHAN -->
     <div id="modal-checker-inspeksi" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600 my-8">
@@ -813,7 +885,7 @@
                     <h3 class="text-base font-bold text-gray-800">Pengecekan Kebersihan & Lampirkan Foto</h3>
                     <p class="text-[11px] text-gray-500">Checker mengambil foto bukti pengerjaan yang sudah selesai dibersihkan oleh staf</p>
                 </div>
-                <button onclick="tutupModalCheckerInspeksi()" class="text-gray-400 font-bold">✕</button>
+                <button type="button" onclick="tutupModalCheckerInspeksi()" class="text-gray-400 font-bold">✕</button>
             </div>
 
             <div class="bg-amber-50 p-3.5 rounded-lg border border-amber-200 text-xs space-y-1">
@@ -891,7 +963,7 @@
                     <h3 class="text-base font-bold text-themeblue-900">Verifikasi & Approval Supervisor</h3>
                     <p class="text-[11px] text-gray-500">Tinjau dan tindak lanjuti laporan staf gudang</p>
                 </div>
-                <button onclick="tutupModalApproval()" class="text-gray-400 font-bold">✕</button>
+                <button type="button" onclick="tutupModalApproval()" class="text-gray-400 font-bold">✕</button>
             </div>
 
             <div class="bg-themeblue-50 p-3.5 rounded-lg border border-themeblue-200 text-xs space-y-1">
@@ -933,7 +1005,7 @@
                     <h3 class="text-base font-bold text-gray-800">Form Laporan Opname Expired (Food Only)</h3>
                     <p class="text-[11px] text-gray-500">Isi tanggal, bulan, dan tahun kedaluwarsa produk makanan di gudang</p>
                 </div>
-                <button onclick="tutupModalExpired()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+                <button type="button" onclick="tutupModalExpired()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
             </div>
             
             <form id="form-expired" onsubmit="simpanExpiredBaru(event)" class="space-y-4">
@@ -976,7 +1048,7 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-[11px] font-bold text-red-800">Tanggal Expired (ED) *</label>
                                     <input type="date" class="exp-date w-full border border-red-300 rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none font-bold" required>
@@ -1007,93 +1079,12 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP: DOKUMENTASI BARANG DAMAGED BARU -->
-    <div id="modal-damaged" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print overflow-y-auto">
-        <div class="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl space-y-4 border-t-4 border-amber-600 my-8">
-            <div class="flex justify-between items-center border-b pb-2">
-                <div>
-                    <h3 class="text-base font-bold text-gray-800">Form Laporan Barang Damaged</h3>
-                    <p class="text-[11px] text-gray-500">Gunakan fitur ini untuk melaporkan 1 atau beberapa barang damaged sekaligus</p>
-                </div>
-                <button onclick="tutupModalDamaged()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
-            </div>
-            
-            <form id="form-damaged" onsubmit="simpanDamagedBaru(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Ambil / Unggah Foto Bukti Kerusakan *</label>
-                    <input type="file" id="damaged-foto" accept="image/*" capture="environment" onchange="previewFotoDamaged(event)" required class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
-                </div>
-
-                <div id="container-preview-damaged" class="hidden border rounded-lg p-2 bg-themeblue-50 text-center">
-                    <img id="img-preview-damaged" src="" class="max-h-36 mx-auto rounded shadow-sm">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Lokasi Area / Rak Gudang *</label>
-                    <input type="text" id="damaged-lokasi" required placeholder="Contoh: Rak B-03 / Area Staging Loading Dock" class="w-full border rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
-                </div>
-
-                <div class="border-t pt-3">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-bold text-themeblue-900 uppercase tracking-wider">Daftar Produk Rusak (Multi-Item)</label>
-                        <button type="button" onclick="tambahBarisProduk()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition shadow-sm">
-                            <span>+</span><span>Tambah Produk Lain</span>
-                        </button>
-                    </div>
-
-                    <div id="container-items-damaged" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                        <div class="item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
-                                    <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
-                                        <option value="Food">Food 🍔</option>
-                                        <option value="Non Food">Non Food 📦</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
-                                    <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
-                                    <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Milo 3-in-1 Sachet 1Kg">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
-                                    <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 5">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
-                                    <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
-                                        <option value="Pcs">Pcs</option>
-                                        <option value="Box / Karton">Box / Karton</option>
-                                        <option value="Master Carton">Master Carton</option>
-                                        <option value="Pallet">Pallet</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-3 border-t">
-                    <button type="button" onclick="tutupModalDamaged()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200">Batal</button>
-                    <button type="submit" id="btn-submit-damaged" class="px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 shadow-sm">Kirim Laporan Damaged</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- MODAL POPUP: TAMBAH JADWAL KEBERSIHAN -->
     <div id="modal-tambah" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 no-print">
         <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-themeblue-700">
             <div class="flex justify-between items-center border-b pb-2">
                 <h3 class="text-base font-bold text-gray-800">Tambah Jadwal Kebersihan</h3>
-                <button onclick="tutupModalTambah()" class="text-gray-400 font-bold">✕</button>
+                <button type="button" onclick="tutupModalTambah()" class="text-gray-400 font-bold">✕</button>
             </div>
             
             <form id="form-tambah" onsubmit="simpanJadwalBaru(event)" class="space-y-3">
@@ -1152,15 +1143,14 @@
         <div class="bg-white rounded-xl max-w-lg w-full p-4 shadow-xl space-y-3 relative" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center border-b pb-2">
                 <h3 class="text-xs font-bold text-gray-800">Foto Dokumen Bukti</h3>
-                <button onclick="tutupModalLihat()" class="text-gray-500 font-bold">✕</button>
+                <button type="button" onclick="tutupModalLihat()" class="text-gray-500 font-bold">✕</button>
             </div>
             <img id="img-full" src="" class="w-full h-auto rounded-lg max-h-96 object-cover">
         </div>
     </div>
 
-    <!-- SCRIPT LOGIKA UTAMA -->
+    <!-- SCRIPT LOGIKA UTAMA LENGKAP -->
     <script>
-        // KONFIGURASI FIREBASE PROYEK
         const firebaseConfig = {
             apiKey: "AIzaSyDQR5s666pChgTJbh0J1rF5pQlKg_g9te4",
             authDomain: "wpc-aps.firebaseapp.com",
@@ -1190,7 +1180,6 @@
             'logistics': { password: 'admin123', name: 'Logistic Manager', role: 'Supervisor' },
             'headwh': { password: 'admin123', name: 'Head Warehouse', role: 'Supervisor' },
             
-            // AKUN CHECKER DENGAN HAK AKSES SUPERVISOR
             'harry': { password: 'admin123', name: 'Checker M.Harry', role: 'Supervisor' },
             'ilham': { password: 'admin123', name: 'Checker Ilham Syahputra', role: 'Supervisor' },
             'robby': { password: 'admin123', name: 'Checker M.Robby', role: 'Supervisor' },
@@ -1392,7 +1381,6 @@
             renderExpired();
             renderOpname();
             renderDashboardOverstockDeadstock();
-            renderStatistik();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1500,30 +1488,34 @@
                 const page = document.getElementById('page-kebersihan');
                 if (nav) nav.classList.add('border-amber-400', 'text-white');
                 if (page) page.classList.remove('hidden');
+                renderTabel();
             } else if (menu === 'damaged') {
                 const nav = document.getElementById('nav-damaged');
                 const page = document.getElementById('page-damaged');
                 if (nav) nav.classList.add('border-amber-400', 'text-white');
                 if (page) page.classList.remove('hidden');
-                setTimeout(renderDashboardDamagedVisual, 100);
+                renderDamaged();
+                setTimeout(renderDashboardDamagedVisual, 50);
             } else if (menu === 'expired') {
                 const nav = document.getElementById('nav-expired');
                 const page = document.getElementById('page-expired');
                 if (nav) nav.classList.add('border-amber-400', 'text-white');
                 if (page) page.classList.remove('hidden');
-                setTimeout(renderDashboardExpiredVisual, 100);
+                renderExpired();
+                setTimeout(renderDashboardExpiredVisual, 50);
             } else if (menu === 'opname') {
                 const nav = document.getElementById('nav-opname');
                 const page = document.getElementById('page-opname');
                 if (nav) nav.classList.add('border-amber-400', 'text-white');
                 if (page) page.classList.remove('hidden');
-                setTimeout(renderDashboardOpnameVisual, 100);
+                renderOpname();
+                setTimeout(renderDashboardOpnameVisual, 50);
             } else if (menu === 'overstock') {
                 const nav = document.getElementById('nav-overstock');
                 const page = document.getElementById('page-overstock');
                 if (nav) nav.classList.add('border-amber-400', 'text-white');
                 if (page) page.classList.remove('hidden');
-                setTimeout(renderDashboardOverstockDeadstock, 100);
+                renderDashboardOverstockDeadstock();
             }
         }
 
@@ -1541,24 +1533,23 @@
                 if (bannerText) bannerText.innerHTML = `Mode Pengguna: <strong>Supervisor / Manajemen / Checker</strong> (Akses Seluruh Data & Laporan)`;
                 if (badgeRole) {
                     badgeRole.innerText = 'Akses Penuh';
-                    badgeRole.className = 'bg-themeblue-700 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                    badgeRole.className = 'bg-themeblue-700 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wider';
                 }
             } else {
                 if (bannerText) bannerText.innerHTML = `Mode Staf: <strong>${userAktif}</strong> (Bisa Laporkan Kebersihan Selesai & Damaged)`;
                 if (badgeRole) {
                     badgeRole.innerText = 'Mode Staf / PIC';
-                    badgeRole.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase';
+                    badgeRole.className = 'bg-amber-600 text-white font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wider';
                 }
             }
         }
 
-        // PERBAIKAN TUNTAS LEADERBOARD PIC: SINKRON DENGAN TANGGAL TERPILIH DI FILTER
         function renderLeaderboardPIC(jadwalTerpilih) {
             const container = document.getElementById('container-pic');
             if (!container) return;
             container.innerHTML = '';
 
-            const listData = jadwalTerpilih || [];
+            const listData = jadwalTerpilih || dataJadwal;
 
             const picStats = {};
             listNamaStaf.forEach(nama => {
@@ -1588,7 +1579,7 @@
             const topPic = sortedPic.filter(p => p.total > 0).slice(0, 6);
 
             if (topPic.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 col-span-3 py-2">Belum ada pengerjaan jadwal kebersihan pada tanggal yang dipilih.</p>`;
+                container.innerHTML = `<p class="text-xs text-gray-400 col-span-3 py-2">Belum ada pengerjaan jadwal kebersihan pada data yang dipilih.</p>`;
                 return;
             }
 
@@ -1624,7 +1615,6 @@
                 dataJadwal = dataJadwal.filter(item => String(item.id) !== String(id));
                 simpanKeStorage();
                 renderTabel();
-                renderStatistik();
             }
         }
 
@@ -1640,7 +1630,6 @@
 
                 simpanKeStorage();
                 renderTabel();
-                renderStatistik();
                 alert("✅ Pengerjaan dilaporkan selesai! Menunggu Checker melakukan inspeksi & foto bukti.");
             }
         }
@@ -1725,7 +1714,6 @@
                 simpanKeStorage();
                 tutupModalCheckerInspeksi();
                 renderTabel();
-                renderStatistik();
                 alert("✅ Foto bukti berhasil diunggah oleh Checker! Menunggu verifikasi akhir Supervisor.");
             }
         }
@@ -1780,7 +1768,7 @@
                 const item = dataJadwal[itemIndex];
                 if (status === 'Selesai') {
                     item.status = 'Selesai';
-                    item.foto = null; // Foto dibersihkan otomatis demi menghemat kuota
+                    item.foto = null;
                 } else {
                     item.status = 'Belum';
                     item.foto = null;
@@ -1788,7 +1776,6 @@
 
                 simpanKeStorage();
                 renderTabel();
-                renderStatistik();
 
                 if (status === 'Selesai') {
                     alert("✅ Kebersihan berhasil diverifikasi TUNTAS!");
@@ -1859,14 +1846,12 @@
                 if (type === 'damaged') renderDamaged();
                 else renderExpired();
 
-                renderStatistik();
                 alert(`✅ Laporan ${type.toUpperCase()} berhasil di-update dengan status: ${status}`);
             } else {
                 alert("Gagal menemukan data laporan yang dipilih!");
             }
         }
 
-        // VISUAL EXPIRED FOOD
         function renderDashboardExpiredVisual() {
             const alertContainer = document.getElementById('container-alerts-expired');
             if (!alertContainer) return;
@@ -1984,7 +1969,7 @@
             tbody.innerHTML = '';
 
             if (dataExpired.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan Opname Expired (Food).</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="12" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan Opname Expired (Food).</td></tr>`;
                 renderDashboardExpiredVisual();
                 return;
             }
@@ -2029,7 +2014,8 @@
                     <td class="py-3 px-4">${badgeED}</td>
                     <td class="py-3 px-4 text-xs font-mono font-bold text-themeblue-800">${item.matId || '-'}</td>
                     <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
-                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan}</td>
+                    <td class="py-3 px-4 font-bold text-red-600">${item.qty}</td>
+                    <td class="py-3 px-4 text-xs font-semibold text-gray-600">${item.satuan || 'Pcs'}</td>
                     <td class="py-3 px-4 text-xs">${item.lokasi}</td>
                     <td class="py-3 px-4 text-xs font-semibold">${item.pelapor}</td>
                     <td class="py-3 px-4">${fotoElement}</td>
@@ -2080,14 +2066,14 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-[11px] font-bold text-red-800">Tanggal Expired (ED) *</label>
                         <input type="date" class="exp-date w-full border border-red-300 rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none font-bold" required>
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-gray-700">Qty Expired *</label>
-                        <input type="number" min="1" class="exp-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none" required placeholder="Contoh: 1">
+                        <input type="number" min="1" class="exp-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-red-500 outline-none" required placeholder="Contoh: 10">
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
@@ -2159,7 +2145,6 @@
             simpanKeStorage();
             tutupModalExpired();
             renderExpired();
-            renderStatistik();
             alert("Laporan Opname Expired berhasil dikirim (Status: Menunggu Approval Supervisor).");
         }
 
@@ -2170,14 +2155,13 @@
             }
 
             const dataArray = [
-                ["Tanggal Lapor", "Tanggal Expired (ED)", "Kategori", "Mat ID", "Nama Produk Food", "Qty Expired", "Lokasi", "Pelapor", "Status Approval", "Di-verify Oleh", "Catatan"]
+                ["Tanggal Lapor", "Tanggal Expired (ED)", "Kategori", "Mat ID", "Nama Produk Food", "Qty Expired", "Satuan (UOM)", "Lokasi", "Pelapor", "Status Approval", "Di-verify Oleh", "Catatan"]
             ];
 
             dataExpired.forEach(row => {
                 const tglLaporFormatted = formatTanggalIndo(row.tanggal);
                 const tglEdFormatted = formatTanggalIndo(row.expDate);
                 const matIdText = row.matId || "-";
-                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
 
                 dataArray.push([
                     tglLaporFormatted,
@@ -2185,7 +2169,8 @@
                     "Food",
                     matIdText,
                     row.nama,
-                    qtySatuanText,
+                    Number(row.qty) || 0,
+                    row.satuan || "Pcs",
                     row.lokasi,
                     row.pelapor,
                     row.status || "Pending",
@@ -2199,7 +2184,7 @@
 
             ws['!cols'] = [
                 { wch: 18 }, { wch: 20 }, { wch: 10 }, { wch: 14 },
-                { wch: 35 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
+                { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
             ];
 
             XLSX.utils.book_append_sheet(wb, ws, "Opname Expired Food");
@@ -2212,14 +2197,13 @@
                 return;
             }
 
-            let csvContent = "\uFEFFTanggal Lapor,Tanggal Expired,Kategori,Mat ID,Nama Produk Food,Qty Expired,Lokasi,Pelapor,Status Approval,Verified By,Catatan\n";
+            let csvContent = "\uFEFFTanggal Lapor,Tanggal Expired,Kategori,Mat ID,Nama Produk Food,Qty Expired,Satuan (UOM),Lokasi,Pelapor,Status Approval,Verified By,Catatan\n";
             dataExpired.forEach(row => {
                 const tglLaporFormatted = formatTanggalIndo(row.tanggal);
                 const tglEdFormatted = formatTanggalIndo(row.expDate);
                 const matIdText = row.matId || "-";
-                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
 
-                csvContent += `"${tglLaporFormatted}","${tglEdFormatted}","Food","${matIdText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
+                csvContent += `"${tglLaporFormatted}","${tglEdFormatted}","Food","${matIdText}","${row.nama}",${Number(row.qty) || 0},"${row.satuan || 'Pcs'}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -2231,17 +2215,15 @@
             document.body.removeChild(link);
         }
 
-        // LOGIKA BARANG DAMAGED (PERBAIKAN MULTI-ITEM BEBAS OVERWRITE)
         function renderDashboardDamagedVisual() {
             const alertContainer = document.getElementById('container-alerts-damaged');
-            if (!alertContainer) return;
-            alertContainer.innerHTML = '';
+            if (alertContainer) alertContainer.innerHTML = '';
 
             const pendingItems = dataDamaged.filter(i => (i.status || 'Pending') === 'Pending');
             const boxDamagedHigh = dataDamaged.filter(i => (i.satuan || '').includes('Box') && (i.qty || 0) >= 10);
             const pcsDamagedHigh = dataDamaged.filter(i => !(i.satuan || '').includes('Box') && (i.qty || 0) >= 10);
 
-            if (boxDamagedHigh.length > 0) {
+            if (boxDamagedHigh.length > 0 && alertContainer) {
                 const topBox = boxDamagedHigh.sort((a,b) => b.qty - a.qty)[0];
                 const alertDivBox = document.createElement('div');
                 alertDivBox.className = 'bg-red-100 border-l-4 border-red-600 text-red-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
@@ -2257,7 +2239,7 @@
                 alertContainer.appendChild(alertDivBox);
             }
 
-            if (pcsDamagedHigh.length > 0) {
+            if (pcsDamagedHigh.length > 0 && alertContainer) {
                 const topPcs = pcsDamagedHigh.sort((a,b) => b.qty - a.qty)[0];
                 const alertDivPcs = document.createElement('div');
                 alertDivPcs.className = 'bg-amber-100 border-l-4 border-amber-600 text-amber-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
@@ -2273,30 +2255,49 @@
                 alertContainer.appendChild(alertDivPcs);
             }
 
-            if (pendingItems.length > 0) {
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'bg-amber-100/80 border-l-4 border-amber-500 text-amber-900 p-3.5 rounded-lg text-xs flex justify-between items-center shadow-sm';
-                alertDiv.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="text-base">⚠️</span>
-                        <div><strong class="font-bold">NOTIFIKASI SUPERVISOR:</strong> Terdapat <strong>${pendingItems.length} Laporan Barang Damaged Pending</strong> menunggu verifikasi.</div>
-                    </div>
-                `;
-                alertContainer.appendChild(alertDiv);
-            }
-
-            let foodScore = 0;
-            let nonFoodScore = 0;
+            let boxCount = 0, pcsCount = 0, palletCount = 0;
+            let foodBox = 0, foodPcs = 0;
+            let nonBox = 0, nonPcs = 0;
+            let foodScore = 0, nonFoodScore = 0;
 
             dataDamaged.forEach(item => {
-                const q = item.qty || 0;
+                const q = Number(item.qty) || 0;
                 const s = item.satuan || 'Pcs';
                 const k = item.kategori || 'Food';
                 const weight = (s.includes('Box') || s.includes('Karton') || s.includes('Master')) ? q * 1000 : q;
 
                 if (k === 'Food') foodScore += weight;
                 else nonFoodScore += weight;
+
+                if (s.includes('Box') || s.includes('Karton') || s.includes('Master')) {
+                    boxCount += q;
+                    if (k === 'Food') foodBox += q; else nonBox += q;
+                } else if (s.includes('Pallet')) {
+                    palletCount += q;
+                } else {
+                    pcsCount += q;
+                    if (k === 'Food') foodPcs += q; else nonPcs += q;
+                }
             });
+
+            const elDamTot = document.getElementById('stat-damaged-total');
+            const elDamQty = document.getElementById('stat-damaged-qty');
+            const elDamSatuanDetail = document.getElementById('stat-damaged-satuan-detail');
+            const elDamFood = document.getElementById('stat-damaged-food');
+            const elDamNon = document.getElementById('stat-damaged-nonfood');
+
+            if (elDamTot) elDamTot.innerText = dataDamaged.length;
+            if (elDamQty) elDamQty.innerText = `${dataDamaged.reduce((a,c) => a + (Number(c.qty) || 0), 0)} Items`;
+
+            let detailSatuanStr = [];
+            if (boxCount > 0) detailSatuanStr.push(`${boxCount} Box/Karton`);
+            if (pcsCount > 0) detailSatuanStr.push(`${pcsCount} Pcs`);
+            if (palletCount > 0) detailSatuanStr.push(`${palletCount} Pallet`);
+            if (detailSatuanStr.length === 0) detailSatuanStr.push('0 Box | 0 Pcs');
+
+            if (elDamSatuanDetail) elDamSatuanDetail.innerText = detailSatuanStr.join(' | ');
+            if (elDamFood) elDamFood.innerText = `Food: ${foodBox > 0 ? foodBox + ' Box, ' : ''}${foodPcs} Pcs`;
+            if (elDamNon) elDamNon.innerText = `Non Food: ${nonBox > 0 ? nonBox + ' Box, ' : ''}${nonPcs} Pcs`;
 
             try {
                 const pageDam = document.getElementById('page-damaged');
@@ -2322,8 +2323,8 @@
                             productAggrMap[key] = { name: key, rawQty: 0, score: 0, isBox };
                         }
 
-                        productAggrMap[key].rawQty += (item.qty || 0);
-                        productAggrMap[key].score += (isBox ? (item.qty || 0) * 1000 : (item.qty || 0));
+                        productAggrMap[key].rawQty += (Number(item.qty) || 0);
+                        productAggrMap[key].score += (isBox ? (Number(item.qty) || 0) * 1000 : (Number(item.qty) || 0));
                     });
 
                     const sortedProducts = Object.values(productAggrMap)
@@ -2358,84 +2359,15 @@
             }
         }
 
-        function tambahBarisProduk() {
-            const container = document.getElementById('container-items-damaged');
-            if (!container) return;
-            const rowCount = container.children.length + 1;
-
-            const div = document.createElement('div');
-            div.className = 'item-damaged-row bg-themeblue-50/70 p-3 rounded-lg border border-themeblue-200 relative space-y-2';
-            div.innerHTML = `
-                <button type="button" onclick="hapusBarisProduk(this)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold bg-white rounded-full px-1.5 py-0.5 border">✕</button>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-700">Kategori *</label>
-                        <select class="item-kategori w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
-                            <option value="Food">Food 🍔</option>
-                            <option value="Non Food">Non Food 📦</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-700">Mat ID Produk *</label>
-                        <input type="text" class="item-matid w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: MAT-88231">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-700">Nama / Deskripsi Produk *</label>
-                        <input type="text" class="item-nama w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: Produk #${rowCount}">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-700">Qty Rusak *</label>
-                        <input type="number" min="1" class="item-qty w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none" required placeholder="Contoh: 1">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-gray-700">Satuan *</label>
-                        <select class="item-satuan w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-amber-500 outline-none">
-                            <option value="Pcs">Pcs</option>
-                            <option value="Box / Karton">Box / Karton</option>
-                            <option value="Master Carton">Master Carton</option>
-                            <option value="Pallet">Pallet</option>
-                        </select>
-                    </div>
-                </div>
-            `;
-
-            container.appendChild(div);
-        }
-
-        function hapusBarisProduk(btn) {
-            const container = document.getElementById('container-items-damaged');
-            if (container && container.children.length > 1) {
-                btn.closest('.item-damaged-row').remove();
-            } else {
-                alert("Minimal harus terdapat 1 produk dalam laporan!");
-            }
-        }
-
-        function hapusDamagedBaris(id) {
-            if (!isSupervisor()) {
-                alert('Akses ditolak! Hanya Supervisor / Manajemen yang dapat menghapus laporan damaged.');
-                return;
-            }
-
-            if (confirm('Apakah Anda yakin ingin menghapus data pendataan barang damaged ini?')) {
-                dataDamaged = dataDamaged.filter(item => String(item.id) !== String(id));
-                simpanKeStorage();
-                renderDamaged();
-                renderStatistik();
-            }
-        }
-
         function renderDamaged() {
             const tbody = document.getElementById('tabel-damaged');
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            renderDashboardDamagedVisual();
+
             if (dataDamaged.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan barang damaged.</td></tr>`;
-                renderDashboardDamagedVisual();
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-gray-400 text-xs">Belum ada laporan barang damaged.</td></tr>`;
                 return;
             }
 
@@ -2476,7 +2408,8 @@
                     <td class="py-3 px-4">${badgeKategori}</td>
                     <td class="py-3 px-4 text-xs font-mono font-bold text-themeblue-800">${item.matId || '-'}</td>
                     <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
-                    <td class="py-3 px-4 font-bold text-red-600">${item.qty} ${item.satuan || 'Pcs'}</td>
+                    <td class="py-3 px-4 font-bold text-red-600">${item.qty}</td>
+                    <td class="py-3 px-4 text-xs font-semibold text-gray-600">${item.satuan || 'Pcs'}</td>
                     <td class="py-3 px-4 text-xs">${item.lokasi}</td>
                     <td class="py-3 px-4 text-xs font-semibold">${item.pelapor}</td>
                     <td class="py-3 px-4">${badgeStatus}</td>
@@ -2487,12 +2420,12 @@
 
             const headerPending = document.createElement('tr');
             headerPending.className = 'bg-amber-100/80 border-y border-amber-300';
-            headerPending.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-amber-900 tracking-wide">⏳ LAPORAN PENDING VERIFIKASI SUPERVISOR (${listPending.length})</td>`;
+            headerPending.innerHTML = `<td colspan="11" class="py-2.5 px-4 font-bold text-xs text-amber-900 tracking-wide">⏳ LAPORAN PENDING VERIFIKASI SUPERVISOR (${listPending.length})</td>`;
             tbody.appendChild(headerPending);
 
             if (listPending.length === 0) {
                 const emptyTr = document.createElement('tr');
-                emptyTr.innerHTML = `<td colspan="10" class="text-center py-3 text-gray-400 text-xs italic bg-white">Tidak ada laporan pending. Semua telah diverifikasi!</td>`;
+                emptyTr.innerHTML = `<td colspan="11" class="text-center py-3 text-gray-400 text-xs italic bg-white">Tidak ada laporan pending. Semua telah diverifikasi!</td>`;
                 tbody.appendChild(emptyTr);
             } else {
                 listPending.forEach(item => tbody.appendChild(buatBarisDamaged(item)));
@@ -2500,12 +2433,12 @@
 
             const headerDisetujui = document.createElement('tr');
             headerDisetujui.className = 'bg-green-100/80 border-y border-green-300';
-            headerDisetujui.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-green-900 tracking-wide">✅ LAPORAN DISETUJUI / VERIFIED (${listDisetujui.length})</td>`;
+            headerDisetujui.innerHTML = `<td colspan="11" class="py-2.5 px-4 font-bold text-xs text-green-900 tracking-wide">✅ LAPORAN DISETUJUI / VERIFIED (${listDisetujui.length})</td>`;
             tbody.appendChild(headerDisetujui);
 
             if (listDisetujui.length === 0) {
                 const emptyTr = document.createElement('tr');
-                emptyTr.innerHTML = `<td colspan="10" class="text-center py-3 text-gray-400 text-xs italic bg-white">Belum ada laporan damaged yang disetujui.</td>`;
+                emptyTr.innerHTML = `<td colspan="11" class="text-center py-3 text-gray-400 text-xs italic bg-white">Belum ada laporan damaged yang disetujui.</td>`;
                 tbody.appendChild(emptyTr);
             } else {
                 listDisetujui.forEach(item => tbody.appendChild(buatBarisDamaged(item)));
@@ -2513,47 +2446,87 @@
 
             const headerDitolak = document.createElement('tr');
             headerDitolak.className = 'bg-red-100/80 border-y border-red-300';
-            headerDitolak.innerHTML = `<td colspan="10" class="py-2.5 px-4 font-bold text-xs text-red-900 tracking-wide">❌ LAPORAN DITOLAK / REJECTED (${listDitolak.length})</td>`;
+            headerDitolak.innerHTML = `<td colspan="11" class="py-2.5 px-4 font-bold text-xs text-red-900 tracking-wide">❌ LAPORAN DITOLAK / REJECTED (${listDitolak.length})</td>`;
             tbody.appendChild(headerDitolak);
 
             if (listDitolak.length === 0) {
                 const emptyTr = document.createElement('tr');
-                emptyTr.innerHTML = `<td colspan="10" class="text-center py-3 text-gray-400 text-xs italic bg-white">Tidak ada laporan yang ditolak.</td>`;
+                emptyTr.innerHTML = `<td colspan="11" class="text-center py-3 text-gray-400 text-xs italic bg-white">Tidak ada laporan yang ditolak.</td>`;
                 tbody.appendChild(emptyTr);
             } else {
                 listDitolak.forEach(item => tbody.appendChild(buatBarisDamaged(item)));
             }
-
-            renderDashboardDamagedVisual();
         }
 
-        function bukaModalDamaged() {
-            const m = document.getElementById('modal-damaged');
-            if (m) m.classList.remove('hidden');
-        }
-
-        function tutupModalDamaged() {
-            const m = document.getElementById('modal-damaged');
-            if (m) m.classList.add('hidden');
-            const f = document.getElementById('form-damaged');
-            if (f) f.reset();
-            const p = document.getElementById('container-preview-damaged');
-            if (p) p.classList.add('hidden');
-            urlFotoDamagedSementara = '';
-        }
-
-        async function previewFotoDamaged(event) {
-            const file = event.target.files[0];
-            if (file) {
-                urlFotoDamagedSementara = await kompresFoto(file);
-                const img = document.getElementById('img-preview-damaged');
-                const c = document.getElementById('container-preview-damaged');
-                if (img) img.src = urlFotoDamagedSementara;
-                if (c) c.classList.remove('hidden');
+        function exportDamagedExcel() {
+            if (dataDamaged.length === 0) {
+                alert("Belum ada data barang damaged untuk diekspor!");
+                return;
             }
+
+            const dataArray = [
+                ["Tanggal", "Foto", "Kategori", "Mat ID", "Nama Produk / Deskripsi", "Qty Rusak", "Satuan (UOM)", "Lokasi", "Pelapor", "Status Approval", "Di-verify Oleh", "Catatan"]
+            ];
+
+            dataDamaged.forEach(row => {
+                const tglFormatted = formatTanggalIndo(row.tanggal);
+                const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
+                const kategoriText = row.kategori || "Food";
+                const matIdText = row.matId || "-";
+
+                dataArray.push([
+                    tglFormatted,
+                    fotoText,
+                    kategoriText,
+                    matIdText,
+                    row.nama,
+                    Number(row.qty) || 0,
+                    row.satuan || "Pcs",
+                    row.lokasi,
+                    row.pelapor,
+                    row.status || "Pending",
+                    row.verifiedBy || "-",
+                    row.catatanSupervisor || "-"
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(dataArray);
+
+            ws['!cols'] = [
+                { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+                { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Laporan Damaged");
+            XLSX.writeFile(wb, `Laporan_WpcAps_Damaged_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
-        // PERBAIKAN BUG 1: SIMPAN MULTI-ITEM DAMAGED BEBAS TABRAKAN/OVERWRITE
+        function exportDamagedCSV() {
+            if (dataDamaged.length === 0) {
+                alert("Belum ada data barang damaged untuk diekspor!");
+                return;
+            }
+
+            let csvContent = "\uFEFFTanggal,Foto,Kategori,Mat ID,Nama Produk / Deskripsi,Qty Rusak,Satuan (UOM),Lokasi,Pelapor,Status Approval,Verified By,Catatan\n";
+            dataDamaged.forEach(row => {
+                const tglFormatted = formatTanggalIndo(row.tanggal);
+                const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
+                const kategoriText = row.kategori || "Food";
+                const matIdText = row.matId || "-";
+
+                csvContent += `"${tglFormatted}","${fotoText}","${kategoriText}","${row.nama}",${Number(row.qty) || 0},"${row.satuan || 'Pcs'}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Laporan_WpcAps_Damaged_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function simpanDamagedBaru(event) {
             event.preventDefault();
             
@@ -2578,7 +2551,6 @@
                     const qty = parseInt(row.querySelector('.item-qty').value) || 1;
                     const satuan = row.querySelector('.item-satuan').value;
 
-                    // ID DIBUAT DENGAN RANDOM UNIK AGAR TIDAK SALING BENTROK
                     const newItem = {
                         id: `${timestampBase}_${index}_${Math.floor(Math.random() * 1000)}`,
                         tanggal: tglStr,
@@ -2599,7 +2571,6 @@
                 simpanKeStorage();
                 tutupModalDamaged();
                 renderDamaged();
-                renderStatistik();
                 alert("✅ Laporan Barang Damaged berhasil dikirim & tersimpan!");
             } catch (err) {
                 console.error("Error submit damaged:", err);
@@ -2612,834 +2583,85 @@
             }
         }
 
-        function exportDamagedExcel() {
-            if (dataDamaged.length === 0) {
-                alert("Belum ada data barang damaged untuk diekspor!");
-                return;
-            }
-
-            const dataArray = [
-                ["Tanggal", "Foto", "Kategori", "Mat ID", "Nama Produk / Deskripsi", "Qty Rusak", "Lokasi", "Pelapor", "Status Approval", "Di-verify Oleh", "Catatan"]
-            ];
-
-            dataDamaged.forEach(row => {
-                const tglFormatted = formatTanggalIndo(row.tanggal);
-                const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
-                const kategoriText = row.kategori || "Food";
-                const matIdText = row.matId || "-";
-                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
-
-                dataArray.push([
-                    tglFormatted,
-                    fotoText,
-                    kategoriText,
-                    matIdText,
-                    row.nama,
-                    qtySatuanText,
-                    row.lokasi,
-                    row.pelapor,
-                    row.status || "Pending",
-                    row.verifiedBy || "-",
-                    row.catatanSupervisor || "-"
-                ]);
-            });
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(dataArray);
-
-            ws['!cols'] = [
-                { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
-                { wch: 35 }, { wch: 16 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 25 }
-            ];
-
-            XLSX.utils.book_append_sheet(wb, ws, "Laporan Damaged");
-            XLSX.writeFile(wb, `Laporan_WpcAps_Damaged_${new Date().toISOString().slice(0,10)}.xlsx`);
+        function renderStatistik() {
+            renderDashboardDamagedVisual();
         }
 
-        function exportDamagedCSV() {
-            if (dataDamaged.length === 0) {
-                alert("Belum ada data barang damaged untuk diekspor!");
-                return;
-            }
-
-            let csvContent = "\uFEFFTanggal,Foto,Kategori,Mat ID,Nama Produk / Deskripsi,Qty Rusak,Lokasi,Pelapor,Status Approval,Verified By,Catatan\n";
-            dataDamaged.forEach(row => {
-                const tglFormatted = formatTanggalIndo(row.tanggal);
-                const fotoText = row.foto ? "Lihat Foto" : "Tanpa Foto";
-                const kategoriText = row.kategori || "Food";
-                const matIdText = row.matId || "-";
-                const qtySatuanText = `${row.qty} ${row.satuan || ''}`.trim();
-
-                csvContent += `"${tglFormatted}","${fotoText}","${kategoriText}","${row.nama}","${qtySatuanText}","${row.lokasi}","${row.pelapor}","${row.status || 'Pending'}","${row.verifiedBy || '-'}","${row.catatanSupervisor || '-'}"\n`;
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Laporan_WpcAps_Damaged_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function bukaModalTambah() {
+            const m = document.getElementById('modal-tambah');
+            if (m) m.classList.remove('hidden');
         }
 
-        function prosesEkstraksiSelisihExcel(file, tanggal) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-
-                        let diffCaseItems = 0, diffCaseQty = 0;
-                        let diffPackItems = 0, diffPackQty = 0;
-                        let detailProductsList = [];
-
-                        workbook.SheetNames.forEach(sheetName => {
-                            const worksheet = workbook.Sheets[sheetName];
-                            const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                            if (jsonSheet.length > 0) {
-                                let colMid = -1;
-                                let colDesc = -1;
-                                let colQtyCaseSys = -1, colQtyCaseAct = -1, colDiffCase = -1;
-                                let colQtyPackSys = -1, colQtyPackAct = -1, colDiffPack = -1;
-                                let colBin = -1;
-
-                                jsonSheet.forEach((row, rIdx) => {
-                                    if (rIdx < 5) {
-                                        row.forEach((cellVal, cIdx) => {
-                                            if (cellVal) {
-                                                const strVal = String(cellVal).trim().toLowerCase();
-                                                if (strVal === 'mid system' || strVal === 'mat id' || strVal === 'mid') colMid = cIdx;
-                                                if (strVal.includes('description') || strVal.includes('nama')) colDesc = cIdx;
-                                                if (strVal === 'qty case system') colQtyCaseSys = cIdx;
-                                                if (strVal === 'qty case actual') colQtyCaseAct = cIdx;
-                                                if (strVal === 'diff. case' || strVal === 'diff case') colDiffCase = cIdx;
-                                                if (strVal === 'qty pack system') colQtyPackSys = cIdx;
-                                                if (strVal === 'qty pack actual') colQtyPackAct = cIdx;
-                                                if (strVal === 'diff. pack' || strVal === 'diff pack') colDiffPack = cIdx;
-                                                if (strVal.includes('bin') || strVal.includes('rak')) colBin = cIdx;
-                                            }
-                                        });
-                                    }
-                                });
-
-                                jsonSheet.forEach((row, rIdx) => {
-                                    if (rIdx > 0 && row.length > 0) {
-                                        const rawMid = colMid !== -1 ? row[colMid] : null;
-                                        const rawDesc = colDesc !== -1 ? row[colDesc] : null;
-
-                                        if (rawMid && String(rawMid).toLowerCase() !== 'mid system' && String(rawMid).toLowerCase() !== 'total') {
-                                            const mid = String(rawMid).replace("'", "").trim();
-                                            const nama = rawDesc ? String(rawDesc).trim() : 'Produk MID ' + mid;
-                                            const binText = (colBin !== -1 && row[colBin]) ? String(row[colBin]).trim() : '-';
-
-                                            if (colDiffCase !== -1 && row[colDiffCase] !== undefined) {
-                                                const valCase = parseFloat(row[colDiffCase]);
-                                                if (!isNaN(valCase) && valCase !== 0) {
-                                                    diffCaseItems++;
-                                                    diffCaseQty += Math.abs(valCase);
-
-                                                    const sysVal = colQtyCaseSys !== -1 ? (parseFloat(row[colQtyCaseSys]) || 0) : '-';
-                                                    const actVal = colQtyCaseAct !== -1 ? (parseFloat(row[colQtyCaseAct]) || 0) : '-';
-
-                                                    detailProductsList.push({
-                                                        id: `${mid}_CASE_${Date.now()}_${rIdx}`,
-                                                        tanggal,
-                                                        mid,
-                                                        nama,
-                                                        type: 'CASE',
-                                                        qtySys: sysVal,
-                                                        qtyAct: actVal,
-                                                        variance: valCase,
-                                                        bin: binText
-                                                    });
-                                                }
-                                            }
-
-                                            if (colDiffPack !== -1 && row[colDiffPack] !== undefined) {
-                                                const valPack = parseFloat(row[colDiffPack]);
-                                                if (!isNaN(valPack) && valPack !== 0) {
-                                                    diffPackItems++;
-                                                    diffPackQty += Math.abs(valPack);
-
-                                                    const sysVal = colQtyPackSys !== -1 ? (parseFloat(row[colQtyPackSys]) || 0) : '-';
-                                                    const actVal = colQtyPackAct !== -1 ? (parseFloat(row[colQtyPackAct]) || 0) : '-';
-
-                                                    detailProductsList.push({
-                                                        id: `${mid}_PACK_${Date.now()}_${rIdx}`,
-                                                        tanggal,
-                                                        mid,
-                                                        nama,
-                                                        type: 'PACK',
-                                                        qtySys: sysVal,
-                                                        qtyAct: actVal,
-                                                        variance: valPack,
-                                                        bin: binText
-                                                    });
-                                                }
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        });
-
-                        resolve({
-                            diffCaseItems,
-                            diffCaseQty: Math.round(diffCaseQty),
-                            diffPackItems,
-                            diffPackQty: Math.round(diffPackQty),
-                            detailProducts: detailProductsList
-                        });
-                    } catch (err) {
-                        console.warn("Parsing Excel Error:", err);
-                        resolve({ diffCaseItems: 0, diffCaseQty: 0, diffPackItems: 0, diffPackQty: 0, detailProducts: [] });
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            });
+        function tutupModalTambah() {
+            const m = document.getElementById('modal-tambah');
+            if (m) m.classList.add('hidden');
+            const f = document.getElementById('form-tambah');
+            if (f) f.reset();
         }
 
-        async function simpanOpnameDaily(event) {
-            event.preventDefault();
-            if (!isSupervisor()) {
-                alert('Akses ditolak! Hanya Supervisor / Manajemen yang diperbolehkan mengunggah file opname.');
-                return;
-            }
+        function simpanJadwalBaru(e) {
+            e.preventDefault();
+            const zona = document.getElementById('add-zona').value;
+            const pic = document.getElementById('add-pic').value;
+            const waktu = document.getElementById('add-waktu').value;
+            const shift = document.getElementById('add-shift').value;
+            const todayStr = new Date().toISOString().slice(0,10);
 
-            const btnSubmit = document.getElementById('btn-submit-opname');
-            if (btnSubmit) {
-                btnSubmit.disabled = true;
-                btnSubmit.innerText = 'Memproses & Membaca Berkas...';
-            }
+            dataJadwal.push({
+                id: Date.now(),
+                waktu: waktu,
+                shift: shift,
+                zona: zona,
+                pic: pic,
+                foto: null, 
+                status: 'Belum',
+                tanggalDibuat: todayStr,
+                tanggalPengerjaan: null,
+                checkerName: null
+            });
 
-            const tanggal = document.getElementById('opname-tanggal').value;
-            const judul = document.getElementById('opname-judul').value;
-            const fileInput = document.getElementById('opname-file');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert('Silakan pilih file Excel / Spreadsheet terlebih dahulu!');
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerText = 'Unggah & Proses Laporan Opname';
-                }
-                return;
-            }
-
-            const ekstraksi = await prosesEkstraksiSelisihExcel(file, tanggal);
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const fileBase64 = e.target.result;
-                const sizeKb = Math.round(file.size / 1024);
-                
-                const now = new Date();
-                const uploadTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
-                const itemBaru = {
-                    id: Date.now(),
-                    tanggal: tanggal,
-                    judul: judul,
-                    fileName: file.name,
-                    fileSize: sizeKb > 1024 ? (sizeKb / 1024).toFixed(2) + ' MB' : sizeKb + ' KB',
-                    fileData: fileBase64,
-                    uploadTime: `${now.toISOString().slice(0,10)} ${uploadTime}`,
-                    diffCaseItems: ekstraksi.diffCaseItems,
-                    diffCaseQty: ekstraksi.diffCaseQty,
-                    diffPackItems: ekstraksi.diffPackItems,
-                    diffPackQty: ekstraksi.diffPackQty,
-                    detailProducts: ekstraksi.detailProducts || []
-                };
-
-                dataOpname.unshift(itemBaru);
-                simpanKeStorage();
-                
-                const formOp = document.getElementById('form-opname');
-                if (formOp) formOp.reset();
-                const opDate = document.getElementById('opname-tanggal');
-                if (opDate) opDate.value = new Date().toISOString().slice(0,10);
-                
-                renderOpname();
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerText = 'Unggah & Proses Laporan Opname';
-                }
-                alert(`✅ Berkas Opname Berhasil Diproses!\n• Diff Case: ${ekstraksi.diffCaseItems} Item (${ekstraksi.diffCaseQty} Qty)\n• Diff Pack: ${ekstraksi.diffPackItems} Item (${ekstraksi.diffPackQty} Qty)\n• Total ${ekstraksi.detailProducts.length} Rincian Baris Produk Selisih Diekstrak!`);
-            };
-
-            reader.readAsDataURL(file);
+            simpanKeStorage(); 
+            tutupModalTambah(); 
+            renderTabel(); 
+            alert("✅ Jadwal Kebersihan berhasil ditambahkan!");
         }
 
-        function updateOpsiFilterTanggalOpname() {
-            const selectFilter = document.getElementById('filter-opname-date');
-            if (!selectFilter) return;
+        function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
+        function tutupModalLihat() { const m = document.getElementById('modal-lihat'); if (m) m.classList.add('hidden'); }
 
-            const selectedVal = selectFilter.value;
-            
-            const setTanggal = new Set();
-            dataOpname.forEach(item => {
-                if (item.tanggal) setTanggal.add(item.tanggal);
-            });
-
-            const arrayTanggal = Array.from(setTanggal).sort().reverse();
-
-            selectFilter.innerHTML = `<option value="ALL">Semua Tanggal (Akumulasi Total)</option>`;
-            arrayTanggal.forEach(tgl => {
-                const opt = document.createElement('option');
-                opt.value = tgl;
-                opt.innerText = formatTanggalIndo(tgl);
-                if (tgl === selectedVal) opt.selected = true;
-                selectFilter.appendChild(opt);
-            });
-        }
-
-        function renderDashboardOpnameVisual() {
-            updateOpsiFilterTanggalOpname();
-
-            const filterSelect = document.getElementById('filter-opname-date');
-            const selectedDate = filterSelect ? filterSelect.value : 'ALL';
-
-            let filteredData = dataOpname;
-            if (selectedDate && selectedDate !== 'ALL') {
-                filteredData = dataOpname.filter(i => i.tanggal === selectedDate);
-            }
-
-            let totalCaseItems = 0, totalCaseQty = 0;
-            let totalPackItems = 0, totalPackQty = 0;
-
-            const labelsTrend = [];
-            const dataTrendCase = [];
-            const dataTrendPack = [];
-
-            filteredData.forEach(item => {
-                totalCaseItems += (item.diffCaseItems || 0);
-                totalCaseQty += (item.diffCaseQty || 0);
-                totalPackItems += (item.diffPackItems || 0);
-                totalPackQty += (item.diffPackQty || 0);
-            });
-
-            const recentOpname = filteredData.slice(0, 7).reverse();
-            recentOpname.forEach(item => {
-                labelsTrend.push(formatTanggalIndo(item.tanggal));
-                dataTrendCase.push(item.diffCaseQty || 0);
-                dataTrendPack.push(item.diffPackQty || 0);
-            });
-
-            const elCaseCount = document.getElementById('stat-diff-case-count');
-            const elPackCount = document.getElementById('stat-diff-pack-count');
-            const elCaseQty = document.getElementById('stat-diff-case-qty');
-            const elPackQty = document.getElementById('stat-diff-pack-qty');
-
-            if (elCaseCount) elCaseCount.innerText = totalCaseItems;
-            if (elPackCount) elPackCount.innerText = totalPackItems;
-            if (elCaseQty) elCaseQty.innerText = totalCaseQty;
-            if (elPackQty) elPackQty.innerText = totalPackQty;
-
-            try {
-                const pageOp = document.getElementById('page-opname');
-                if (pageOp && !pageOp.classList.contains('hidden')) {
-                    const canvasOp = document.getElementById('chartOpnameDiffTrend');
-                    if (canvasOp && typeof Chart !== 'undefined') {
-                        const ctxOp = canvasOp.getContext('2d');
-                        if (chartOpnameDiffTrendInstance) chartOpnameDiffTrendInstance.destroy();
-
-                        chartOpnameDiffTrendInstance = new Chart(ctxOp, {
-                            type: 'bar',
-                            data: {
-                                labels: labelsTrend.length > 0 ? labelsTrend : ['Belum Ada Data'],
-                                datasets: [
-                                    { label: 'Selisih Diff Case (Qty)', data: dataTrendCase.length > 0 ? dataTrendCase : [0], backgroundColor: '#D97706', borderRadius: 4 },
-                                    { label: 'Selisih Diff Pack (Qty)', data: dataTrendPack.length > 0 ? dataTrendPack : [0], backgroundColor: '#2563EB', borderRadius: 4 }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
-                                scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } }
-                            }
-                        });
-                    }
-                }
-            } catch (err) {
-                console.warn("Opname Chart safe-skip:", err);
-            }
-
-            renderTabelRincianSelisihOpname();
-        }
-
-        function renderTabelRincianSelisihOpname() {
-            const tbody = document.getElementById('tabel-rincian-selisih-opname');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            const selectedDate = document.getElementById('filter-opname-date')?.value || 'ALL';
-            const filterType = document.getElementById('filter-opname-diff-type')?.value || 'ALL';
-            const keyword = document.getElementById('search-opname-diff-keyword')?.value.trim().toLowerCase() || '';
-
-            let allDetails = [];
-            dataOpname.forEach(fileOp => {
-                if (selectedDate === 'ALL' || fileOp.tanggal === selectedDate) {
-                    if (fileOp.detailProducts && Array.isArray(fileOp.detailProducts)) {
-                        allDetails.push(...fileOp.detailProducts);
-                    }
-                }
-            });
-
-            const filteredDetails = allDetails.filter(item => {
-                const matchType = (filterType === 'ALL') || (item.type === filterType);
-                const matchKeyword = (String(item.mid).toLowerCase().includes(keyword)) || (item.nama.toLowerCase().includes(keyword));
-                return matchType && matchKeyword;
-            });
-
-            const badgeCount = document.getElementById('stat-opname-diff-item-badge');
-            if (badgeCount) badgeCount.innerText = `${filteredDetails.length} Item Selisih`;
-
-            if (filteredDetails.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-400 text-xs">Belum ada rincian produk selisih opname untuk filter yang dipilih. Silakan unggah berkas Excel Opname.</td></tr>`;
-                return;
-            }
-
-            filteredDetails.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
-
-                let badgeType = item.type === 'CASE'
-                    ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🟡 DIFF CASE (BOX)</span>`
-                    : `<span class="bg-purple-100 text-purple-800 border border-purple-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🟣 DIFF PACK (PCS)</span>`;
-
-                const varianceSign = item.variance > 0 ? `+${item.variance}` : item.variance;
-                const unitName = item.type === 'CASE' ? 'Box' : 'Pack/Pcs';
-
-                tr.innerHTML = `
-                    <td class="py-3 px-4 text-xs font-semibold">${formatTanggalIndo(item.tanggal)}</td>
-                    <td class="py-3 px-4 font-mono font-bold text-xs text-themeblue-800">${item.mid}</td>
-                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
-                    <td class="py-3 px-4">${badgeType}</td>
-                    <td class="py-3 px-4 text-xs text-gray-600">Sys: <strong>${item.qtySys}</strong> | Act: <strong>${item.qtyAct}</strong></td>
-                    <td class="py-3 px-4 text-xs font-bold ${item.variance < 0 ? 'text-red-600' : 'text-green-600'}">${varianceSign} ${unitName}</td>
-                    <td class="py-3 px-4 text-xs font-mono text-gray-500">${item.bin || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderOpname() {
-            const tbody = document.getElementById('tabel-opname');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            const elCount = document.getElementById('stat-opname-count');
-            if (elCount) elCount.innerText = `${dataOpname.length} Berkas`;
-
-            if (dataOpname.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada berkas Opname Daily yang diunggah.</td></tr>`;
-                renderDashboardOpnameVisual();
-                return;
-            }
-
-            dataOpname.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
-
-                const badgeSelisih = `
-                    <div class="text-[11px] space-y-0.5">
-                        <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">Case: ${item.diffCaseQty || 0} Qty (${item.diffCaseItems || 0} Items)</span>
-                        <span class="bg-purple-100 text-purple-800 px-2 py-0.5 rounded font-bold">Pack: ${item.diffPackQty || 0} Qty (${item.diffPackItems || 0} Items)</span>
-                    </div>
-                `;
-
-                tr.innerHTML = `
-                    <td class="py-3.5 px-4 font-bold text-themeblue-800 text-xs">${formatTanggalIndo(item.tanggal)}</td>
-                    <td class="py-3.5 px-4 font-semibold text-gray-800">${item.judul}</td>
-                    <td class="py-3.5 px-4 text-xs font-mono text-themeblue-700">${item.fileName}</td>
-                    <td class="py-3.5 px-4">${badgeSelisih}</td>
-                    <td class="py-3.5 px-4 text-xs text-gray-500">${item.fileSize}</td>
-                    <td class="py-3.5 px-4 no-print flex items-center gap-2">
-                        <a href="${item.fileData}" download="${item.fileName}" class="bg-themeblue-700 hover:bg-themeblue-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
-                            <span>📥</span><span>Download File</span>
-                        </a>
-                        <button onclick="hapusOpname('${item.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            renderDashboardOpnameVisual();
-        }
-
-        function hapusOpname(id) {
+        function resetDataJadwal() {
             if (!isSupervisor()) return;
-            if (confirm('Apakah Anda yakin ingin menghapus berkas opname ini?')) {
-                dataOpname = dataOpname.filter(i => String(i.id) !== String(id));
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Jadwal Kebersihan?')) {
+                dataJadwal = [];
+                simpanKeStorage();
+                renderTabel();
+            }
+        }
+
+        function resetDataDamaged() {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Laporan Barang Damaged?')) {
+                dataDamaged = [];
+                simpanKeStorage();
+                renderDamaged();
+            }
+        }
+
+        function resetDataExpired() {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Opname Expired?')) {
+                dataExpired = [];
+                simpanKeStorage();
+                renderExpired();
+            }
+        }
+
+        function resetDataOpname() {
+            if (!isSupervisor()) return;
+            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh arsip berkas Opname Daily?')) {
+                dataOpname = [];
                 simpanKeStorage();
                 renderOpname();
-            }
-        }
-
-        function prosesEkstraksiStockOverviewExcel(file, tanggal) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-
-                        let extractedItems = [];
-                        let globalOnHandTotal = 0;
-                        let globalPctOverstockTotal = 0;
-
-                        workbook.SheetNames.forEach(sheetName => {
-                            const worksheet = workbook.Sheets[sheetName];
-                            const jsonSheet = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                            if (jsonSheet.length > 0) {
-                                let isOverstockSheet = sheetName.toLowerCase().includes('overstock');
-                                let isDeadstockSheet = sheetName.toLowerCase().includes('deadstock');
-
-                                let colMatId = 0;
-                                let colDesc = 1;
-                                let colRiskQty = -1;
-                                let colXDays = -1;
-                                let colOnHand = -1;
-                                let colPctRisk = -1;
-
-                                jsonSheet.forEach((row, rIdx) => {
-                                    if (rIdx < 5) {
-                                        row.forEach((cellVal, cIdx) => {
-                                            if (cellVal) {
-                                                const strVal = String(cellVal).trim().toLowerCase();
-                                                if (strVal === 'product' || strVal === 'mat id' || strVal === 'material') colMatId = cIdx;
-                                                if (strVal.includes('description') || strVal.includes('nama')) colDesc = cIdx;
-                                                if (strVal.includes('overstock >50d') && !strVal.includes('%')) colRiskQty = cIdx;
-                                                if (strVal.includes('qty deadstock')) colRiskQty = cIdx;
-                                                if (strVal.includes('xdays')) colXDays = cIdx;
-                                                if (strVal.includes('on hand')) colOnHand = cIdx;
-                                                if (strVal.includes('%overstock') || strVal.includes('%deadstock')) colPctRisk = cIdx;
-                                            }
-                                        });
-                                    }
-                                });
-
-                                jsonSheet.forEach((row, rIdx) => {
-                                    if (rIdx > 0 && row.length > 0) {
-                                        const rawMatId = row[colMatId];
-                                        const rawDesc = row[colDesc];
-
-                                        if (rawMatId && String(rawMatId).toLowerCase() === 'total') {
-                                            if (colOnHand !== -1 && row[colOnHand] !== undefined) {
-                                                const totalVal = parseFloat(row[colOnHand]);
-                                                if (!isNaN(totalVal)) globalOnHandTotal = Math.round(totalVal);
-                                            }
-                                            if (colPctRisk !== -1 && row[colPctRisk] !== undefined) {
-                                                const pctVal = parseFloat(row[colPctRisk]);
-                                                if (!isNaN(pctVal)) globalPctOverstockTotal = Math.round(pctVal * 10000) / 100;
-                                            }
-                                        }
-
-                                        if (rawMatId && String(rawMatId).toLowerCase() !== 'product' && String(rawMatId).toLowerCase() !== 'total') {
-                                            const matId = String(rawMatId).replace("'", "").trim();
-                                            const nama = rawDesc ? String(rawDesc).trim() : 'Produk ' + matId;
-
-                                            let riskQty = 0;
-                                            if (colRiskQty !== -1 && row[colRiskQty] !== undefined) {
-                                                const parsedQty = parseFloat(row[colRiskQty]);
-                                                if (!isNaN(parsedQty)) riskQty = Math.round(parsedQty);
-                                            }
-
-                                            let pctRiskVal = 0;
-                                            if (colPctRisk !== -1 && row[colPctRisk] !== undefined) {
-                                                const parsedPct = parseFloat(row[colPctRisk]);
-                                                if (!isNaN(parsedPct)) pctRiskVal = Math.round(parsedPct * 10000) / 100;
-                                            }
-
-                                            let xdays = 0;
-                                            if (colXDays !== -1 && row[colXDays] !== undefined) {
-                                                const parsedX = parseFloat(row[colXDays]);
-                                                if (!isNaN(parsedX)) xdays = Math.round(parsedX * 10) / 10;
-                                            }
-
-                                            let onHand = 0;
-                                            if (colOnHand !== -1 && row[colOnHand] !== undefined) {
-                                                const parsedOH = parseFloat(row[colOnHand]);
-                                                if (!isNaN(parsedOH)) onHand = Math.round(parsedOH);
-                                            }
-
-                                            if (riskQty > 0 || pctRiskVal > 0) {
-                                                const riskCategory = isDeadstockSheet ? 'DEADSTOCK' : (isOverstockSheet ? 'OVERSTOCK' : (xdays >= 90 ? 'DEADSTOCK' : 'OVERSTOCK'));
-
-                                                extractedItems.push({
-                                                    id: `${matId}_${riskCategory}`,
-                                                    matId,
-                                                    nama,
-                                                    kategori: riskCategory,
-                                                    riskQty,
-                                                    pctRiskVal,
-                                                    onHand,
-                                                    xdays,
-                                                    actionPlan: 'Pending Disposisi',
-                                                    tanggal
-                                                });
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        });
-
-                        resolve({
-                            items: extractedItems,
-                            onHandTotal: globalOnHandTotal,
-                            pctOverstockTotal: globalPctOverstockTotal,
-                            date: tanggal
-                        });
-                    } catch (err) {
-                        console.warn("Parsing Stock Overview Error:", err);
-                        resolve({ items: [], onHandTotal: 0, pctOverstockTotal: 0, date: tanggal });
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            });
-        }
-
-        async function simpanStockOverview(event) {
-            event.preventDefault();
-            if (!isSupervisor()) {
-                alert('Akses ditolak! Hanya Supervisor / DC Manager yang diperbolehkan mengunggah data Overview.');
-                return;
-            }
-
-            const btnSubmit = document.getElementById('btn-submit-stock');
-            if (btnSubmit) {
-                btnSubmit.disabled = true;
-                btnSubmit.innerText = 'Menganalisis Berkas Stock Overview...';
-            }
-
-            const tanggal = document.getElementById('stock-tanggal').value;
-            const fileInput = document.getElementById('stock-file');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert('Silakan pilih berkas Excel Stock Overview terlebih dahulu!');
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerText = '⚡ Proses & Analisis Data Stok';
-                }
-                return;
-            }
-
-            const ekstraksi = await prosesEkstraksiStockOverviewExcel(file, tanggal);
-
-            if (ekstraksi.items.length === 0) {
-                alert("⚠️ Tidak ditemukan data ber-risiko (Overstock / Deadstock > 0) pada file yang diunggah!");
-            } else {
-                let currentItemsMap = {};
-                if (dataStockOverview && dataStockOverview.items) {
-                    dataStockOverview.items.forEach(i => { currentItemsMap[i.id] = i; });
-                }
-
-                ekstraksi.items.forEach(newItem => {
-                    if (currentItemsMap[newItem.id]) {
-                        currentItemsMap[newItem.id].riskQty = newItem.riskQty;
-                        currentItemsMap[newItem.id].pctRiskVal = newItem.pctRiskVal;
-                        currentItemsMap[newItem.id].onHand = newItem.onHand;
-                        currentItemsMap[newItem.id].xdays = newItem.xdays;
-                        currentItemsMap[newItem.id].tanggal = newItem.tanggal;
-                    } else {
-                        currentItemsMap[newItem.id] = newItem;
-                    }
-                });
-
-                dataStockOverview = {
-                    items: Object.values(currentItemsMap),
-                    onHandTotal: ekstraksi.onHandTotal || dataStockOverview.onHandTotal || 0,
-                    pctOverstockTotal: ekstraksi.pctOverstockTotal || dataStockOverview.pctOverstockTotal || 0,
-                    date: tanggal
-                };
-
-                simpanKeStorage();
-                renderDashboardOverstockDeadstock();
-
-                alert(`✅ Analitika Stok Berhasil Di-update!\n• Terdeteksi ${ekstraksi.items.length} Item Ber-Risiko Baru\n• Total %Overstock >50D: ${dataStockOverview.pctOverstockTotal}%\n• Total On-Hand Box DC: ${dataStockOverview.onHandTotal.toLocaleString('id-ID')} Box`);
-            }
-
-            if (btnSubmit) {
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = '⚡ Proses & Analisis Data Stok';
-            }
-        }
-
-        function updateActionPlanDisposisi(itemId, newPlan) {
-            if (!dataStockOverview || !dataStockOverview.items) return;
-            const targetIndex = dataStockOverview.items.findIndex(i => String(i.id) === String(itemId));
-            
-            if (targetIndex !== -1) {
-                dataStockOverview.items[targetIndex].actionPlan = newPlan;
-                simpanKeStorage();
-                renderTabelOverstockDeadstock();
-            }
-        }
-
-        function renderDashboardOverstockDeadstock() {
-            const items = (dataStockOverview && dataStockOverview.items) ? dataStockOverview.items : [];
-            let totalOvsQty = 0;
-            let totalDdsQty = 0;
-
-            items.forEach(item => {
-                if (item.kategori === 'OVERSTOCK') totalOvsQty += (item.riskQty || 0);
-                else if (item.kategori === 'DEADSTOCK') totalDdsQty += (item.riskQty || 0);
-            });
-
-            const elPctOvs = document.getElementById('stat-ovs-pct');
-            const elSubOvs = document.getElementById('stat-ovs-sub');
-            const elDds = document.getElementById('stat-dds-qty');
-            const elOnHand = document.getElementById('stat-onhand-qty');
-            const elRiskCount = document.getElementById('stat-risk-products-count');
-
-            const pctValDisplay = dataStockOverview.pctOverstockTotal ? `${dataStockOverview.pctOverstockTotal}%` : (dataStockOverview.onHandTotal > 0 ? `${(Math.round((totalOvsQty / dataStockOverview.onHandTotal) * 10000) / 100)}%` : '0%');
-
-            if (elPctOvs) elPctOvs.innerText = pctValDisplay;
-            if (elSubOvs) elSubOvs.innerText = `(${totalOvsQty.toLocaleString('id-ID')} Box)`;
-            if (elDds) elDds.innerText = totalDdsQty.toLocaleString('id-ID');
-            if (elOnHand) elOnHand.innerText = (dataStockOverview.onHandTotal || 0).toLocaleString('id-ID');
-            if (elRiskCount) elRiskCount.innerText = items.length;
-
-            try {
-                const pageOvs = document.getElementById('page-overstock');
-                if (pageOvs && !pageOvs.classList.contains('hidden')) {
-                    const canvasRatio = document.getElementById('chartStockRatio');
-                    if (canvasRatio && typeof Chart !== 'undefined') {
-                        const ctxRatio = canvasRatio.getContext('2d');
-                        if (chartStockRatioInstance) chartStockRatioInstance.destroy();
-
-                        const totalOH = dataStockOverview.onHandTotal || (totalOvsQty + totalDdsQty + 10000);
-                        const healthyQty = Math.max(0, totalOH - totalOvsQty - totalDdsQty);
-
-                        chartStockRatioInstance = new Chart(ctxRatio, {
-                            type: 'doughnut',
-                            data: {
-                                labels: ['Stok Sehat ✅', 'Overstock (>50D) 🟡', 'Deadstock (>90D) 🔴'],
-                                datasets: [{
-                                    data: [healthyQty, totalOvsQty, totalDdsQty],
-                                    backgroundColor: ['#059669', '#D97706', '#DC2626'],
-                                    borderWidth: 2
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
-                            }
-                        });
-                    }
-
-                    const canvasTopRisk = document.getElementById('chartTopStockRisks');
-                    if (canvasTopRisk && typeof Chart !== 'undefined') {
-                        const ctxTopRisk = canvasTopRisk.getContext('2d');
-                        if (chartTopStockRisksInstance) chartTopStockRisksInstance.destroy();
-
-                        const sortedRisks = [...items].sort((a, b) => (b.pctRiskVal || b.riskQty) - (a.pctRiskVal || a.riskQty)).slice(0, 5);
-
-                        chartTopStockRisksInstance = new Chart(ctxTopRisk, {
-                            type: 'bar',
-                            data: {
-                                labels: sortedRisks.map(p => p.nama.length > 20 ? p.nama.slice(0,20) + '...' : p.nama),
-                                datasets: [{
-                                    label: '% Overstock / Qty Box',
-                                    data: sortedRisks.map(p => p.pctRiskVal || p.riskQty),
-                                    backgroundColor: sortedRisks.map(p => p.kategori === 'DEADSTOCK' ? '#DC2626' : '#D97706'),
-                                    borderRadius: 5
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false } },
-                                scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { font: { size: 10 } } } }
-                            }
-                        });
-                    }
-                }
-            } catch (err) {
-                console.warn("Stock Overview Chart safe-skip:", err);
-            }
-
-            renderTabelOverstockDeadstock();
-        }
-
-        function renderTabelOverstockDeadstock() {
-            const tbody = document.getElementById('tabel-overstock');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            const items = (dataStockOverview && dataStockOverview.items) ? dataStockOverview.items : [];
-            const filterKat = document.getElementById('filter-stock-category')?.value || 'ALL';
-            const keyword = document.getElementById('search-stock-keyword')?.value.trim().toLowerCase() || '';
-
-            const filteredItems = items.filter(item => {
-                const matchKat = (filterKat === 'ALL') || (item.kategori === filterKat);
-                const matchKeyword = (item.matId.toLowerCase().includes(keyword)) || (item.nama.toLowerCase().includes(keyword));
-                return matchKat && matchKeyword;
-            });
-
-            const badgeCount = document.getElementById('stat-risk-item-badge');
-            if (badgeCount) badgeCount.innerText = `${filteredItems.length} Item Filtered`;
-
-            if (filteredItems.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-gray-400 text-xs">Belum ada data Overstock / Deadstock terdaftar. Silakan unggah berkas Excel Overview.</td></tr>`;
-                return;
-            }
-
-            filteredItems.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-themeblue-50/50 border-b border-themeblue-100';
-
-                let badgeKategori = item.kategori === 'DEADSTOCK'
-                    ? `<span class="bg-red-100 text-red-800 border border-red-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🔴 DEADSTOCK (>90D)</span>`
-                    : `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full text-[10px] font-bold">🟡 OVERSTOCK (>50D)</span>`;
-
-                const isSup = isSupervisor();
-                let selectActionPlan = '';
-                
-                if (isSup) {
-                    selectActionPlan = `
-                        <select onchange="updateActionPlanDisposisi('${item.id}', this.value)" class="bg-white border border-gray-300 rounded p-1 text-xs font-bold text-themeblue-900 focus:ring-1 focus:ring-themeblue-600 outline-none">
-                            <option value="Pending Disposisi" ${item.actionPlan === 'Pending Disposisi' ? 'selected' : ''}>⏳ Pending Disposisi</option>
-                            <option value="🏷️ Promo / Bundling" ${item.actionPlan === '🏷️ Promo / Bundling' ? 'selected' : ''}>🏷️ Promo / Bundling</option>
-                            <option value="🔁 Relokasi DC" ${item.actionPlan === '🔁 Relokasi DC' ? 'selected' : ''}>🔁 Relokasi DC</option>
-                            <option value="⚠️ Clearance Sale" ${item.actionPlan === '⚠️ Clearance Sale' ? 'selected' : ''}>⚠️ Clearance Sale</option>
-                            <option value="📦 Retur Supplier" ${item.actionPlan === '📦 Retur Supplier' ? 'selected' : ''}>📦 Retur Supplier</option>
-                        </select>
-                    `;
-                } else {
-                    selectActionPlan = `<span class="text-xs font-bold text-themeblue-800">${item.actionPlan || 'Pending Disposisi'}</span>`;
-                }
-
-                let pctDisplayStr = item.pctRiskVal !== undefined && item.pctRiskVal !== null 
-                    ? `<span class="font-bold text-red-600">${item.pctRiskVal}%</span> <span class="text-[10px] text-gray-500">(${item.riskQty} Box)</span>` 
-                    : `<span class="font-bold text-red-600">${item.riskQty} Box</span>`;
-
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-mono font-bold text-xs text-themeblue-800">${item.matId}</td>
-                    <td class="py-3 px-4 font-bold text-gray-800">${item.nama}</td>
-                    <td class="py-3 px-4">${badgeKategori}</td>
-                    <td class="py-3 px-4 text-xs font-semibold">${(item.onHand || 0).toLocaleString('id-ID')} Box</td>
-                    <td class="py-3 px-4 text-xs">${pctDisplayStr}</td>
-                    <td class="py-3 px-4 text-xs">${item.xdays ? item.xdays + ' Hari' : '-'}</td>
-                    <td class="py-3 px-4">${selectActionPlan}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function resetDataStockOverview() {
-            if (!isSupervisor()) return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Analitika Overstock & Deadstock?')) {
-                dataStockOverview = { items: [], onHandTotal: 0, pctOverstockTotal: 0, date: '' };
-                simpanKeStorage();
-                renderDashboardOverstockDeadstock();
             }
         }
 
@@ -3463,7 +2685,6 @@
             document.body.removeChild(link);
         }
 
-        // PERBAIKAN FITUR FILTER TANGGAL & LEADERBOARD KEBERSIHAN
         function updateOpsiFilterTanggalKebersihan() {
             const selectFilter = document.getElementById('filter-kebersihan-date');
             if (!selectFilter) return;
@@ -3472,7 +2693,6 @@
             const todayStr = new Date().toISOString().slice(0,10);
 
             const setTanggal = new Set();
-            setTanggal.add(todayStr); // Hari ini selalu opsi utama
 
             dataJadwal.forEach(item => {
                 const tgl = item.tanggalDibuat || (item.tanggalPengerjaan ? item.tanggalPengerjaan.slice(0,10) : null);
@@ -3481,7 +2701,7 @@
 
             const arrayTanggal = Array.from(setTanggal).sort().reverse();
 
-            selectFilter.innerHTML = `<option value="TODAY">Hari Ini (${formatTanggalIndo(todayStr)})</option>`;
+            selectFilter.innerHTML = `<option value="ALL">Semua Riwayat Jadwal</option><option value="TODAY">Hari Ini (${formatTanggalIndo(todayStr)})</option>`;
             arrayTanggal.forEach(tgl => {
                 if (tgl !== todayStr) {
                     const opt = document.createElement('option');
@@ -3492,10 +2712,9 @@
                 }
             });
 
-            if (selectedVal === 'TODAY') selectFilter.value = 'TODAY';
+            if (selectedVal) selectFilter.value = selectedVal;
         }
 
-        // RENDER TABEL JADWAL KEBERSIHAN
         function renderTabel() {
             const tbody = document.getElementById('tabel-jadwal');
             if (!tbody) return;
@@ -3507,18 +2726,31 @@
             const selectedDateFilter = selectFilter ? selectFilter.value : 'TODAY';
             const todayStr = new Date().toISOString().slice(0,10);
 
-            const targetDate = selectedDateFilter === 'TODAY' ? todayStr : selectedDateFilter;
+            let jadwalTerpilih = dataJadwal;
+            if (selectedDateFilter === 'TODAY') {
+                jadwalTerpilih = dataJadwal.filter(i => {
+                    const tglItem = i.tanggalDibuat || (i.tanggalPengerjaan ? i.tanggalPengerjaan.slice(0,10) : null);
+                    return !tglItem || tglItem === todayStr;
+                });
+            } else if (selectedDateFilter !== 'ALL') {
+                jadwalTerpilih = dataJadwal.filter(i => {
+                    const tglItem = i.tanggalDibuat || (i.tanggalPengerjaan ? i.tanggalPengerjaan.slice(0,10) : null);
+                    return tglItem === selectedDateFilter;
+                });
+            }
 
-            const jadwalTerpilih = dataJadwal.filter(i => {
-                const tglItem = i.tanggalDibuat || (i.tanggalPengerjaan ? i.tanggalPengerjaan.slice(0,10) : null);
-                return tglItem === targetDate;
-            });
-
-            // UPDATE LEADERBOARD SECARA PRESISI MENGIKUTI TANGGAL TERPILIH
             renderLeaderboardPIC(jadwalTerpilih);
 
+            const elTot = document.getElementById('stat-total');
+            const elSel = document.getElementById('stat-selesai');
+            const elPen = document.getElementById('stat-pending');
+
+            if (elTot) elTot.innerText = jadwalTerpilih.length;
+            if (elSel) elSel.innerText = jadwalTerpilih.filter(i => i.status === 'Selesai').length;
+            if (elPen) elPen.innerText = jadwalTerpilih.filter(i => i.status !== 'Selesai').length;
+
             if (jadwalTerpilih.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan yang ditambahkan untuk tanggal (${formatTanggalIndo(targetDate)}).</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400 text-xs">Belum ada jadwal kebersihan yang terdaftar untuk filter ini.</td></tr>`;
                 return;
             }
 
@@ -3600,7 +2832,7 @@
 
             if (dataPending.length === 0) {
                 const trEmptyPending = document.createElement('tr');
-                trEmptyPending.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Tidak ada jadwal pending pada tanggal ini. Semua area telah selesai atau tuntas!</td>`;
+                trEmptyPending.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Tidak ada jadwal pending. Semua area telah selesai atau tuntas!</td>`;
                 tbody.appendChild(trEmptyPending);
             } else {
                 dataPending.forEach(item => {
@@ -3619,7 +2851,7 @@
 
             if (dataSelesai.length === 0) {
                 const trEmptySelesai = document.createElement('tr');
-                trEmptySelesai.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Belum ada area kebersihan yang diselesaikan pada tanggal ini.</td>`;
+                trEmptySelesai.innerHTML = `<td colspan="6" class="text-center py-4 text-gray-400 text-xs italic bg-white">Belum ada area kebersihan yang diselesaikan.</td>`;
                 tbody.appendChild(trEmptySelesai);
             } else {
                 dataSelesai.forEach(item => {
@@ -3628,145 +2860,30 @@
             }
         }
 
-        function renderStatistik() {
-            const selectFilter = document.getElementById('filter-kebersihan-date');
-            const selectedDateFilter = selectFilter ? selectFilter.value : 'TODAY';
-            const todayStr = new Date().toISOString().slice(0,10);
-            const targetDate = selectedDateFilter === 'TODAY' ? todayStr : selectedDateFilter;
+        // FUNGSI BUKA & TUTUP MODAL DAMAGED YANG DIPERBAIKI (100% BEBAS BENTROK)
+        function bukaModalDamaged() {
+            const m = document.getElementById('modal-damaged');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.display = 'flex';
 
-            const jadwalTerpilih = dataJadwal.filter(i => {
-                const tglItem = i.tanggalDibuat || (i.tanggalPengerjaan ? i.tanggalPengerjaan.slice(0,10) : null);
-                return tglItem === targetDate;
-            });
-
-            const elTot = document.getElementById('stat-total');
-            const elSel = document.getElementById('stat-selesai');
-            const elPen = document.getElementById('stat-pending');
-
-            if (elTot) elTot.innerText = jadwalTerpilih.length;
-            if (elSel) elSel.innerText = jadwalTerpilih.filter(i => i.status === 'Selesai').length;
-            if (elPen) elPen.innerText = jadwalTerpilih.filter(i => i.status !== 'Selesai').length;
-
-            let boxCount = 0, pcsCount = 0, palletCount = 0;
-            let foodBox = 0, foodPcs = 0;
-            let nonBox = 0, nonPcs = 0;
-
-            dataDamaged.forEach(item => {
-                const q = item.qty || 0;
-                const s = item.satuan || 'Pcs';
-                const k = item.kategori || 'Food';
-
-                if (s.includes('Box') || s.includes('Karton') || s.includes('Master')) {
-                    boxCount += q;
-                    if (k === 'Food') foodBox += q; else nonBox += q;
-                } else if (s.includes('Pallet')) {
-                    palletCount += q;
-                } else {
-                    pcsCount += q;
-                    if (k === 'Food') foodPcs += q; else nonPcs += q;
+                const container = document.getElementById('container-items-damaged');
+                if (container && container.children.length === 0) {
+                    tambahBarisProduk();
                 }
-            });
-
-            const elDamTot = document.getElementById('stat-damaged-total');
-            const elDamQty = document.getElementById('stat-damaged-qty');
-            const elDamSatuanDetail = document.getElementById('stat-damaged-satuan-detail');
-            const elDamFood = document.getElementById('stat-damaged-food');
-            const elDamNon = document.getElementById('stat-damaged-nonfood');
-
-            if (elDamTot) elDamTot.innerText = dataDamaged.length;
-            if (elDamQty) elDamQty.innerText = `${dataDamaged.reduce((a,c) => a + (c.qty || 0), 0)} Items`;
-            
-            let detailSatuanStr = [];
-            if (boxCount > 0) detailSatuanStr.push(`${boxCount} Box/Karton`);
-            if (pcsCount > 0) detailSatuanStr.push(`${pcsCount} Pcs`);
-            if (palletCount > 0) detailSatuanStr.push(`${palletCount} Pallet`);
-            if (detailSatuanStr.length === 0) detailSatuanStr.push('0 Box | 0 Pcs');
-
-            if (elDamSatuanDetail) elDamSatuanDetail.innerText = detailSatuanStr.join(' | ');
-
-            if (elDamFood) elDamFood.innerText = `Food: ${foodBox > 0 ? foodBox + ' Box, ' : ''}${foodPcs} Pcs`;
-            if (elDamNon) elDamNon.innerText = `Non Food: ${nonBox > 0 ? nonBox + ' Box, ' : ''}${nonPcs} Pcs`;
-        }
-
-        function bukaModalTambah() {
-            const m = document.getElementById('modal-tambah');
-            if (m) m.classList.remove('hidden');
-        }
-
-        function tutupModalTambah() {
-            const m = document.getElementById('modal-tambah');
-            if (m) m.classList.add('hidden');
-            const f = document.getElementById('form-tambah');
-            if (f) f.reset();
-        }
-
-        function simpanJadwalBaru(e) {
-            e.preventDefault();
-            const zona = document.getElementById('add-zona').value;
-            const pic = document.getElementById('add-pic').value;
-            const waktu = document.getElementById('add-waktu').value;
-            const shift = document.getElementById('add-shift').value;
-            const todayStr = new Date().toISOString().slice(0,10);
-
-            dataJadwal.push({
-                id: Date.now(),
-                waktu: waktu,
-                shift: shift,
-                zona: zona,
-                pic: pic,
-                foto: null, 
-                status: 'Belum',
-                tanggalDibuat: todayStr,
-                tanggalPengerjaan: null,
-                checkerName: null
-            });
-
-            simpanKeStorage(); 
-            tutupModalTambah(); 
-            renderTabel(); 
-            renderStatistik();
-            alert("✅ Jadwal Kebersihan berhasil ditambahkan!");
-        }
-
-        function lihatFoto(url) { const img = document.getElementById('img-full'); const m = document.getElementById('modal-lihat'); if (img) img.src = url; if (m) m.classList.remove('hidden'); }
-        function tutupModalLihat() { const m = document.getElementById('modal-lihat'); if (m) m.classList.add('hidden'); }
-
-        function resetDataJadwal() {
-            if (!isSupervisor()) return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Jadwal Kebersihan?')) {
-                dataJadwal = [];
-                simpanKeStorage();
-                renderTabel();
-                renderStatistik();
             }
         }
 
-        function resetDataDamaged() {
-            if (!isSupervisor()) return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Laporan Barang Damaged?')) {
-                dataDamaged = [];
-                simpanKeStorage();
-                renderDamaged();
-                renderStatistik();
-            }
-        }
-
-        function resetDataExpired() {
-            if (!isSupervisor()) return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh data Opname Expired?')) {
-                dataExpired = [];
-                simpanKeStorage();
-                renderExpired();
-                renderStatistik();
-            }
-        }
-
-        function resetDataOpname() {
-            if (!isSupervisor()) return;
-            if (confirm('Apakah Anda yakin ingin menghapus/mengosongkan seluruh arsip berkas Opname Daily?')) {
-                dataOpname = [];
-                simpanKeStorage();
-                renderOpname();
+        function tutupModalDamaged() {
+            const m = document.getElementById('modal-damaged');
+            if (m) {
+                m.classList.add('hidden');
+                m.style.display = 'none';
+                const f = document.getElementById('form-damaged');
+                if (f) f.reset();
+                const p = document.getElementById('container-preview-damaged');
+                if (p) p.classList.add('hidden');
+                urlFotoDamagedSementara = '';
             }
         }
     </script>
